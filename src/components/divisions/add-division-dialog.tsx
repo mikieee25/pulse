@@ -52,9 +52,7 @@ export function AddDivisionDialog({ children }: { children: React.ReactNode }) {
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {children}
-      </DialogTrigger>
+      <DialogTrigger render={children as React.ReactElement} />
       <DialogContent className="sm:max-w-[425px] bg-canvas-deep border-line text-paper">
         <DialogHeader>
           <DialogTitle>Add Division</DialogTitle>

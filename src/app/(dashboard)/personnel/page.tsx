@@ -1,7 +1,8 @@
 import { createClient } from "@/utils/supabase/server"
 import { PersonnelTable } from "@/components/personnel/personnel-table"
-import { columns, type PersonnelData } from "@/components/personnel/columns"
+import type { PersonnelData } from "@/components/personnel/columns"
 import { AddPersonnelDialog } from "@/components/personnel/add-personnel-dialog"
+import { Button } from "@/components/ui/button"
 
 export default async function PersonnelPage() {
   const supabase = await createClient()
@@ -11,29 +12,33 @@ export default async function PersonnelPage() {
     .select(`
       id,
       full_name,
+      initials,
       position,
       plantilla_status,
-      division:divisions(code, full_name)
+      division_id,
+       division:divisions(code, full_name),
+       equipment(id, brand, model)
     `)
     .order('full_name')
 
   const personnel = (personnelData || []) as unknown as PersonnelData[]
+  const { data: divisions } = await supabase.from('divisions').select('id,code,full_name').order('code')
 
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-serif tracking-tight text-paper">Personnel</h1>
-          <p className="text-slate mt-1">Manage ICT equipment custodians and staff.</p>
+          <p className="text-slate mt-1">Manage staff and equipment custodians.</p>
         </div>
-        <AddPersonnelDialog>
-          <button className="bg-pulse text-canvas-deep px-4 py-2 rounded-md font-semibold hover:bg-pulse/90 transition-colors">
+        <AddPersonnelDialog divisions={divisions || []}>
+          <Button>
             + Add Personnel
-          </button>
+          </Button>
         </AddPersonnelDialog>
       </div>
 
-      <PersonnelTable columns={columns} data={personnel} />
+      <PersonnelTable data={personnel} divisions={divisions || []} />
     </div>
   )
 }

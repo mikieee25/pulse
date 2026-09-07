@@ -15,6 +15,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "PULSE | EUMB ICT Equipment System",
   description: "Personnel & Unit Lifecycle System for Equipment",
+  icons: {
+    icon: "/pulseicon.svg",
+    apple: "/pulseicon.svg",
+  },
 };
 
 export default function RootLayout({

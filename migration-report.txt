@@ -1,8 +1,331 @@
 Migration Report
 ================
 
-Unmatched Custodians:
+Sheet counts:
+- Laptop: 148
+- Tablet: 93
+- Drone: 87
+- Camera: 93
+- Printer: 15
+
+Unmatched personnel plantilla rows:
+- I. S. Lubendina (ISL)
+- A. A. Pasco (AAP)
+- G. Mateo (GM)
+- E. M. R. P. Galagala (EMRPG)
+- N. B. Estacio (NBE)
+- M. M. Caringal (MSC)
+- N. S. Malabug (NSM)
+- L. T. Mangunay (LTM)
+- A. M. De Robles (AMDR)
+- K. S. Daguplo (KSD)
+- J. A. Pamitan (JAP)
+- E. G. Padre Juan (EGP)
+- C. C. Añonuevo (CCA)
+- J. A. Gaya (JAG)
+- C. J. V. Soyafon - (CJVS)
+- L. F. M. Campaña (LFMC)
+- J. B. U. Reyno (JBUR)
+- D. M. T. Morelos (DMTM)
+- C. G. Monsalud (CGM)
+- M. R. C. Gonzaga (MRCG)
+- L. M. Laquian (LML)
+- M. A. A. Aclon (MAAA)
+- R. G. P. Gudoy (RGPG)
+- J. M. C. Yacanle (JMCY)
+- J. A. P. Santos (JAPS)
+- D. J. M. Paguirigan (DJMP)
+- R. M. A. C. Japson (RMACJ)
+- C. M. R. Capistrano (CMRC)
+- J. D. De Guzman (JDDG)
+- M. I. G. Iguban (MIGI)
+- J. Т. Amihan (JTA)
+- L. K. T Barral (LKTB)
+- M. D. C. Rosal (MDCR)
+- J. N. Salvador (JNS)
+- R. J. C. Palmero (RJCP)
+- J. G. Manalo (JGM)
+- K. J. A. Abordo (KJAA)
+- E. M. R. Concepcion (EMRC)
+- P. J. A. Martinez (PJAM)
+- M. V. Somera (MVS)
+- J. C. M. Carlos (JCMC)
+- A. C. B. Sanchez (ACBS)
+- M. D. Vallejo (MV)
+- P. J. R. Bautista (PJRB)
+- Marienelle S. Malubay (MSM)
+- H. I. L. Cumpas (HILC)
+- Suzanne M. Pantaleon (SMP)
+- Kristine Joy B. Villauz (KJBV)
+- Argy E. Gatdula (AEG)
+- Robertson P. Gatmaitan (RPG)
+- Michael Angelo O. Guarin (MAOG)
+- Reymund G. Fiecas Jr. (RFJR)
+
+Unmatched custodians:
 - Eleanor R. Hainto
 - Ewan Mary Rose Galagala
 - Jayvie A. Gaya
 
+Custodian assignment issues (left unassigned):
+- Laptop #1 Editha T. Ramos (EPRED equipment; EEACPRAED personnel)
+- Laptop #? Editha T. Ramos (EPRED equipment; EEACPRAED personnel)
+- Laptop #2 Roselle L. Ibuna (EPRED equipment; EEACPRAED personnel)
+- Laptop #? Roselle L. Ibuna (EPRED equipment; EEACPRAED personnel)
+- Laptop #? Roselle L. Ibuna (EPRED equipment; EEACPRAED personnel)
+- Laptop #3 Mary Ann M. Fernando (EPRED equipment; EEACPRAED personnel; personnel status COS)
+- Laptop #? Joan C. Escalona (EPRED equipment; EEACPRAED personnel)
+- Laptop #4 Steven Ivan G. Caiña (EPRED equipment; EEACPRAED personnel)
+- Laptop #? Sheila C. Gadil (EPRED equipment; EEACPRAED personnel; personnel status COS)
+- Laptop #? Steven Ivan G. Caiña (EPRED equipment; EEACPRAED personnel)
+- Laptop #? Benlie Mae B. Antonio (EPRED equipment; EEACPRAED personnel; personnel status Outsourced)
+- Laptop #? Chester Syrill J. De Castro (EPRED equipment; EEACPRAED personnel)
+- Laptop #? Ara Jane C. Canaria (EPRED equipment; EEACPRAED personnel; personnel status Outsourced)
+- Laptop #5 Aaron R. Premacio (EPRED equipment; EEACPRAED personnel)
+- Laptop #6 Celedonio Tiu Salle (EPRED equipment; EEACPRAED personnel)
+- Laptop #7 Erwin-Lou D. Peregrino (EPRED equipment; EEACPRAED personnel)
+- Laptop #? James C. Francisco (EPRED equipment; EEACPRAED personnel; personnel status COS)
+- Laptop #8 Catherine C. Cadiz (EPRED equipment; EEACPRAED personnel)
+- Laptop #? Catherine C. Cadiz (EPRED equipment; EEACPRAED personnel)
+- Laptop #9 Chesca Mie A. Gaduyon (EPRED equipment; EEACPRAED personnel)
+- Laptop #10 Marienelle S. Santos (EPRED equipment; EEACPRAED personnel)
+- Laptop #11 Daniel Vincent P. De Guzman (EPRED equipment; EEACPRAED personnel)
+- Laptop #12 Von Jari A. Anievas (EPRED equipment; EEACPRAED personnel)
+- Laptop #12 Chester Syrill J. De Castro (EPRED equipment; EEACPRAED personnel)
+- Laptop #13 Marvin B. Bahia (EPRED equipment; EEACPRAED personnel)
+- Laptop #14 Christine Joy M. Lamzon (EPRED equipment; EEACPRAED personnel)
+- Laptop #24 Melchor Ornopia (personnel status Outsourced)
+- Laptop #? Raven Alexis B. Cruz (OD equipment; EPSMD personnel; personnel status Outsourced)
+- Laptop #? Rasmin Abby M. Salazar (OD equipment; EPSMD personnel; personnel status Outsourced)
+- Laptop #? Arnel Angelo P. Revilla (OD equipment; EPSMD personnel)
+- Laptop #? Dorella Maye T. Perlas (EPSMD equipment; EPMPD personnel)
+- Laptop #? Richard S. Asaytuno (EPSMD equipment; EPMPD personnel; personnel status Outsourced)
+- Laptop #? Jewel R. Balon (EPSMD equipment; NED personnel)
+- Laptop #39 Joana Marie F. Chavez (personnel status Outsourced)
+- Laptop #? Maria Jade N. Delos Reyes (personnel status Outsourced)
+- Laptop #? Andresito F. Ulgado (OD equipment; EVIMD personnel)
+- Laptop #? Christian Sandrex D. Quiambao (personnel status Outsourced)
+- Laptop #? Vic Anthony P. Cariola (personnel status Outsourced)
+- Laptop #74 Jorge Vincent R. Bitoon (AFETD equipment; EPSMD personnel)
+- Laptop #? Jorge Vincent R. Bitoon (AFETD equipment; EPSMD personnel)
+- Laptop #? Michelle Anne V. Yatco (personnel status Outsourced)
+- Laptop #? Jeffrey M. Saspa (personnel status Outsourced)
+- Laptop #? Niceto P. Trinidad Jr. (personnel status Outsourced)
+- Tablet #1 Editha T. Ramos (EPRED equipment; EEACPRAED personnel)
+- Tablet #? John Jomari M. Garcia (EPRED equipment; AFETD personnel)
+- Tablet #? Von Jari Anievas (EPRED equipment; EEACPRAED personnel)
+- Tablet #2 Roselle L. Ibuna (EPRED equipment; EEACPRAED personnel)
+- Tablet #? Merielle T. Maranan (EPRED equipment; EEACPRAED personnel; personnel status COS)
+- Tablet #3 Joan C. Escalona (EPRED equipment; EEACPRAED personnel)
+- Tablet #5 Steven Ivan G. Caiña (EPRED equipment; EEACPRAED personnel)
+- Tablet #? Ara Jane C. Canaria (EPRED equipment; EEACPRAED personnel; personnel status Outsourced)
+- Tablet #? Benlie Mae B. Antonio (EPRED equipment; EEACPRAED personnel; personnel status Outsourced)
+- Tablet #6 Aaron R. Premacio (EPRED equipment; EEACPRAED personnel)
+- Tablet #7 Celedonio Tiu Salle (EPRED equipment; EEACPRAED personnel)
+- Tablet #8 Erwin-Lou D. Peregrino (EPRED equipment; EEACPRAED personnel)
+- Tablet #? James C. Francisco (EPRED equipment; EEACPRAED personnel; personnel status COS)
+- Tablet #9 Catherine C. Cadiz (EPRED equipment; EEACPRAED personnel)
+- Tablet #10 Hannah Isabel L. Cumpas (EPRED equipment; EEACPRAED personnel)
+- Tablet #? Chesca Mie A. Gaduyon (EPRED equipment; EEACPRAED personnel)
+- Tablet #11 Marienelle S. Santos (EPRED equipment; EEACPRAED personnel)
+- Tablet #? Sheila C. Gadil (EPRED equipment; EEACPRAED personnel; personnel status COS)
+- Tablet #12 Daniel Vincent P. De Guzman (EPRED equipment; EEACPRAED personnel)
+- Tablet #? Mary Ann Fernando (EPRED equipment; EEACPRAED personnel; personnel status COS)
+- Tablet #13 Chester Syrill J. De Castro (EPRED equipment; EEACPRAED personnel)
+- Tablet #14 Marvin B. Bahia (EPRED equipment; EEACPRAED personnel)
+- Tablet #15 Christine Joy M. Lamzon (EPRED equipment; EEACPRAED personnel)
+- Tablet #36 Alejandre C. Montemayo (personnel status Outsourced)
+- Tablet #? Arnel Angelo P. Revilla (OD equipment; EPSMD personnel)
+- Tablet #38 Rasmin Abby M. Salazar (personnel status Outsourced)
+- Tablet #42 Maria Jade N. Delos Reyes (personnel status Outsourced)
+- Tablet #? Niceto P. Trinidad Jr. (OD equipment; AFETD personnel; personnel status Outsourced)
+- Camera #2 Roselle L. Ibuna (EPRED equipment; EEACPRAED personnel)
+- Camera #3 Joan C. Escalona (EPRED equipment; EEACPRAED personnel)
+- Camera #5 Steven Ivan G. Caiña (EPRED equipment; EEACPRAED personnel)
+- Camera #? Steven Ivan G. Caiña (OD equipment; EEACPRAED personnel)
+- Camera #? Steven Ivan G. Caiña (OD equipment; EEACPRAED personnel)
+- Camera #? Steven Ivan G. Caiña (OD equipment; EEACPRAED personnel)
+- Camera #? Steven Ivan G. Caiña (OD equipment; EEACPRAED personnel)
+- Camera #7 Celedonio Tiu Salle (EPRED equipment; EEACPRAED personnel)
+- Camera #10 Chesca Mie A. Gaduyon (EPRED equipment; EEACPRAED personnel)
+- Camera #14 Chester Syrill J. De Castro (EPRED equipment; EEACPRAED personnel)
+
+Blank data rows:
+- Laptop #30 unassigned
+- Laptop #35 unassigned
+- Laptop #43 unassigned
+- Laptop #47 unassigned
+- Laptop #82 unassigned
+- Laptop #83 unassigned
+- Laptop #84 unassigned
+- Laptop #86 unassigned
+- Tablet #49 unassigned
+- Tablet #55 unassigned
+- Tablet #63 unassigned
+- Tablet #64 unassigned
+- Tablet #71 unassigned
+- Tablet #72 unassigned
+- Tablet #77 unassigned
+- Tablet #79 unassigned
+- Tablet #80 unassigned
+- Tablet #81 unassigned
+- Tablet #82 unassigned
+- Tablet #83 unassigned
+- Drone #1 unassigned
+- Drone #2 unassigned
+- Drone #3 unassigned
+- Drone #4 unassigned
+- Drone #5 unassigned
+- Drone #6 unassigned
+- Drone #7 unassigned
+- Drone #8 unassigned
+- Drone #9 unassigned
+- Drone #10 unassigned
+- Drone #11 unassigned
+- Drone #12 unassigned
+- Drone #13 unassigned
+- Drone #14 unassigned
+- Drone #15 unassigned
+- Drone #16 unassigned
+- Drone #17 unassigned
+- Drone #18 unassigned
+- Drone #19 unassigned
+- Drone #20 unassigned
+- Drone #21 unassigned
+- Drone #22 unassigned
+- Drone #23 unassigned
+- Drone #24 unassigned
+- Drone #25 unassigned
+- Drone #26 unassigned
+- Drone #27 unassigned
+- Drone #28 unassigned
+- Drone #29 unassigned
+- Drone #30 unassigned
+- Drone #31 unassigned
+- Drone #32 unassigned
+- Drone #33 unassigned
+- Drone #34 unassigned
+- Drone #35 unassigned
+- Drone #36 unassigned
+- Drone #37 unassigned
+- Drone #38 unassigned
+- Drone #39 unassigned
+- Drone #40 unassigned
+- Drone #41 unassigned
+- Drone #42 unassigned
+- Drone #43 unassigned
+- Drone #44 unassigned
+- Drone #45 unassigned
+- Drone #46 unassigned
+- Drone #47 unassigned
+- Drone #48 unassigned
+- Drone #49 unassigned
+- Drone #50 unassigned
+- Drone #51 unassigned
+- Drone #52 unassigned
+- Drone #53 unassigned
+- Drone #54 unassigned
+- Drone #55 unassigned
+- Drone #56 unassigned
+- Drone #57 unassigned
+- Drone #58 unassigned
+- Drone #59 unassigned
+- Drone #60 unassigned
+- Drone #61 unassigned
+- Drone #62 unassigned
+- Drone #63 unassigned
+- Drone #64 unassigned
+- Drone #65 unassigned
+- Drone #66 unassigned
+- Drone #67 unassigned
+- Drone #68 unassigned
+- Drone #69 unassigned
+- Drone #70 unassigned
+- Drone #71 unassigned
+- Drone #72 unassigned
+- Drone #73 unassigned
+- Drone #74 unassigned
+- Drone #75 unassigned
+- Drone #76 unassigned
+- Drone #77 unassigned
+- Drone #78 unassigned
+- Drone #79 unassigned
+- Drone #80 unassigned
+- Drone #81 unassigned
+- Drone #82 unassigned
+- Drone #83 unassigned
+- Drone #84 unassigned
+- Drone #85 unassigned
+- Drone #86 unassigned
+- Camera #1 unassigned
+- Camera #4 unassigned
+- Camera #6 unassigned
+- Camera #8 unassigned
+- Camera #9 unassigned
+- Camera #11 unassigned
+- Camera #12 unassigned
+- Camera #15 unassigned
+- Camera #16 unassigned
+- Camera #17 unassigned
+- Camera #18 unassigned
+- Camera #19 unassigned
+- Camera #21 unassigned
+- Camera #22 unassigned
+- Camera #23 unassigned
+- Camera #23 unassigned
+- Camera #24 unassigned
+- Camera #25 unassigned
+- Camera #26 unassigned
+- Camera #27 unassigned
+- Camera #28 unassigned
+- Camera #29 unassigned
+- Camera #30 unassigned
+- Camera #31 unassigned
+- Camera #32 unassigned
+- Camera #33 unassigned
+- Camera #34 unassigned
+- Camera #35 unassigned
+- Camera #36 unassigned
+- Camera #37 unassigned
+- Camera #38 unassigned
+- Camera #39 unassigned
+- Camera #40 unassigned
+- Camera #41 unassigned
+- Camera #42 unassigned
+- Camera #43 unassigned
+- Camera #44 unassigned
+- Camera #45 unassigned
+- Camera #46 unassigned
+- Camera #47 unassigned
+- Camera #48 unassigned
+- Camera #49 unassigned
+- Camera #50 unassigned
+- Camera #51 unassigned
+- Camera #52 unassigned
+- Camera #53 unassigned
+- Camera #54 unassigned
+- Camera #55 unassigned
+- Camera #56 unassigned
+- Camera #57 unassigned
+- Camera #58 unassigned
+- Camera #59 unassigned
+- Camera #60 unassigned
+- Camera #61 unassigned
+- Camera #62 unassigned
+- Camera #63 unassigned
+- Camera #64 unassigned
+- Camera #65 unassigned
+- Camera #66 unassigned
+- Camera #67 unassigned
+- Camera #68 unassigned
+- Camera #69 unassigned
+- Camera #70 unassigned
+- Camera #71 unassigned
+- Camera #72 unassigned
+- Camera #73 unassigned
+- Camera #74 unassigned
+- Camera #75 unassigned
+- Camera #76 unassigned
+- Camera #77 unassigned
+- Camera #78 unassigned
+- Camera #79 unassigned

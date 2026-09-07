@@ -1,143 +1,44 @@
 "use client"
 
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
+import { FormEvent, ReactNode, useState } from "react"
+import { addPersonnel, type PersonnelInput, updatePersonnel } from "@/app/actions/personnel"
+import { PLANTILLA_STATUSES, suggestedInitials, type PlantillaStatus } from "@/lib/pulse"
 import { Button } from "@/components/ui/button"
-import { addPersonnel } from "@/app/actions/personnel"
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog"
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 
-const formSchema = z.object({
-  full_name: z.string().min(1, "Name is required"),
-  position: z.string().min(1, "Position is required"),
-  plantilla_status: z.string().min(1, "Status is required"),
-  division_code: z.string().min(1, "Division code is required"),
-})
+type Division = { id: string; code: string; full_name: string }
+type PersonnelFormValue = PersonnelInput & { id?: string }
 
-export function AddPersonnelDialog({ children }: { children: React.ReactNode }) {
+export function AddPersonnelDialog({ children, divisions, initial }: { children: ReactNode; divisions: Division[]; initial?: PersonnelFormValue }) {
   const [open, setOpen] = useState(false)
-  
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      full_name: "",
-      position: "",
-      plantilla_status: "Regular",
-      division_code: "",
-    },
+  const [error, setError] = useState("")
+  const [form, setForm] = useState<PersonnelInput>(initial || {
+    full_name: "",
+    initials: "",
+    position: "",
+    division_id: divisions[0]?.id || "",
+    plantilla_status: "Regular",
   })
-
-  async function onSubmit(values: z.infer<typeof formSchema>) {
-    const result = await addPersonnel(values)
-    if (!result?.error) {
+  const set = <K extends keyof PersonnelInput>(key: K, value: PersonnelInput[K]) => setForm((current) => ({ ...current, [key]: value }))
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault()
+    setError("")
+    const result = initial?.id
+      ? await updatePersonnel(initial.id, { ...form, initials: form.initials || suggestedInitials(form.full_name) })
+      : await addPersonnel({ ...form, initials: form.initials || suggestedInitials(form.full_name) })
+    if (result.error) setError(result.error)
+    else {
       setOpen(false)
-      form.reset()
-    } else {
-      console.error(result.error)
+      if (!initial?.id) setForm({ ...form, full_name: "", initials: "", position: "" })
     }
   }
-
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {children}
-      </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px] bg-canvas-deep border-line text-paper">
-        <DialogHeader>
-          <DialogTitle>Add Personnel</DialogTitle>
-          <DialogDescription className="text-slate">
-            Enter the details for the new personnel.
-          </DialogDescription>
-        </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="full_name"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Full Name</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. Juan Dela Cruz" {...field} className="bg-canvas border-line" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="position"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Position</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. IT Officer I" {...field} className="bg-canvas border-line" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="division_code"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Division Code</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g. OD, AMD, SDD" {...field} className="bg-canvas border-line uppercase" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="plantilla_status"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Plantilla Status</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger className="bg-canvas border-line">
-                        <SelectValue placeholder="Select status" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent className="bg-canvas-deep border-line text-paper">
-                      <SelectItem value="Regular">Regular</SelectItem>
-                      <SelectItem value="Contractual">Contractual</SelectItem>
-                      <SelectItem value="Job Order">Job Order</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <div className="flex justify-end pt-4">
-              <Button type="submit" className="bg-pulse text-canvas-deep hover:bg-pulse/90">
-                Save Personnel
-              </Button>
-            </div>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
-  )
+  return <Dialog open={open} onOpenChange={setOpen}><DialogTrigger render={children as React.ReactElement} /><DialogContent className="sm:max-w-[520px] bg-canvas-deep border-line text-paper"><DialogHeader><DialogTitle>{initial?.id ? "Edit personnel" : "Add personnel"}</DialogTitle><DialogDescription className="text-slate">Initials are suggested from the name but remain editable.</DialogDescription></DialogHeader><form onSubmit={submit} className="space-y-4">
+    <label className="block space-y-1 text-sm text-slate">Full name<Input required value={form.full_name} onChange={(e) => setForm((current) => ({ ...current, full_name: e.target.value, initials: current.initials || suggestedInitials(e.target.value) }))} /></label>
+    <label className="block space-y-1 text-sm text-slate">Initials<Input required value={form.initials} onChange={(e) => set("initials", e.target.value.toUpperCase())} /></label>
+    <label className="block space-y-1 text-sm text-slate">Position<Input required value={form.position} onChange={(e) => set("position", e.target.value)} /></label>
+    <label className="block space-y-1 text-sm text-slate">Division<select required value={form.division_id} onChange={(e) => set("division_id", e.target.value)} className="w-full h-9 rounded-md border border-line bg-canvas px-2 text-paper">{divisions.map((division) => <option key={division.id} value={division.id}>{division.code} — {division.full_name}</option>)}</select></label>
+    <label className="block space-y-1 text-sm text-slate">Plantilla status<select value={form.plantilla_status} onChange={(e) => set("plantilla_status", e.target.value as PlantillaStatus)} className="w-full h-9 rounded-md border border-line bg-canvas px-2 text-paper">{PLANTILLA_STATUSES.map((value) => <option key={value}>{value}</option>)}</select></label>
+    {error && <p className="text-sm text-alert">{error}</p>}<div className="flex justify-end"><Button type="submit">{initial?.id ? "Save changes" : "Save personnel"}</Button></div>
+  </form></DialogContent></Dialog>
 }

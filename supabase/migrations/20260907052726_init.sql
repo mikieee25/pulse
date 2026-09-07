@@ -149,3 +149,6 @@ insert into equipment_categories (name, lifespan_years) values
   ('Drone', null),
   ('Camera', null),
   ('Printer', null);
+
+insert into category_unit_costs (category_id, year, unit_cost)
+select id, extract(year from current_date)::int, 0 from equipment_categories;

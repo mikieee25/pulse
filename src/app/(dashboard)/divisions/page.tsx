@@ -2,6 +2,8 @@ import { createClient } from "@/utils/supabase/server"
 import { DivisionsTable } from "@/components/divisions/divisions-table"
 import { columns, type DivisionData } from "@/components/divisions/columns"
 import { AddDivisionDialog } from "@/components/divisions/add-division-dialog"
+import { Button } from "@/components/ui/button"
+import { lifecycleStatus } from "@/lib/pulse"
 
 export default async function DivisionsPage() {
   const supabase = await createClient()
@@ -14,19 +16,27 @@ export default async function DivisionsPage() {
       id,
       code,
       full_name,
-      personnel (count),
-      equipment (count)
+       personnel (count),
+       equipment (id, status, year_acquired, equipment_categories(name))
     `)
     .order('code')
 
-  const divisions = (divisionsData || []).map((d: any) => ({
+  type DivisionRow = {
+    id: string
+    code: string
+    full_name: string
+    personnel?: Array<{ count: number }>
+    equipment?: Array<{ status: 'Active' | 'For Replacement' | 'Retired'; year_acquired: number | null; equipment_categories?: { name: string } | null }>
+  }
+  const divisions = ((divisionsData || []) as unknown as DivisionRow[]).map((d) => ({
     id: d.id,
     code: d.code,
     full_name: d.full_name,
-    _count: {
-      personnel: d.personnel?.[0]?.count || 0,
-      equipment: d.equipment?.[0]?.count || 0
-    }
+     _count: {
+       personnel: d.personnel?.[0]?.count || 0,
+       equipment: d.equipment?.length || 0,
+       expired: d.equipment?.filter((item) => lifecycleStatus(item.status, item.equipment_categories?.name, item.year_acquired) === 'For Replacement').length || 0,
+     }
   })) as DivisionData[]
 
   return (
@@ -37,9 +47,9 @@ export default async function DivisionsPage() {
           <p className="text-slate mt-1">Manage bureau divisions and offices.</p>
         </div>
         <AddDivisionDialog>
-          <button className="bg-pulse text-canvas-deep px-4 py-2 rounded-md font-semibold hover:bg-pulse/90 transition-colors">
+          <Button>
             + Add Division
-          </button>
+          </Button>
         </AddDivisionDialog>
       </div>
 

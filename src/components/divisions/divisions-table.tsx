@@ -36,6 +36,8 @@ export function DivisionsTable<TData, TValue>({
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
 
+  // TanStack Table exposes a stateful API that React Compiler intentionally skips.
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data,
     columns,
@@ -114,7 +116,6 @@ export function DivisionsTable<TData, TValue>({
           size="sm"
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
-          className="border-line text-paper hover:bg-canvas hover:text-pulse"
         >
           Previous
         </Button>
@@ -123,7 +124,6 @@ export function DivisionsTable<TData, TValue>({
           size="sm"
           onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage()}
-          className="border-line text-paper hover:bg-canvas hover:text-pulse"
         >
           Next
         </Button>

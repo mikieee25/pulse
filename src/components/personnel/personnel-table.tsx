@@ -2,7 +2,6 @@
 
 import * as React from "react"
 import {
-  ColumnDef,
   ColumnFiltersState,
   SortingState,
   flexRender,
@@ -23,19 +22,25 @@ import {
 } from "@/components/ui/table"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
+import { getPersonnelColumns, type PersonnelData } from "@/components/personnel/columns"
 
-interface PersonnelTableProps<TData, TValue> {
-  columns: ColumnDef<TData, TValue>[]
-  data: TData[]
+type Division = { id: string; code: string; full_name: string }
+
+interface PersonnelTableProps {
+  data: PersonnelData[]
+  divisions: Division[]
 }
 
-export function PersonnelTable<TData, TValue>({
-  columns,
+export function PersonnelTable({
   data,
-}: PersonnelTableProps<TData, TValue>) {
+  divisions,
+}: PersonnelTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
+  const columns = React.useMemo(() => getPersonnelColumns(divisions), [divisions])
 
+  // TanStack Table exposes a stateful API that React Compiler intentionally skips.
+  // eslint-disable-next-line react-hooks/incompatible-library
   const table = useReactTable({
     data,
     columns,
@@ -122,7 +127,6 @@ export function PersonnelTable<TData, TValue>({
           size="sm"
           onClick={() => table.previousPage()}
           disabled={!table.getCanPreviousPage()}
-          className="border-line text-paper hover:bg-canvas hover:text-pulse"
         >
           Previous
         </Button>
@@ -131,7 +135,6 @@ export function PersonnelTable<TData, TValue>({
           size="sm"
           onClick={() => table.nextPage()}
           disabled={!table.getCanNextPage()}
-          className="border-line text-paper hover:bg-canvas hover:text-pulse"
         >
           Next
         </Button>

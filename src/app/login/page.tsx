@@ -1,40 +1,44 @@
-export default function LoginPage() {
+import { Button } from "@/components/ui/button"
+import Image from "next/image"
+
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
+  const error = (await searchParams).error
   return (
-    <div className="min-h-screen flex items-center justify-center bg-canvas">
-      <div className="w-full max-w-md p-8 space-y-8 bg-canvas-deep border border-line rounded-xl shadow-2xl">
-        <div className="text-center space-y-2">
-          <div className="flex justify-center mb-6">
-            <div className="flex items-center gap-2 font-mono text-xl tracking-wide text-paper">
-              <div className="w-3 h-3 rounded-full bg-pulse shadow-[0_0_12px_rgba(62,217,160,0.6)] animate-pulse" />
-              PULSE
-            </div>
-          </div>
-          <h1 className="text-2xl font-serif text-paper">Welcome back</h1>
-          <p className="text-sm text-slate italic font-serif">
-            Personnel & Unit Lifecycle System for Equipment
-          </p>
+    <div className="min-h-screen flex items-center justify-center bg-canvas-deep p-4">
+      <div className="w-full max-w-lg space-y-8">
+        <div className="text-center">
+          <Image src="/pulselogo.svg" alt="PULSE — Personnel & Unit Lifecycle System for Equipment" width={440} height={114} priority className="mx-auto mb-4 h-auto w-full max-w-[440px]" />
+          <p className="text-slate text-sm">Sign in to manage ICT equipment.</p>
         </div>
 
-        <div className="space-y-4 pt-4">
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-slate">Email</label>
-            <input 
-              type="email" 
-              className="w-full h-10 px-3 rounded-md bg-canvas border border-line text-paper focus:outline-none focus:border-pulse focus:ring-1 focus:ring-pulse transition-all"
-              placeholder="user@eumb.gov.ph"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="text-sm font-medium text-slate">Password</label>
-            <input 
-              type="password" 
-              className="w-full h-10 px-3 rounded-md bg-canvas border border-line text-paper focus:outline-none focus:border-pulse focus:ring-1 focus:ring-pulse transition-all"
-              placeholder="••••••••"
-            />
-          </div>
-          <button className="w-full h-10 mt-2 rounded-md bg-pulse text-canvas-deep font-semibold hover:bg-pulse/90 transition-colors">
-            Sign In
-          </button>
+        <div className="bg-canvas border border-line rounded-xl p-8 shadow-2xl">
+          <form className="space-y-6" action="/auth/login" method="POST">
+            <div className="space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-slate mb-1">Email</label>
+                <input
+                  type="email"
+                  name="email"
+                  className="w-full bg-canvas-deep border border-line rounded-md px-3 py-2 text-paper focus:outline-none focus:border-pulse focus:ring-1 focus:ring-pulse transition-all"
+                  placeholder="admin@pulse.gov"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-slate mb-1">Password</label>
+                <input
+                  type="password"
+                  name="password"
+                  className="w-full bg-canvas-deep border border-line rounded-md px-3 py-2 text-paper focus:outline-none focus:border-pulse focus:ring-1 focus:ring-pulse transition-all"
+                  placeholder="••••••••"
+                />
+              </div>
+            </div>
+
+            {error && <p className="text-sm text-alert" role="alert">{error}</p>}
+            <Button type="submit" className="w-full h-10 mt-2">
+              Sign In
+            </Button>
+          </form>
         </div>
       </div>
     </div>

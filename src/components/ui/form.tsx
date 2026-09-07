@@ -74,7 +74,7 @@ const FormItemContext = React.createContext<FormItemContextValue>(
 const FormItem = React.forwardRef<
   HTMLDivElement,
   React.HTMLAttributes<HTMLDivElement>
->(({ className, ...props }, ref) => {
+ >(({ className, ...props }, ref) => {
   const id = React.useId()
 
   return (
@@ -94,7 +94,7 @@ const FormLabel = React.forwardRef<
   return (
     <Label
       ref={ref}
-      className={error ? "text-destructive" : ""}
+       className={[error ? "text-destructive" : "", className].filter(Boolean).join(" ")}
       htmlFor={formItemId}
       {...props}
     />
@@ -127,14 +127,14 @@ FormControl.displayName = "FormControl"
 const FormDescription = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
->(({ className, ...props }, ref) => {
+ >(({ className, ...props }, ref) => {
   const { formDescriptionId } = useFormField()
 
   return (
     <p
       ref={ref}
       id={formDescriptionId}
-      className="text-sm text-muted-foreground"
+       className={["text-sm text-muted-foreground", className].filter(Boolean).join(" ")}
       {...props}
     />
   )
@@ -144,7 +144,7 @@ FormDescription.displayName = "FormDescription"
 const FormMessage = React.forwardRef<
   HTMLParagraphElement,
   React.HTMLAttributes<HTMLParagraphElement>
->(({ className, children, ...props }, ref) => {
+ >(({ className, children, ...props }, ref) => {
   const { error, formMessageId } = useFormField()
   const body = error ? String(error?.message) : children
 
@@ -156,7 +156,7 @@ const FormMessage = React.forwardRef<
     <p
       ref={ref}
       id={formMessageId}
-      className="text-sm font-medium text-destructive"
+       className={["text-sm font-medium text-destructive", className].filter(Boolean).join(" ")}
       {...props}
     >
       {body}

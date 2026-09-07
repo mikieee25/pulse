@@ -1,0 +1,12 @@
+import { createClient } from "@/utils/supabase/server"
+import { ExportButton, type ExportRow } from "@/components/equipment/export-button"
+
+type ReportEquipment = { brand: string | null; model: string | null; year_acquired: number | null; serial_number: string | null; procurement_method: string | null; status: string; division: { code: string } | null; personnel: { full_name: string } | null; equipment_categories: { name: string } | null }
+
+export default async function ReportsPage() {
+  const supabase = await createClient()
+  const { data } = await supabase.from("equipment").select("brand,model,year_acquired,serial_number,procurement_method,status,division:divisions(code),personnel(full_name),equipment_categories(name)").order("created_at", { ascending: false })
+  const equipment = (data || []) as unknown as ReportEquipment[]
+  const rows: ExportRow[] = equipment.map((item) => ({ Category: item.equipment_categories?.name || "", Brand: item.brand || "", Model: item.model || "", Year: item.year_acquired, "Serial Number": item.serial_number || "", "Procurement Method": item.procurement_method || "", Division: item.division?.code || "", Custodian: item.personnel?.full_name || "", Status: item.status }))
+  return <div className="space-y-6"><div className="flex flex-wrap items-center justify-between gap-3"><div><h1 className="text-3xl font-serif tracking-tight text-paper">Reports</h1><p className="text-slate mt-1">Export the current inventory for review or submission.</p></div><div className="flex gap-2"><ExportButton data={rows} category="inventory" /><ExportButton data={rows} category="inventory" label="Export CSV" format="csv" /></div></div><div className="bg-canvas-deep border border-line rounded-lg p-5 overflow-x-auto"><table className="w-full text-sm"><thead><tr className="border-b border-line text-left text-slate"><th className="p-2">Category</th><th className="p-2">Brand / model</th><th className="p-2">Division</th><th className="p-2">Custodian</th><th className="p-2">Status</th></tr></thead><tbody>{rows.map((row, index) => <tr key={`${String(row["Serial Number"])}-${index}`} className="border-b border-line"><td className="p-2">{row.Category}</td><td className="p-2">{row.Brand} {row.Model}</td><td className="p-2">{row.Division}</td><td className="p-2">{row.Custodian || "Unassigned"}</td><td className="p-2">{row.Status}</td></tr>)}</tbody></table></div></div>
+}

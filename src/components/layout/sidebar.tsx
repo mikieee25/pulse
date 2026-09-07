@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import { 
   LayoutDashboard, 
   MonitorSmartphone, 
@@ -12,9 +13,9 @@ import {
 export function Sidebar() {
   return (
     <aside className="w-64 border-r border-line bg-canvas-deep flex flex-col h-full hidden md:flex">
-      <div className="p-6 flex items-center gap-3 border-b border-line">
-        <div className="w-3 h-3 rounded-full bg-pulse shadow-[0_0_8px_rgba(62,217,160,0.6)] animate-pulse" />
-        <span className="font-mono text-paper font-semibold tracking-wide">PULSE</span>
+      <div className="h-16 px-6 flex items-center gap-3 border-b border-line shrink-0">
+        <Image src="/pulseicon.svg" alt="PULSE" width={34} height={34} priority className="h-[34px] w-[34px] rounded-lg" />
+        <span className="font-serif text-lg font-medium tracking-wide text-paper">PULSE</span>
       </div>
       <nav className="flex-1 p-4 space-y-1 overflow-y-auto">
         <Link href="/" className="flex items-center gap-3 px-3 py-2 text-sm text-slate hover:text-paper hover:bg-accent rounded-md transition-colors">

@@ -1,30 +1,8 @@
-import { Bell, Menu, User } from "lucide-react";
+import { Bell, Menu } from "lucide-react"
+import Image from "next/image"
+import { getCurrentProfile } from "@/lib/auth"
 
-export function Topbar() {
-  return (
-    <header className="h-16 border-b border-line bg-canvas flex items-center justify-between px-6 lg:px-8 shrink-0">
-      <div className="flex items-center">
-        <button className="md:hidden text-slate hover:text-paper transition-colors">
-          <Menu className="w-5 h-5" />
-        </button>
-      </div>
-      
-      <div className="flex items-center gap-4">
-        <button className="text-slate hover:text-paper transition-colors relative">
-          <Bell className="w-5 h-5" />
-          <span className="absolute top-0 right-0 w-2 h-2 bg-pulse rounded-full" />
-        </button>
-        
-        <div className="flex items-center gap-3 pl-4 border-l border-line">
-          <div className="flex flex-col items-end hidden sm:flex">
-            <span className="text-sm font-medium text-paper">Admin User</span>
-            <span className="text-xs text-pulse font-mono bg-pulse/10 px-1.5 py-0.5 rounded">Admin</span>
-          </div>
-          <div className="w-9 h-9 rounded-full bg-canvas-deep border border-line flex items-center justify-center text-slate">
-            <User className="w-4 h-4" />
-          </div>
-        </div>
-      </div>
-    </header>
-  );
+export async function Topbar() {
+  const profile = await getCurrentProfile()
+  return <header className="h-16 border-b border-line bg-canvas flex items-center px-6 lg:px-8 shrink-0"><div className="flex items-center gap-4"><button className="md:hidden text-slate hover:text-paper" aria-label="Open navigation"><Menu className="w-5 h-5" /></button><Bell className="w-5 h-5 text-slate" /></div><div className="ml-auto flex items-center gap-3 pl-4 border-l border-line"><div className="flex flex-col items-end hidden sm:flex"><span className="text-sm font-medium text-paper">{profile?.full_name || profile?.email || "PULSE user"}</span><span className="text-xs text-pulse font-mono bg-pulse/10 px-1.5 py-0.5 rounded">{profile?.role || "Viewer"}</span></div><div className="w-9 h-9 overflow-hidden rounded-full border border-line bg-canvas-deep"><Image src="/pulseicon.svg" alt="PULSE account" width={36} height={36} className="h-full w-full object-cover" /></div><form action="/auth/logout" method="POST"><button className="text-xs text-slate hover:text-paper" type="submit">Sign out</button></form></div></header>
 }
