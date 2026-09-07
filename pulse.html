@@ -1,0 +1,1087 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PULSE — Plan for the EUMB ICT Equipment System</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --canvas: #10151c;
+        --canvas-deep: #0b0f15;
+        --paper: #efe9dc;
+        --paper-dim: #e3dccb;
+        --ink: #1c1912;
+        --ink-soft: #4a473e;
+        --pulse: #3ed9a0;
+        --alert: #e2572b;
+        --slate: #8792a0;
+        --line: rgba(239, 233, 220, 0.14);
+        --serif: "Fraunces", serif;
+        --sans: "IBM Plex Sans", sans-serif;
+        --mono: "IBM Plex Mono", monospace;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      html {
+        scroll-behavior: smooth;
+      }
+
+      body {
+        background: var(--canvas);
+        color: var(--paper);
+        font-family: var(--sans);
+        line-height: 1.55;
+        -webkit-font-smoothing: antialiased;
+      }
+
+      ::selection {
+        background: var(--pulse);
+        color: var(--canvas-deep);
+      }
+
+      a {
+        color: inherit;
+      }
+
+      .wrap {
+        max-width: 1040px;
+        margin: 0 auto;
+        padding: 0 32px;
+      }
+
+      /* ---------- NAV ---------- */
+      header.nav {
+        position: sticky;
+        top: 0;
+        z-index: 50;
+        background: rgba(16, 21, 28, 0.86);
+        backdrop-filter: blur(10px);
+        border-bottom: 1px solid var(--line);
+      }
+      .nav-inner {
+        max-width: 1040px;
+        margin: 0 auto;
+        padding: 16px 32px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-family: var(--mono);
+        font-size: 14px;
+        letter-spacing: 0.02em;
+        color: var(--paper);
+      }
+      .brand .dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--pulse);
+        box-shadow: 0 0 0 0 rgba(62, 217, 160, 0.6);
+        animation: beat 1.8s ease-in-out infinite;
+      }
+      @keyframes beat {
+        0%,
+        100% {
+          box-shadow: 0 0 0 0 rgba(62, 217, 160, 0.5);
+          transform: scale(1);
+        }
+        45% {
+          box-shadow: 0 0 0 6px rgba(62, 217, 160, 0);
+          transform: scale(1.25);
+        }
+      }
+      .nav-links {
+        display: flex;
+        gap: 28px;
+        font-size: 13px;
+        color: var(--slate);
+      }
+      .nav-links a {
+        text-decoration: none;
+        transition: color 0.15s;
+      }
+      .nav-links a:hover {
+        color: var(--paper);
+      }
+      @media (max-width: 720px) {
+        .nav-links {
+          display: none;
+        }
+      }
+
+      /* ---------- HERO ---------- */
+      .hero {
+        padding: 120px 0 80px;
+        position: relative;
+      }
+      .hero .eyebrow {
+        font-family: var(--mono);
+        font-size: 13px;
+        color: var(--slate);
+        margin-bottom: 22px;
+      }
+      .hero h1 {
+        font-family: var(--serif);
+        font-weight: 500;
+        font-size: clamp(56px, 11vw, 108px);
+        line-height: 0.92;
+        color: var(--paper);
+        letter-spacing: -0.01em;
+      }
+      .hero .tagline {
+        font-family: var(--serif);
+        font-style: italic;
+        font-weight: 400;
+        font-size: clamp(19px, 2.6vw, 25px);
+        color: var(--pulse);
+        margin-top: 14px;
+      }
+      .hero p.lede {
+        max-width: 560px;
+        font-size: 17px;
+        color: #c9c3b2;
+        margin-top: 26px;
+      }
+      .hero .meta {
+        margin-top: 34px;
+        font-family: var(--mono);
+        font-size: 12.5px;
+        color: var(--slate);
+      }
+
+      .pulse-trace {
+        width: 100%;
+        height: 130px;
+        margin-top: 56px;
+      }
+      .pulse-trace path {
+        fill: none;
+        stroke: var(--pulse);
+        stroke-width: 2;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        stroke-dasharray: 1400;
+        stroke-dashoffset: 1400;
+        animation: draw 2.4s cubic-bezier(0.65, 0, 0.35, 1) forwards 0.3s;
+      }
+      @keyframes draw {
+        to {
+          stroke-dashoffset: 0;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .pulse-trace path {
+          animation: none;
+          stroke-dashoffset: 0;
+        }
+        .brand .dot {
+          animation: none;
+        }
+      }
+
+      /* ---------- SECTION SCAFFOLD ---------- */
+      section {
+        padding: 76px 0;
+        border-top: 1px solid var(--line);
+      }
+      section.first {
+        border-top: none;
+      }
+
+      .section-head {
+        display: flex;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 24px;
+        margin-bottom: 40px;
+        flex-wrap: wrap;
+      }
+      .section-head .num {
+        font-family: var(--mono);
+        font-size: 12.5px;
+        color: var(--slate);
+      }
+      h2 {
+        font-family: var(--serif);
+        font-weight: 500;
+        font-size: clamp(30px, 4vw, 42px);
+        color: var(--paper);
+        letter-spacing: -0.005em;
+      }
+      .section-sub {
+        max-width: 600px;
+        color: #aea898;
+        font-size: 15.5px;
+        margin-top: -24px;
+        margin-bottom: 36px;
+      }
+
+      /* ---------- GOALS ---------- */
+      .goals {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 14px 40px;
+      }
+      @media (max-width: 680px) {
+        .goals {
+          grid-template-columns: 1fr;
+        }
+      }
+      .goal {
+        display: flex;
+        gap: 14px;
+        align-items: flex-start;
+        padding: 16px 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .goal svg {
+        flex: none;
+        margin-top: 3px;
+      }
+      .goal p {
+        font-size: 15px;
+        color: #dcd7c8;
+      }
+
+      /* ---------- SHEET MIGRATION ---------- */
+      .migrate {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        border: 1px solid var(--line);
+        border-radius: 2px;
+        overflow: hidden;
+      }
+      .migrate-row {
+        display: grid;
+        grid-template-columns: 1fr 40px 1fr;
+        align-items: center;
+        border-bottom: 1px solid var(--line);
+      }
+      .migrate-row:last-child {
+        border-bottom: none;
+      }
+      .migrate-cell {
+        padding: 16px 22px;
+        font-size: 14px;
+      }
+      .migrate-cell.old {
+        color: var(--slate);
+        font-family: var(--mono);
+        font-size: 13px;
+        background: rgba(255, 255, 255, 0.02);
+      }
+      .migrate-cell.new {
+        color: #e7e2d4;
+      }
+      .migrate-cell.new b {
+        color: var(--pulse);
+        font-weight: 500;
+      }
+      .migrate-arrow {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--slate);
+      }
+
+      /* ---------- DATA MODEL ---------- */
+      .entities {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 1px;
+        background: var(--line);
+        border: 1px solid var(--line);
+      }
+      @media (max-width: 780px) {
+        .entities {
+          grid-template-columns: repeat(2, 1fr);
+        }
+      }
+      @media (max-width: 520px) {
+        .entities {
+          grid-template-columns: 1fr;
+        }
+      }
+      .entity {
+        background: var(--canvas-deep);
+        padding: 22px;
+      }
+      .entity h4 {
+        font-family: var(--mono);
+        font-size: 13.5px;
+        color: var(--pulse);
+        margin-bottom: 12px;
+        font-weight: 500;
+      }
+      .entity ul {
+        list-style: none;
+      }
+      .entity li {
+        font-size: 12.5px;
+        color: #9c9788;
+        font-family: var(--mono);
+        padding: 3px 0;
+      }
+      .entity .new-tag {
+        display: inline-block;
+        font-family: var(--sans);
+        font-size: 10.5px;
+        color: var(--alert);
+        border: 1px solid var(--alert);
+        border-radius: 20px;
+        padding: 1px 8px;
+        margin-bottom: 10px;
+        letter-spacing: 0.02em;
+      }
+
+      /* ---------- RULES ---------- */
+      .rules {
+        display: flex;
+        flex-direction: column;
+      }
+      .rule {
+        display: grid;
+        grid-template-columns: 120px 1fr;
+        gap: 24px;
+        padding: 22px 0;
+        border-bottom: 1px solid var(--line);
+      }
+      .rule:last-child {
+        border-bottom: none;
+      }
+      .rule .tag {
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--slate);
+        padding-top: 2px;
+      }
+      .rule p {
+        font-size: 15px;
+        color: #dcd7c8;
+        max-width: 640px;
+      }
+      .rule p b {
+        color: var(--paper);
+        font-weight: 600;
+      }
+
+      /* ---------- SCREENS ---------- */
+      .screens {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 1px;
+        background: var(--line);
+        border: 1px solid var(--line);
+      }
+      @media (max-width: 680px) {
+        .screens {
+          grid-template-columns: 1fr;
+        }
+      }
+      .screen {
+        background: var(--canvas-deep);
+        padding: 26px 24px;
+        transition: background 0.18s;
+      }
+      .screen:hover {
+        background: #141b24;
+      }
+      .screen h4 {
+        font-family: var(--serif);
+        font-weight: 500;
+        font-size: 19px;
+        color: var(--paper);
+        margin-bottom: 8px;
+      }
+      .screen p {
+        font-size: 13.5px;
+        color: #9c9788;
+      }
+
+      /* ---------- STACK ---------- */
+      .stack {
+        display: flex;
+        flex-direction: column;
+      }
+      .stack-row {
+        display: grid;
+        grid-template-columns: 180px 1fr;
+        padding: 15px 0;
+        border-bottom: 1px solid var(--line);
+        gap: 20px;
+      }
+      .stack-row:last-child {
+        border-bottom: none;
+      }
+      .stack-row .role {
+        font-family: var(--mono);
+        font-size: 12.5px;
+        color: var(--pulse);
+        padding-top: 2px;
+      }
+      .stack-row .item b {
+        color: var(--paper);
+        font-weight: 600;
+      }
+      .stack-row .item {
+        font-size: 14.5px;
+        color: #b9b3a2;
+      }
+
+      /* ---------- ROADMAP ---------- */
+      .roadmap {
+        position: relative;
+        padding-left: 52px;
+      }
+      .roadmap::before {
+        content: "";
+        position: absolute;
+        left: 15px;
+        top: 6px;
+        bottom: 6px;
+        width: 1px;
+        background: var(--line);
+      }
+      .phase {
+        position: relative;
+        padding-bottom: 38px;
+      }
+      .phase:last-child {
+        padding-bottom: 0;
+      }
+      .phase::before {
+        content: attr(data-n);
+        position: absolute;
+        left: -52px;
+        top: 0;
+        width: 32px;
+        height: 32px;
+        border-radius: 50%;
+        border: 1px solid var(--pulse);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-family: var(--mono);
+        font-size: 12px;
+        color: var(--pulse);
+        background: var(--canvas);
+      }
+      .phase h4 {
+        font-family: var(--serif);
+        font-weight: 500;
+        font-size: 19px;
+        color: var(--paper);
+        margin-bottom: 6px;
+      }
+      .phase p {
+        font-size: 14px;
+        color: #a29c8c;
+        max-width: 600px;
+      }
+
+      /* ---------- DECISIONS ---------- */
+      .decisions {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+      }
+      @media (max-width: 780px) {
+        .decisions {
+          grid-template-columns: 1fr;
+        }
+      }
+      .decision {
+        border-left: 2px solid var(--pulse);
+        padding-left: 18px;
+      }
+      .decision .k {
+        font-family: var(--mono);
+        font-size: 11.5px;
+        color: var(--slate);
+        margin-bottom: 8px;
+        text-transform: uppercase;
+        letter-spacing: 0.04em;
+      }
+      .decision p {
+        font-size: 14.5px;
+        color: #dcd7c8;
+      }
+
+      /* ---------- FOOTER ---------- */
+      footer {
+        padding: 56px 0 90px;
+        border-top: 1px solid var(--line);
+      }
+      footer .row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 16px;
+      }
+      footer .files {
+        display: flex;
+        gap: 18px;
+        font-family: var(--mono);
+        font-size: 12.5px;
+        color: var(--slate);
+        flex-wrap: wrap;
+      }
+      footer .files span {
+        color: var(--pulse);
+      }
+      footer .sig {
+        font-family: var(--serif);
+        font-style: italic;
+        font-size: 15px;
+        color: var(--slate);
+      }
+    </style>
+  </head>
+  <body>
+    <header class="nav">
+      <div class="nav-inner">
+        <div class="brand"><span class="dot"></span> PULSE</div>
+        <nav class="nav-links">
+          <a href="#overview">Overview</a>
+          <a href="#migration">Migration</a>
+          <a href="#model">Data model</a>
+          <a href="#screens">Screens</a>
+          <a href="#stack">Stack</a>
+          <a href="#roadmap">Roadmap</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="wrap">
+      <section class="hero first">
+        <div class="eyebrow">PLANNING DOCUMENT — EUMB ICT EQUIPMENT SYSTEM</div>
+        <h1>PULSE</h1>
+        <div class="tagline">
+          Personnel &amp; Unit Lifecycle System for Equipment
+        </div>
+        <p class="lede">
+          A replacement for the office's Excel-based ICT tracker — one place to
+          add, monitor, and retire laptops, tablets, desktops, drones, cameras
+          and printers, with every unit's 3-year lifespan tracked automatically
+          instead of recalculated by hand.
+        </p>
+        <div class="meta">
+          STACK — NEXT.JS · SUPABASE · TAILWIND · ANIMATA.DESIGN
+        </div>
+
+        <svg
+          class="pulse-trace"
+          viewBox="0 0 1000 130"
+          preserveAspectRatio="none"
+        >
+          <path
+            d="M0,70 L160,70 L190,70 L210,20 L235,118 L258,70 L300,70 L420,70 L448,30 L470,105 L492,70 L540,70 L660,70 L688,25 L710,112 L732,70 L780,70 L1000,70"
+          />
+        </svg>
+      </section>
+
+      <section id="overview">
+        <div class="section-head">
+          <h2>Why replace the spreadsheet</h2>
+          <div class="num">§ 01</div>
+        </div>
+        <p class="section-sub">
+          The current system is a shared Excel file. It works until two people
+          edit it at once, or until someone has to manually recount which units
+          are due for replacement this year.
+        </p>
+        <div class="goals">
+          <div class="goal">
+            <svg width="16" height="16" viewBox="0 0 16 16">
+              <path
+                d="M2 8.5 L6 12.5 L14 3.5"
+                stroke="#3ED9A0"
+                stroke-width="1.6"
+                fill="none"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            <p>
+              Add, edit, delete, and monitor every ICT equipment record from one
+              system
+            </p>
+          </div>
+          <div class="goal">
+            <svg width="16" height="16" viewBox="0 0 16 16">
+              <path
+                d="M2 8.5 L6 12.5 L14 3.5"
+                stroke="#3ED9A0"
+                stroke-width="1.6"
+                fill="none"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            <p>
+              Auto-flag equipment once it passes its 3-year lifespan — no manual
+              recalculation
+            </p>
+          </div>
+          <div class="goal">
+            <svg width="16" height="16" viewBox="0 0 16 16">
+              <path
+                d="M2 8.5 L6 12.5 L14 3.5"
+                stroke="#3ED9A0"
+                stroke-width="1.6"
+                fill="none"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            <p>
+              Restrict assignment to Regular plantilla staff only — never PSS,
+              PES, COS, or Outsourced
+            </p>
+          </div>
+          <div class="goal">
+            <svg width="16" height="16" viewBox="0 0 16 16">
+              <path
+                d="M2 8.5 L6 12.5 L14 3.5"
+                stroke="#3ED9A0"
+                stroke-width="1.6"
+                fill="none"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            <p>
+              Organize every record by division, with scoped access for
+              division-level viewers
+            </p>
+          </div>
+          <div class="goal">
+            <svg width="16" height="16" viewBox="0 0 16 16">
+              <path
+                d="M2 8.5 L6 12.5 L14 3.5"
+                stroke="#3ED9A0"
+                stroke-width="1.6"
+                fill="none"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              />
+            </svg>
+            <p>
+              Give management a live replacement &amp; budget view, instead of a
+              manually rebuilt yearly sheet
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="migration">
+        <div class="section-head">
+          <h2>From spreadsheet to system</h2>
+          <div class="num">§ 02</div>
+        </div>
+        <p class="section-sub">
+          Every sheet in the old workbook maps to something in PULSE — nothing
+          gets left behind, some things get merged or generated instead of
+          hand-kept.
+        </p>
+        <div class="migrate">
+          <div class="migrate-row">
+            <div class="migrate-cell old">Laptop / Laptop only</div>
+            <div class="migrate-arrow">→</div>
+            <div class="migrate-cell new">
+              <b>Equipment</b> — category Laptop (Desktop rows split out)
+            </div>
+          </div>
+          <div class="migrate-row">
+            <div class="migrate-cell old">Tablet</div>
+            <div class="migrate-arrow">→</div>
+            <div class="migrate-cell new">
+              <b>Equipment</b> — category Tablet
+            </div>
+          </div>
+          <div class="migrate-row">
+            <div class="migrate-cell old">Drone / Camera</div>
+            <div class="migrate-arrow">→</div>
+            <div class="migrate-cell new">
+              <b>Equipment</b> — tracked, no lifespan/expiry applied
+            </div>
+          </div>
+          <div class="migrate-row">
+            <div class="migrate-cell old">Printer</div>
+            <div class="migrate-arrow">→</div>
+            <div class="migrate-cell new">
+              <b>Equipment</b> — division-level, no named custodian required
+            </div>
+          </div>
+          <div class="migrate-row">
+            <div class="migrate-cell old">Data</div>
+            <div class="migrate-arrow">→</div>
+            <div class="migrate-cell new">
+              <b>Personnel</b> + <b>Division</b> — source of the plantilla
+              status rule
+            </div>
+          </div>
+          <div class="migrate-row">
+            <div class="migrate-cell old">Sheet1 (Replacement for 2026)</div>
+            <div class="migrate-arrow">→</div>
+            <div class="migrate-cell new">
+              <b>Budget tab</b> — generated live, never rebuilt by hand again
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="model">
+        <div class="section-head">
+          <h2>Data model</h2>
+          <div class="num">§ 03</div>
+        </div>
+        <p class="section-sub">
+          Seven entities. Expiry status is computed on the fly from
+          <span style="font-family: var(--mono); color: #dcd7c8"
+            >year_acquired</span
+          >
+          — it's never stored, so it can't go stale the way the old sheet's
+          "Years in Service" column did.
+        </p>
+        <div class="entities">
+          <div class="entity">
+            <h4>Division</h4>
+            <ul>
+              <li>id</li>
+              <li>code</li>
+              <li>full_name</li>
+            </ul>
+          </div>
+          <div class="entity">
+            <h4>Personnel</h4>
+            <ul>
+              <li>full_name</li>
+              <li>initials</li>
+              <li>division_id</li>
+              <li>position</li>
+              <li>plantilla_status</li>
+            </ul>
+          </div>
+          <div class="entity">
+            <h4>EquipmentCategory</h4>
+            <ul>
+              <li>name</li>
+              <li>lifespan_years</li>
+            </ul>
+          </div>
+          <div class="entity">
+            <span class="new-tag">new</span>
+            <h4>CategoryUnitCost</h4>
+            <ul>
+              <li>category_id</li>
+              <li>year</li>
+              <li>unit_cost</li>
+            </ul>
+          </div>
+          <div class="entity">
+            <h4>Equipment</h4>
+            <ul>
+              <li>category_id · model · brand</li>
+              <li>year_acquired · serial_no</li>
+              <li>division_id · assigned_to</li>
+              <li>status · remarks</li>
+            </ul>
+          </div>
+          <div class="entity">
+            <span class="new-tag">new</span>
+            <h4>AssignmentHistory</h4>
+            <ul>
+              <li>equipment_id</li>
+              <li>personnel_id</li>
+              <li>assigned_at / unassigned_at</li>
+            </ul>
+          </div>
+          <div class="entity">
+            <span class="new-tag">new</span>
+            <h4>AppUser</h4>
+            <ul>
+              <li>email · role</li>
+              <li>division_scope</li>
+            </ul>
+          </div>
+        </div>
+      </section>
+
+      <section id="rules">
+        <div class="section-head">
+          <h2>Business rules</h2>
+          <div class="num">§ 04</div>
+        </div>
+        <div class="rules">
+          <div class="rule">
+            <div class="tag">LIFESPAN</div>
+            <p>
+              Only <b>Laptop, Tablet, and Desktop</b> carry a 3-year expiry.
+              Drones, cameras, and printers are inventoried but never flagged as
+              expired.
+            </p>
+          </div>
+          <div class="rule">
+            <div class="tag">ASSIGNMENT</div>
+            <p>
+              The "Assigned To" dropdown only lists personnel with plantilla
+              status <b>Regular</b>. PSS, PES, COS, Outsourced, Reserve, and For
+              Transfer never appear in it — enforced at the database level, not
+              just in the form.
+            </p>
+          </div>
+          <div class="rule">
+            <div class="tag">PRINTERS</div>
+            <p>
+              Printers default to <b>division-level</b> ownership, matching how
+              the old sheet tracked them — no individual custodian required.
+            </p>
+          </div>
+          <div class="rule">
+            <div class="tag">RETIREMENT</div>
+            <p>
+              Deleting is destructive and Admin-only. <b>Retiring</b> a unit is
+              the default way to take it out of service while keeping its
+              history.
+            </p>
+          </div>
+          <div class="rule">
+            <div class="tag">ACCESS</div>
+            <p>
+              <b>Admin</b> gets full CRUD across all divisions. <b>Viewer</b> is
+              read-only, and can be scoped to a single division.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="screens">
+        <div class="section-head">
+          <h2>Screens</h2>
+          <div class="num">§ 05</div>
+        </div>
+        <div class="screens">
+          <div class="screen">
+            <h4>Dashboard</h4>
+            <p>
+              KPI cards, division breakdown, and a live "replacement plan for
+              this year" — the automatic version of the old Sheet1.
+            </p>
+          </div>
+          <div class="screen">
+            <h4>Equipment list</h4>
+            <p>
+              Per-category tabs, search, filters, and the "+ Add Equipment" flow
+              with the Regular-only assignment dropdown.
+            </p>
+          </div>
+          <div class="screen">
+            <h4>Equipment detail</h4>
+            <p>
+              Full record plus a custody timeline pulled from assignment
+              history.
+            </p>
+          </div>
+          <div class="screen">
+            <h4>Personnel</h4>
+            <p>
+              Everyone from the roster, with a "+ Add Employee" quick-add for
+              name, division, position, and initials.
+            </p>
+          </div>
+          <div class="screen">
+            <h4>Divisions</h4>
+            <p>
+              Per-division rollup: headcount, equipment count, expired count.
+            </p>
+          </div>
+          <div class="screen">
+            <h4>Reports</h4>
+            <p>
+              Export current inventory or the replacement plan to Excel, for
+              continuity with how the office already shares this data.
+            </p>
+          </div>
+          <div class="screen">
+            <h4>Admin · Users</h4>
+            <p>Manage system logins, roles, and division scoping.</p>
+          </div>
+          <div class="screen">
+            <h4>Budget planning</h4>
+            <p>
+              Division × category grid of units due for replacement, priced
+              against editable per-year unit costs.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="stack">
+        <div class="section-head">
+          <h2>Tech stack</h2>
+          <div class="num">§ 06</div>
+        </div>
+        <div class="stack">
+          <div class="stack-row">
+            <div class="role">FRAMEWORK</div>
+            <div class="item">
+              <b>Next.js</b> — App Router, server actions for mutations
+            </div>
+          </div>
+          <div class="stack-row">
+            <div class="role">BACKEND</div>
+            <div class="item">
+              <b>Supabase</b> — Postgres, auth, and row-level security enforcing
+              division scoping at the database layer
+            </div>
+          </div>
+          <div class="stack-row">
+            <div class="role">UI</div>
+            <div class="item">
+              <b>Tailwind + shadcn/ui</b>, with <b>animata.design</b> components
+              for counters, drawers, and transitions
+            </div>
+          </div>
+          <div class="stack-row">
+            <div class="role">TABLES</div>
+            <div class="item">
+              <b>TanStack Table</b> — sorting, filtering, pagination on every
+              list view
+            </div>
+          </div>
+          <div class="stack-row">
+            <div class="role">CHARTS</div>
+            <div class="item">
+              <b>Recharts</b> — dashboard and budget visualizations
+            </div>
+          </div>
+          <div class="stack-row">
+            <div class="role">FORMS</div>
+            <div class="item">
+              <b>React Hook Form + Zod</b> — validated Add/Edit flows
+            </div>
+          </div>
+          <div class="stack-row">
+            <div class="role">EXPORT</div>
+            <div class="item">
+              <b>SheetJS</b> — Excel export for reports and budget tables
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="roadmap">
+        <div class="section-head">
+          <h2>Build roadmap</h2>
+          <div class="num">§ 07</div>
+        </div>
+        <div class="roadmap">
+          <div class="phase" data-n="0">
+            <h4>Project setup</h4>
+            <p>
+              Next.js scaffold, Supabase project, shadcn + animata components,
+              app shell with PULSE branding.
+            </p>
+          </div>
+          <div class="phase" data-n="1">
+            <h4>Schema + RLS</h4>
+            <p>
+              All seven tables, a hard constraint tying assignment to Regular
+              plantilla status, and division-scoped row-level security.
+            </p>
+          </div>
+          <div class="phase" data-n="2">
+            <h4>Data migration</h4>
+            <p>
+              Import the old workbook and dataset.md, splitting out the 5
+              Desktop rows hidden in the Laptop sheet, flagging unmatched names
+              for review.
+            </p>
+          </div>
+          <div class="phase" data-n="3">
+            <h4>Equipment CRUD</h4>
+            <p>
+              The daily-use screen: add, edit, reassign, retire, delete — with
+              full assignment history.
+            </p>
+          </div>
+          <div class="phase" data-n="4">
+            <h4>Dashboard + budget</h4>
+            <p>
+              Live KPIs, division breakdown, and the auto-generated replacement
+              budget tab.
+            </p>
+          </div>
+          <div class="phase" data-n="5">
+            <h4>Personnel + divisions</h4>
+            <p>
+              Roster management, the "+ Add Employee" flow, and division
+              rollups.
+            </p>
+          </div>
+          <div class="phase" data-n="6">
+            <h4>Reports + polish</h4>
+            <p>
+              Excel export, animata.design pass, empty/loading/error states,
+              mobile responsiveness.
+            </p>
+          </div>
+        </div>
+      </section>
+
+      <section id="decisions">
+        <div class="section-head">
+          <h2>Decisions locked in</h2>
+          <div class="num">§ 08</div>
+        </div>
+        <div class="decisions">
+          <div class="decision">
+            <div class="k">Desktop</div>
+            <p>Gets its own category, split out from Laptop going forward.</p>
+          </div>
+          <div class="decision">
+            <div class="k">Divisions</div>
+            <p>
+              List confirmed complete — OD, NED, AFETD, EVIMD, EPMPD, EPSMD,
+              EPRED, and the EE&amp;C enforcement division.
+            </p>
+          </div>
+          <div class="decision">
+            <div class="k">Budget</div>
+            <p>
+              Built in now, as its own top-level tab rather than folded into the
+              dashboard.
+            </p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="wrap row">
+        <div class="files">
+          <span>EUMB-ICT-System-Plan.md</span>
+          <span>PULSE-AI-Build-Tasks.md</span>
+        </div>
+        <div class="sig">Planning document — PULSE</div>
+      </div>
+    </footer>
+  </body>
+</html>
