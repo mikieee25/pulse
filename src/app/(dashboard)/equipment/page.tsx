@@ -3,6 +3,7 @@ import { EquipmentTable } from "@/components/equipment/equipment-table";
 import { columns, type EquipmentData } from "@/components/equipment/columns";
 
 import { AddEquipmentDialog } from "@/components/equipment/add-equipment-dialog";
+import { ExportButton } from "@/components/equipment/export-button";
 
 export default async function EquipmentPage(props: {
   searchParams: Promise<{ category?: string }>;
@@ -43,11 +44,14 @@ export default async function EquipmentPage(props: {
           <h1 className="text-3xl font-serif tracking-tight text-paper">Equipment</h1>
           <p className="text-slate mt-1">Manage ICT equipment across the bureau.</p>
         </div>
-        <AddEquipmentDialog category={category}>
-          <button className="bg-pulse text-canvas-deep px-4 py-2 rounded-md font-semibold hover:bg-pulse/90 transition-colors">
-            + Add {category}
-          </button>
-        </AddEquipmentDialog>
+        <div className="flex gap-2">
+          <ExportButton data={equipment} category={category} />
+          <AddEquipmentDialog category={category}>
+            <button className="bg-pulse text-canvas-deep px-4 py-2 rounded-md font-semibold hover:bg-pulse/90 transition-colors">
+              + Add {category}
+            </button>
+          </AddEquipmentDialog>
+        </div>
       </div>
 
       {/* Tabs */}
