@@ -23,7 +23,7 @@ export async function signOut() {
 
 export async function updatePassword(formData: FormData) {
   const password = z.string().min(6, "Password must be at least 6 characters").safeParse(formData.get("password"));
-  if (!password.success) return { error: password.error.errors[0].message };
+  if (!password.success) return { error: password.error.issues[0].message };
   const supabase = await createClient();
   const { error } = await supabase.auth.updateUser({ password: password.data });
   if (error) return { error: error.message };
