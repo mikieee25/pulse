@@ -1,8 +1,9 @@
-import { Menu } from "lucide-react";
+import { Menu, Settings, LogOut } from "lucide-react";
 import Image from "next/image";
 import { getCurrentProfile } from "@/lib/auth";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { NotificationBell } from "@/components/notifications/notification-bell";
+import { ProfileSettings } from "./profile-settings";
 import { buildNotifications, type NotificationAssignment, type NotificationEquipment } from "@/lib/notifications";
 import { createClient } from "@/utils/supabase/server";
 
@@ -37,10 +38,11 @@ export async function Topbar() {
           <span className="text-sm font-medium text-paper">
             {profile?.full_name || profile?.email || "PULSE user"}
           </span>
-          <span className="text-xs text-pulse font-mono bg-pulse/10 px-1.5 py-0.5 rounded">
+          <span className="text-xs text-pulse font-mono bg-pulse/10 px-1.5 py-0.5 rounded mt-0.5">
             {profile?.role || "Viewer"}
           </span>
         </div>
+        
         <div className="w-9 h-9 overflow-hidden rounded-full border border-line bg-canvas-deep">
           <Image
             src="/pulseicon.svg"
@@ -50,11 +52,19 @@ export async function Topbar() {
             className="h-full w-full object-cover"
           />
         </div>
-        <form action="/auth/logout" method="POST">
-          <button className="text-xs text-slate hover:text-paper" type="submit">
-            Sign out
-          </button>
-        </form>
+
+        <div className="flex items-center gap-3 pl-3 border-l border-line ml-1">
+          <ProfileSettings>
+            <button className="text-slate hover:text-pulse transition-colors flex items-center justify-center" title="Profile Settings">
+              <Settings className="w-4 h-4" />
+            </button>
+          </ProfileSettings>
+          <form action="/auth/logout" method="POST" className="flex items-center justify-center">
+            <button className="text-slate hover:text-alert transition-colors flex items-center justify-center" type="submit" title="Sign Out">
+              <LogOut className="w-4 h-4" />
+            </button>
+          </form>
+        </div>
       </div>
     </header>
   );

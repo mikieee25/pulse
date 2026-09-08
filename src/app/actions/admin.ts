@@ -43,6 +43,22 @@ export async function updateUser(id: string, input: Pick<z.infer<typeof userInpu
   return { success: true }
 }
 
+export async function deleteUser(id: string) {
+  const access = await requireProfile("Admin")
+  if (access.error) return access
+  const admin = createAdminClient()
+  if (!admin) return { error: "Admin user configuration is incomplete." }
+  
+  const { error: profileError } = await admin.from("app_users").delete().eq("id", id)
+  if (profileError) return { error: profileError.message }
+
+  const { error } = await admin.auth.admin.deleteUser(id)
+  if (error) return { error: error.message }
+  
+  revalidatePath("/admin/users")
+  return { success: true }
+}
+
 export async function updateCategoryCost(formData: FormData) {
   const access = await requireProfile("Admin")
   if (access.error) return access
