@@ -1,12 +1,19 @@
 import { createClient } from "@/utils/supabase/server"
 import { InventoryByDivisionChart, StatusBreakdownChart } from "@/components/dashboard/dashboard-charts"
 import { lifecycleStatus } from "@/lib/pulse"
+import { Activity, Building2, CircleAlert, PackageCheck } from "lucide-react"
+import { EmptyState } from "@/components/layout/empty-state"
+import { MetricCard } from "@/components/layout/metric-card"
+import { PageHeader } from "@/components/layout/page-header"
+import { SectionPanel } from "@/components/layout/section-panel"
 
-type EquipmentRow = { status: "Active" | "For Replacement" | "Retired"; year_acquired: number | null; division: { code: string } | null; equipment_categories: { name: string } | null }
+type EquipmentRow = { status: "Active" | "For Replacement" | "Retired"; condition_state: string; year_acquired: number | null; division: { code: string } | null; equipment_categories: { name: string } | null }
+
+type ReplacementStats = { totalExpiring: number; totalBroken: number; categories: Record<string, { total: number; replacement: number }> }
 
 export default async function Home() {
   const supabase = await createClient()
-  const { data, error } = await supabase.from("equipment").select("status,year_acquired,division:divisions(code),equipment_categories(name)")
+  const { data, error } = await supabase.from("equipment").select("status,condition_state,year_acquired,division:divisions(code),equipment_categories(name)")
   if (error) {
     console.error("Dashboard inventory query failed", { code: error.code, message: error.message, details: error.details, hint: error.hint })
     return <div className="rounded-lg border border-alert/30 bg-alert/10 p-6 text-alert"><h1 className="text-xl font-medium">Inventory unavailable</h1><p className="mt-2 text-sm text-slate">Your PULSE profile may need to be registered or your session may need to be refreshed.</p></div>
@@ -14,20 +21,100 @@ export default async function Home() {
   const equipment = (data || []) as unknown as EquipmentRow[]
   const statuses = equipment.map((item) => lifecycleStatus(item.status, item.equipment_categories?.name, item.year_acquired))
   const divisionCounts: Record<string, number> = {}
-  const replacementPlan: Record<string, number> = {}
+  
+  // New replacement plan tracking
+  const plan: Record<string, ReplacementStats> = {}
+  const allCategories = new Set<string>()
+
+  let totalBrokenAll = 0
   equipment.forEach((item, index) => {
     const division = item.division?.code || "Unknown"
+    const cat = item.equipment_categories?.name || "Unknown"
+    const isBroken = item.condition_state === "Broken"
+    const isExpiring = !isBroken && statuses[index] === "For Replacement"
+    const isReplacement = isBroken || isExpiring
+
+    if (isBroken) totalBrokenAll++
+    allCategories.add(cat)
     divisionCounts[division] = (divisionCounts[division] || 0) + 1
-    if (statuses[index] === "For Replacement") replacementPlan[division] = (replacementPlan[division] || 0) + 1
+    
+    if (!plan[division]) {
+      plan[division] = { totalExpiring: 0, totalBroken: 0, categories: {} }
+    }
+    if (!plan[division].categories[cat]) {
+      plan[division].categories[cat] = { total: 0, replacement: 0 }
+    }
+    
+    plan[division].categories[cat].total++
+    if (isReplacement) {
+      plan[division].categories[cat].replacement++
+      if (isBroken) plan[division].totalBroken++
+      if (isExpiring) plan[division].totalExpiring++
+    }
   })
+  
   const statusCounts = statuses.reduce<Record<string, number>>((counts, status) => ({ ...counts, [status]: (counts[status] || 0) + 1 }), {})
   const chartStatuses = Object.entries(statusCounts).map(([name, value]) => ({ name, value }))
-  return <div className="space-y-6">
-    <div><h1 className="text-3xl font-serif tracking-tight text-paper">Dashboard</h1><p className="text-slate mt-1">Live overview of ICT equipment across all divisions.</p></div>
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">{[
-      ["Total equipment", equipment.length, "text-paper"], ["Active", statusCounts.Active || 0, "text-pulse"], ["For replacement", statusCounts["For Replacement"] || 0, "text-alert"], ["Expiring within 6 months", statusCounts["Expiring soon"] || 0, "text-amber-300"],
-    ].map(([label, value, color]) => <div key={String(label)} className="bg-canvas-deep border border-line rounded-lg p-5"><p className="text-sm text-slate mb-2">{label}</p><p className={`text-3xl font-serif ${color}`}>{value}</p></div>)}</div>
-    <div className="grid grid-cols-1 lg:grid-cols-2 gap-6"><div className="bg-canvas-deep border border-line rounded-lg p-5"><h2 className="text-lg font-medium text-paper mb-4">Inventory by Division</h2><InventoryByDivisionChart data={Object.entries(divisionCounts).map(([name, count]) => ({ name, count }))} /></div><div className="bg-canvas-deep border border-line rounded-lg p-5"><h2 className="text-lg font-medium text-paper mb-4">Status Breakdown</h2><StatusBreakdownChart data={chartStatuses} /></div></div>
-    <div className="bg-canvas-deep border border-line rounded-lg p-5"><h2 className="text-lg font-medium text-paper mb-4">Replacement Plan for {new Date().getFullYear()}</h2><div className="overflow-x-auto"><table className="w-full text-sm"><thead><tr className="border-b border-line text-left text-slate"><th className="p-2">Division</th><th className="p-2">Units for replacement</th></tr></thead><tbody>{Object.entries(replacementPlan).sort().map(([division, count]) => <tr key={division} className="border-b border-line"><td className="p-2 text-paper">{division}</td><td className="p-2 text-alert">{count}</td></tr>)}{!Object.keys(replacementPlan).length && <tr><td colSpan={2} className="p-4 text-center text-slate">No replacement units.</td></tr>}</tbody></table></div></div>
-  </div>
+  
+  const catArray = Array.from(allCategories).sort()
+  
+  return (
+    <div className="space-y-8 pb-8">
+      <PageHeader
+        eyebrow={<span className="inline-flex items-center gap-2"><Activity className="size-3.5" aria-hidden="true" />Live inventory</span>}
+        title="Dashboard"
+        description="Live overview of ICT equipment across all divisions."
+      />
+
+      <section aria-labelledby="dashboard-overview-title" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <h2 id="dashboard-overview-title" className="sr-only">Dashboard overview</h2>
+        <MetricCard label="Total equipment" value={equipment.length} detail="Tracked ICT assets" icon={PackageCheck} />
+        <MetricCard label="Active" value={statusCounts.Active || 0} detail="Currently in service" icon={Activity} tone="pulse" />
+        <MetricCard label="For replacement" value={statusCounts["For Replacement"] || 0} detail={`${totalBrokenAll} broken units`} icon={CircleAlert} tone="alert" />
+        <MetricCard label="Expiring in 1 year" value={statusCounts["Expiring soon"] || 0} detail="Lifecycle attention needed" icon={Building2} tone="warning" />
+      </section>
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <SectionPanel title="Inventory by Division" description="Asset distribution across bureau offices">
+          <div className="p-5"><InventoryByDivisionChart data={Object.entries(divisionCounts).map(([name, count]) => ({ name, count }))} /></div>
+        </SectionPanel>
+        <SectionPanel title="Status Breakdown" description="Current lifecycle status of tracked assets">
+          <div className="p-5"><StatusBreakdownChart data={chartStatuses} /></div>
+        </SectionPanel>
+      </div>
+
+      <SectionPanel title={`Replacement Plan for ${new Date().getFullYear()}`} description="Replacement and condition signals by division and category">
+        {Object.keys(plan).length ? (
+          <div className="max-h-[720px] overflow-auto">
+            <table className="w-full min-w-[680px] text-left text-xs">
+              <caption className="sr-only">Replacement plan by division and equipment category</caption>
+              <thead className="sticky top-0 z-10 border-b border-line bg-canvas text-slate">
+                <tr>
+                  <th scope="col" className="px-5 py-3 font-medium">Division</th>
+                  <th scope="col" className="px-4 py-3 text-right font-medium">Units expiring</th>
+                  <th scope="col" className="px-4 py-3 text-right font-medium">Units broken</th>
+                  {catArray.map(cat => <th scope="col" key={cat} className="px-4 py-3 text-right font-medium">{cat} (Rep/Tot)</th>)}
+                </tr>
+              </thead>
+              <tbody>
+                {Object.entries(plan).sort().map(([division, stats]) => (
+                  <tr key={division} className="border-b border-line/50 transition hover:bg-paper/[0.025]">
+                    <th scope="row" className="px-5 py-3 text-left font-semibold text-paper">{division}</th>
+                    <td className={`px-4 py-3 text-right tabular-nums ${stats.totalExpiring > 0 ? "text-amber-300" : "text-slate"}`}>{stats.totalExpiring}</td>
+                    <td className={`px-4 py-3 text-right tabular-nums ${stats.totalBroken > 0 ? "text-alert" : "text-slate"}`}>{stats.totalBroken}</td>
+                    {catArray.map(cat => {
+                      const catStats = stats.categories[cat] || { total: 0, replacement: 0 }
+                      return <td key={cat} className={`px-4 py-3 text-right tabular-nums ${catStats.replacement > 0 ? "text-alert" : "text-slate"}`}>{catStats.replacement} / {catStats.total}</td>
+                    })}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        ) : (
+          <EmptyState title="No replacement records yet" description="No equipment has been flagged for lifecycle attention." />
+        )}
+      </SectionPanel>
+    </div>
+  )
 }

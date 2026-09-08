@@ -1,9 +1,29 @@
 import Link from "next/link"
-import { getCurrentProfile } from "@/lib/auth"
+import { ArrowRight, ShieldCheck } from "lucide-react"
 import { redirect } from "next/navigation"
+import { PageHeader } from "@/components/layout/page-header"
+import { SectionPanel } from "@/components/layout/section-panel"
+import { getCurrentProfile } from "@/lib/auth"
 
 export default async function AdminPage() {
   const profile = await getCurrentProfile()
   if (profile?.role !== "Admin") redirect("/")
-  return <div className="space-y-6"><div><h1 className="text-3xl font-serif tracking-tight text-paper">Admin</h1><p className="text-slate mt-1">Manage access and system reference values.</p></div><Link href="/admin/users" className="inline-flex rounded-md border border-line bg-canvas-deep px-4 py-3 text-pulse">Manage users</Link></div>
+
+  return (
+    <div className="space-y-8 pb-8">
+      <PageHeader
+        eyebrow={<span className="inline-flex items-center gap-2"><ShieldCheck className="size-3.5" aria-hidden="true" />Administration</span>}
+        title="Admin"
+        description="Manage access and system reference values."
+      />
+      <SectionPanel title="Access management" description="Control PULSE users, roles, and division scope.">
+        <div className="p-5">
+          <Link href="/admin/users" className="inline-flex items-center gap-2 rounded-xl border border-pulse/30 bg-pulse/10 px-4 py-3 text-sm font-semibold text-pulse transition hover:bg-pulse/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pulse/40">
+            Manage users
+            <ArrowRight className="size-4" aria-hidden="true" />
+          </Link>
+        </div>
+      </SectionPanel>
+    </div>
+  )
 }

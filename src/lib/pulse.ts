@@ -32,9 +32,9 @@ export function lifecycleStatus(
   if (!lifespan || !yearAcquired) return status
 
   const expiry = new Date(yearAcquired + lifespan, 0, 1)
-  const sixMonthsFromNow = new Date(today.getFullYear(), today.getMonth() + 6, today.getDate())
+  const oneYearFromNow = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate())
   if (expiry <= today) return "For Replacement"
-  if (expiry <= sixMonthsFromNow) return "Expiring soon"
+  if (expiry <= oneYearFromNow) return "Expiring soon"
   return "Active"
 }
 

@@ -21,7 +21,6 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 
 interface DivisionsTableProps<TData, TValue> {
@@ -55,24 +54,24 @@ export function DivisionsTable<TData, TValue>({
 
   return (
     <div className="space-y-4">
-      <div className="flex items-center gap-4">
-        <Input
+      <div className="flex flex-wrap items-center gap-3 rounded-xl border border-line bg-canvas/80 p-3">
+        <input
           placeholder="Search by code or name..."
           value={(table.getColumn("full_name")?.getFilterValue() as string) ?? ""}
           onChange={(event) =>
             table.getColumn("full_name")?.setFilterValue(event.target.value)
           }
-          className="max-w-sm bg-canvas-deep text-paper border-line focus-visible:ring-pulse"
+          className="h-10 min-w-[220px] flex-1 rounded-lg border border-line bg-canvas-deep px-3 text-sm text-paper outline-none transition-colors focus:border-pulse focus:ring-2 focus:ring-pulse/15"
         />
       </div>
-      <div className="rounded-md border border-line bg-canvas-deep overflow-hidden">
+      <div className="overflow-hidden rounded-xl border border-line bg-canvas-deep">
         <Table>
-          <TableHeader className="bg-canvas">
+          <TableHeader className="sticky top-0 z-10 bg-canvas">
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className="border-line hover:bg-transparent">
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id} className="text-slate font-medium">
+                    <TableHead key={header.id} className="px-4 py-3 font-medium text-slate">
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -91,10 +90,10 @@ export function DivisionsTable<TData, TValue>({
                 <TableRow
                   key={row.id}
                   data-state={row.getIsSelected() && "selected"}
-                  className="border-line hover:bg-canvas transition-colors"
+                  className="border-line transition-colors hover:bg-paper/[0.025]"
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id} className="text-paper">
+                    <TableCell key={cell.id} className="px-4 py-3 text-paper">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
