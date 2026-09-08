@@ -1,5 +1,6 @@
 import { createServerClient } from "@supabase/ssr"
 import { NextResponse, type NextRequest } from "next/server"
+import { getPasswordChangeRedirect } from "@/lib/temporary-password"
 
 export async function proxy(request: NextRequest) {
   let response = NextResponse.next({ request })
@@ -21,7 +22,11 @@ export async function proxy(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser()
   const isLogin = pathname === "/login"
   if (!user && !isLogin) return NextResponse.redirect(new URL("/login", request.url))
-  if (user && isLogin) return NextResponse.redirect(new URL("/", request.url))
+  if (user) {
+    const forcedRedirect = getPasswordChangeRedirect(pathname, user.app_metadata?.must_change_password === true)
+    if (forcedRedirect) return NextResponse.redirect(new URL(forcedRedirect, request.url))
+    if (isLogin) return NextResponse.redirect(new URL("/", request.url))
+  }
   return response
 }
 

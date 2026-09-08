@@ -1,8 +1,8 @@
 import { Button } from "@/components/ui/button"
 import Image from "next/image"
 
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
-  const error = (await searchParams).error
+export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string; message?: string }> }) {
+  const { error, message } = await searchParams
   return (
     <div className="min-h-screen flex items-center justify-center bg-canvas-deep p-4">
       <div className="w-full max-w-lg space-y-8">
@@ -35,6 +35,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
             </div>
 
             {error && <p className="text-sm text-alert" role="alert">{error}</p>}
+            {message && <p className="text-sm text-pulse" role="status">{message}</p>}
             <Button type="submit" className="w-full h-10 mt-2">
               Sign In
             </Button>

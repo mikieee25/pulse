@@ -1,24 +1,32 @@
 "use server"
 
 import { revalidatePath } from "next/cache"
-import { createClient as createSupabaseClient } from "@supabase/supabase-js"
 import { z } from "zod"
 import { requireProfile } from "@/lib/auth"
+import { buildTemporaryUserAttributes, validateTemporaryPassword } from "@/lib/temporary-password"
+import { createAdminClient } from "@/utils/supabase/admin"
 import { createClient } from "@/utils/supabase/server"
 
 const userInput = z.object({ email: z.email(), full_name: z.string().trim().min(1), role: z.enum(["Admin", "Viewer"]), division_scope: z.string().uuid().nullable() })
+const newUserInput = userInput.extend({ temporary_password: z.string() })
 
-export async function inviteUser(input: z.infer<typeof userInput>) {
+export async function createUser(input: z.infer<typeof newUserInput>) {
   const access = await requireProfile("Admin")
   if (access.error) return access
-  const parsed = userInput.safeParse(input)
-  if (!parsed.success || !process.env.SUPABASE_SERVICE_ROLE_KEY) return { error: "Admin invite configuration is incomplete." }
-  const admin = createSupabaseClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.SUPABASE_SERVICE_ROLE_KEY!)
-  const { data, error } = await admin.auth.admin.inviteUserByEmail(parsed.data.email)
-  if (error || !data.user) return { error: error?.message || "Could not invite user." }
-  const supabase = await createClient()
-  const { error: profileError } = await supabase.from("app_users").insert({ id: data.user.id, email: parsed.data.email, full_name: parsed.data.full_name, role: parsed.data.role, division_scope: parsed.data.division_scope })
-  if (profileError) return { error: profileError.message }
+  const parsed = newUserInput.safeParse(input)
+  if (!parsed.success) return { error: "Enter valid user details." }
+  const passwordError = validateTemporaryPassword(parsed.data.temporary_password)
+  if (passwordError) return { error: passwordError }
+  const admin = createAdminClient()
+  if (!admin) return { error: "Admin user configuration is incomplete." }
+  const { temporary_password, ...profile } = parsed.data
+  const { data, error } = await admin.auth.admin.createUser(buildTemporaryUserAttributes(profile.email, temporary_password))
+  if (error || !data.user) return { error: error?.message || "Could not create user." }
+  const { error: profileError } = await admin.from("app_users").insert({ id: data.user.id, ...profile })
+  if (profileError) {
+    await admin.auth.admin.deleteUser(data.user.id)
+    return { error: profileError.message }
+  }
   revalidatePath("/admin/users")
   return { success: true }
 }
