@@ -1,10 +1,22 @@
-import { Bell, Menu } from "lucide-react";
+import { Menu } from "lucide-react";
 import Image from "next/image";
 import { getCurrentProfile } from "@/lib/auth";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
+import { NotificationBell } from "@/components/notifications/notification-bell";
+import { buildNotifications, type NotificationAssignment, type NotificationEquipment } from "@/lib/notifications";
+import { createClient } from "@/utils/supabase/server";
 
 export async function Topbar() {
-  const profile = await getCurrentProfile();
+  const [profile, supabase] = await Promise.all([getCurrentProfile(), createClient()]);
+  const [{ data: equipmentData, error: equipmentError }, { data: historyData, error: historyError }] = await Promise.all([
+    supabase.from("equipment").select("id,status,condition_state,year_acquired,assigned_to,assignee_id,equipment_categories(name)"),
+    supabase.from("assignment_history").select("id,assigned_at,note,personnel(full_name)").order("assigned_at", { ascending: false }).limit(5),
+  ]);
+  const notificationUnavailable = Boolean(equipmentError || historyError);
+  const notifications = notificationUnavailable
+    ? []
+    : buildNotifications((equipmentData || []) as unknown as NotificationEquipment[], (historyData || []) as unknown as NotificationAssignment[]);
+
   return (
     <header className="h-16 border-b border-line bg-canvas flex items-center px-6 lg:px-8 shrink-0">
       <div className="flex items-center gap-4">
@@ -20,12 +32,7 @@ export async function Topbar() {
       </div>
       <div className="ml-auto flex items-center gap-3 pl-4 border-l border-line">
         <ThemeToggle />
-        <button
-          className="text-slate hover:text-paper transition-colors"
-          aria-label="Notifications"
-        >
-          <Bell className="w-5 h-5" />
-        </button>
+        <NotificationBell notifications={notifications} unavailable={notificationUnavailable} />
         <div className="flex flex-col items-end hidden sm:flex pl-3 border-l border-line">
           <span className="text-sm font-medium text-paper">
             {profile?.full_name || profile?.email || "PULSE user"}
