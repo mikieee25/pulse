@@ -8,23 +8,29 @@ import { PageHeader } from "@/components/layout/page-header"
 import { SectionPanel } from "@/components/layout/section-panel"
 
 type EquipmentRow = { status: "Active" | "For Replacement" | "Retired"; condition_state: string; year_acquired: number | null; division: { code: string } | null; equipment_categories: { name: string } | null }
+type EquipmentCategory = { name: string }
 
 type ReplacementStats = { totalExpiring: number; totalBroken: number; categories: Record<string, { total: number; replacement: number }> }
 
 export default async function Home() {
   const supabase = await createClient()
-  const { data, error } = await supabase.from("equipment").select("status,condition_state,year_acquired,division:divisions(code),equipment_categories(name)")
-  if (error) {
-    console.error("Dashboard inventory query failed", { code: error.code, message: error.message, details: error.details, hint: error.hint })
+  const [{ data, error }, { data: categoryData, error: categoryError }] = await Promise.all([
+    supabase.from("equipment").select("status,condition_state,year_acquired,division:divisions(code),equipment_categories(name)"),
+    supabase.from("equipment_categories").select("name").order("name"),
+  ])
+  const queryError = error || categoryError
+  if (queryError) {
+    console.error("Dashboard inventory query failed", { code: queryError.code, message: queryError.message, details: queryError.details, hint: queryError.hint })
     return <div className="rounded-lg border border-alert/30 bg-alert/10 p-6 text-alert"><h1 className="text-xl font-medium">Inventory unavailable</h1><p className="mt-2 text-sm text-slate">Your PULSE profile may need to be registered or your session may need to be refreshed.</p></div>
   }
   const equipment = (data || []) as unknown as EquipmentRow[]
+  const categories = (categoryData || []) as EquipmentCategory[]
   const statuses = equipment.map((item) => lifecycleStatus(item.status, item.equipment_categories?.name, item.year_acquired))
   const divisionCounts: Record<string, number> = {}
   
   // New replacement plan tracking
   const plan: Record<string, ReplacementStats> = {}
-  const allCategories = new Set<string>()
+  const allCategories = new Set(categories.map((category) => category.name))
 
   let totalBrokenAll = 0
   equipment.forEach((item, index) => {

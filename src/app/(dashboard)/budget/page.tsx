@@ -81,9 +81,7 @@ export default async function BudgetPage({
   const isAdmin = appUser?.role === "Admin";
   const equipment = (equipmentData || []) as unknown as Equipment[];
 
-  const categories = ((categoriesData || []) as Category[]).filter(
-    (category) => category.lifespan_years !== null
-  );
+  const categories = (categoriesData || []) as Category[];
 
   const costByCategory = new Map(
     ((costs || []) as Cost[]).map((cost) => [cost.category_id, cost.unit_cost])
@@ -347,7 +345,9 @@ export default async function BudgetPage({
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
                         <label htmlFor={inputId} className="block truncate text-xs font-semibold text-paper">{category.name}</label>
-                        <span className="mt-0.5 block text-[10px] text-slate">{category.lifespan_years}-year lifecycle</span>
+                        <span className="mt-0.5 block text-[10px] text-slate">
+                          {category.lifespan_years === null ? "Manual replacement" : `${category.lifespan_years}-year lifecycle`}
+                        </span>
                       </div>
                       {!currentCost && <span className="shrink-0 rounded-full bg-amber-300/10 px-2 py-0.5 text-[9px] font-medium text-amber-300">Unpriced</span>}
                     </div>
