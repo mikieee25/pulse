@@ -4,16 +4,16 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --color-canvas: #10151c;
-  --color-canvas-deep: #0b0f15;
-  --color-paper: #efe9dc;
-  --color-paper-dim: #e3dccb;
-  --color-ink: #1c1912;
-  --color-ink-soft: #4a473e;
-  --color-pulse: #3ed9a0;
-  --color-alert: #e2572b;
-  --color-slate: #8792a0;
-  --color-line: rgba(239, 233, 220, 0.14);
+  --color-canvas: var(--canvas);
+  --color-canvas-deep: var(--canvas-deep);
+  --color-paper: var(--paper);
+  --color-paper-dim: var(--paper-dim);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-pulse: var(--pulse);
+  --color-alert: var(--alert);
+  --color-slate: var(--slate);
+  --color-line: var(--line);
 
   --color-background: var(--canvas);
   --color-foreground: var(--paper);
@@ -28,7 +28,7 @@
   --color-popover-foreground: var(--paper);
   --color-destructive: var(--alert);
   --color-destructive-foreground: var(--paper);
-  --color-accent: rgba(239, 233, 220, 0.05);
+  --color-accent: var(--accent);
   --color-accent-foreground: var(--paper);
   --color-input: var(--line);
   --color-ring: var(--pulse);
@@ -51,6 +51,7 @@
   --alert: #e2572b;
   --slate: #8792a0;
   --line: rgba(239, 233, 220, 0.14);
+  --accent: rgba(239, 233, 220, 0.05);
   --radius: 0.5rem;
 }
 
@@ -65,6 +66,7 @@ html.light {
   --alert: #c94a25;
   --slate: #5d6e68;
   --line: rgba(23, 35, 31, 0.14);
+  --accent: rgba(23, 35, 31, 0.05);
 }
 
 @layer base {

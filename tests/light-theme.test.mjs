@@ -10,6 +10,10 @@ const toggle = await readFile(new URL("../src/components/theme/theme-toggle.tsx"
 test("dashboard exposes a persistent light theme", () => {
   assert.match(css, /html\.light/)
   assert.match(css, /--canvas:/)
+  assert.match(css, /--color-canvas:\s*var\(--canvas\)/)
+  assert.match(css, /--color-paper:\s*var\(--paper\)/)
+  assert.match(css, /--color-pulse:\s*var\(--pulse\)/)
+  assert.doesNotMatch(css, /--color-canvas:\s*#10151c/)
   assert.match(layout, /suppressHydrationWarning/)
   assert.match(topbar, /ThemeToggle/)
   assert.match(toggle, /localStorage/)
