@@ -30,6 +30,7 @@ export default function RootLayout({
     <html
       lang="en"
       className={`${inter.variable} ${geistMono.variable} h-full antialiased dark`}
+      suppressHydrationWarning
     >
       <body className="font-sans h-full bg-canvas text-paper overflow-hidden">
         {children}

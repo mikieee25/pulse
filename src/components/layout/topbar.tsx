@@ -1,6 +1,7 @@
 import { Bell, Menu } from "lucide-react";
 import Image from "next/image";
 import { getCurrentProfile } from "@/lib/auth";
+import { ThemeToggle } from "@/components/theme/theme-toggle";
 
 export async function Topbar() {
   const profile = await getCurrentProfile();
@@ -18,6 +19,7 @@ export async function Topbar() {
         </span>
       </div>
       <div className="ml-auto flex items-center gap-3 pl-4 border-l border-line">
+        <ThemeToggle />
         <button
           className="text-slate hover:text-paper transition-colors"
           aria-label="Notifications"
