@@ -1,6 +1,6 @@
 import { createClient } from "@/utils/supabase/server"
 import { InventoryByDivisionChart, StatusBreakdownChart } from "@/components/dashboard/dashboard-charts"
-import { lifecycleStatus } from "@/lib/pulse"
+import { equipmentDisplayStatus, needsReplacement } from "@/lib/pulse"
 import { Activity, Building2, CircleAlert, PackageCheck } from "lucide-react"
 import { EmptyState } from "@/components/layout/empty-state"
 import { MetricCard } from "@/components/layout/metric-card"
@@ -25,7 +25,7 @@ export default async function Home() {
   }
   const equipment = (data || []) as unknown as EquipmentRow[]
   const categories = (categoryData || []) as EquipmentCategory[]
-  const statuses = equipment.map((item) => lifecycleStatus(item.status, item.equipment_categories?.name, item.year_acquired))
+  const statuses = equipment.map((item) => equipmentDisplayStatus(item.status, item.condition_state, item.equipment_categories?.name, item.year_acquired))
   const divisionCounts: Record<string, number> = {}
   
   // New replacement plan tracking
@@ -36,9 +36,9 @@ export default async function Home() {
   equipment.forEach((item, index) => {
     const division = item.division?.code || "Unknown"
     const cat = item.equipment_categories?.name || "Unknown"
-    const isBroken = item.condition_state === "Broken"
+    const isBroken = statuses[index] === "Broken"
     const isExpiring = !isBroken && statuses[index] === "For Replacement"
-    const isReplacement = isBroken || isExpiring
+    const isReplacement = needsReplacement(item.status, item.condition_state, item.equipment_categories?.name, item.year_acquired)
 
     if (isBroken) totalBrokenAll++
     allCategories.add(cat)
@@ -76,7 +76,7 @@ export default async function Home() {
         <h2 id="dashboard-overview-title" className="sr-only">Dashboard overview</h2>
         <MetricCard label="Total equipment" value={equipment.length} detail="Tracked ICT assets" icon={PackageCheck} />
         <MetricCard label="Active" value={statusCounts.Active || 0} detail="Currently in service" icon={Activity} tone="pulse" />
-        <MetricCard label="For replacement" value={statusCounts["For Replacement"] || 0} detail={`${totalBrokenAll} broken units`} icon={CircleAlert} tone="alert" />
+        <MetricCard label="For replacement" value={(statusCounts["For Replacement"] || 0) + totalBrokenAll} detail={`${totalBrokenAll} broken units`} icon={CircleAlert} tone="alert" />
         <MetricCard label="Expiring in 1 year" value={statusCounts["Expiring soon"] || 0} detail="Lifecycle attention needed" icon={Building2} tone="warning" />
       </section>
 

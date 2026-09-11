@@ -1,4 +1,4 @@
-import { lifecycleStatus, type StoredEquipmentStatus } from "@/lib/pulse"
+import { equipmentDisplayStatus, needsReplacement, type StoredEquipmentStatus } from "@/lib/pulse"
 
 export type NotificationKind = "replacement" | "expiring" | "unassigned" | "activity"
 export type NotificationTone = "alert" | "warning" | "pulse" | "slate"
@@ -35,13 +35,10 @@ export function buildNotifications(
   assignmentHistory: NotificationAssignment[],
   now = new Date(),
 ): NotificationItem[] {
-  const replacementCount = equipment.filter((item) => {
-    const status = lifecycleStatus(item.status, item.equipment_categories?.name, item.year_acquired, now)
-    return status === "For Replacement" || item.condition_state === "Broken"
-  }).length
+  const replacementCount = equipment.filter((item) => needsReplacement(item.status, item.condition_state, item.equipment_categories?.name, item.year_acquired, now)).length
 
   const expiringCount = equipment.filter((item) => {
-    const status = lifecycleStatus(item.status, item.equipment_categories?.name, item.year_acquired, now)
+    const status = equipmentDisplayStatus(item.status, item.condition_state, item.equipment_categories?.name, item.year_acquired, now)
     return status === "Expiring soon"
   }).length
 

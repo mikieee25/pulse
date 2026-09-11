@@ -9,7 +9,7 @@ import { PageHeader } from "@/components/layout/page-header"
 import { SectionPanel } from "@/components/layout/section-panel"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { lifecycleStatus } from "@/lib/pulse"
+import { equipmentDisplayStatus } from "@/lib/pulse"
 import type { EquipmentInput } from "@/app/actions/equipment"
 
 type DetailEquipment = { id: string; brand: string | null; model: string | null; serial_number: string | null; year_acquired: number | null; procurement_method: string | null; division_id: string; assigned_to: string | null; assignee_id: string | null; condition_state: string; status: "Active" | "For Replacement" | "Retired"; remarks: string | null; division: { full_name: string; code: string } | null; personnel: { full_name: string; position: string; plantilla_status: string } | null; assignee: { full_name: string; position: string; plantilla_status: string } | null; equipment_categories: { name: string } | null }
@@ -28,7 +28,7 @@ export default async function EquipmentDetailPage({ params }: { params: Promise<
   ])
   const history = (historyData || []) as unknown as HistoryEntry[]
   const categoryName = equipment.equipment_categories?.name || "Laptop"
-  const status = lifecycleStatus(equipment.status, categoryName, equipment.year_acquired)
+  const status = equipmentDisplayStatus(equipment.status, equipment.condition_state, categoryName, equipment.year_acquired)
   const division = equipment.division ? [{ id: equipment.division_id, code: equipment.division.code, full_name: equipment.division.full_name }] : []
 
   return (

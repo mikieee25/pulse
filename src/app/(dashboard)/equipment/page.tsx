@@ -10,6 +10,7 @@ import { Activity, CircleAlert, MonitorSmartphone, PackageCheck } from "lucide-r
 import { MetricCard } from "@/components/layout/metric-card";
 import { PageHeader } from "@/components/layout/page-header";
 import { SectionPanel } from "@/components/layout/section-panel";
+import { equipmentDisplayStatus, needsReplacement } from "@/lib/pulse";
 
 export default async function EquipmentPage(props: {
   searchParams: Promise<{ category?: string }>;
@@ -34,6 +35,7 @@ export default async function EquipmentPage(props: {
       serial_number,
       year_acquired,
       status,
+      condition_state,
       division:divisions(code),
       personnel!equipment_assigned_to_fkey(full_name),
       equipment_categories!inner(name)
@@ -52,12 +54,13 @@ export default async function EquipmentPage(props: {
     Year: item.year_acquired || "",
     Division: item.division?.code || "",
     Custodian: item.personnel?.full_name || "Unassigned",
-    Status: item.status,
+    Status: equipmentDisplayStatus(item.status, item.condition_state, item.equipment_categories?.name, item.year_acquired),
   }));
   const { data: divisions } = await supabase.from('divisions').select('id,code,full_name').order('code');
   const { data: personnel } = await supabase.from('personnel').select('id,full_name,plantilla_status,division_id').eq('plantilla_status', 'Regular').order('full_name');
-  const activeCount = equipment.filter((item) => item.status === "Active").length;
-  const replacementCount = equipment.filter((item) => item.status === "For Replacement").length;
+  const activeCount = equipment.filter((item) => equipmentDisplayStatus(item.status, item.condition_state, item.equipment_categories?.name, item.year_acquired) === "Active").length;
+  const replacementCount = equipment.filter((item) => needsReplacement(item.status, item.condition_state, item.equipment_categories?.name, item.year_acquired)).length;
+  const brokenCount = equipment.filter((item) => equipmentDisplayStatus(item.status, item.condition_state, item.equipment_categories?.name, item.year_acquired) === "Broken").length;
     
   return (
     <div className="space-y-8 pb-8">
@@ -79,7 +82,7 @@ export default async function EquipmentPage(props: {
         <h2 id="equipment-overview-title" className="sr-only">Equipment overview</h2>
         <MetricCard label="Category total" value={equipment.length} detail={`${category} assets`} icon={PackageCheck} />
         <MetricCard label="Active" value={activeCount} detail="Currently in service" icon={Activity} tone="pulse" />
-        <MetricCard label="For replacement" value={replacementCount} detail="Needs lifecycle review" icon={CircleAlert} tone="alert" />
+        <MetricCard label="For replacement" value={replacementCount} detail={`${brokenCount} broken units`} icon={CircleAlert} tone="alert" />
       </section>
 
       <SectionPanel title="Equipment categories" description="Choose a category to review its inventory">

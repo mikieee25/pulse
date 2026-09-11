@@ -20,6 +20,8 @@ export type PlantillaStatus = (typeof PLANTILLA_STATUSES)[number]
 export type EquipmentCategory = (typeof EQUIPMENT_CATEGORIES)[number]
 export type StoredEquipmentStatus = "Active" | "For Replacement" | "Retired"
 export type LifecycleStatus = StoredEquipmentStatus | "Expiring soon"
+export type EquipmentCondition = "Good" | "For Replacement" | "Broken"
+export type EquipmentDisplayStatus = LifecycleStatus | "Broken"
 
 export function lifecycleStatus(
   status: StoredEquipmentStatus,
@@ -36,6 +38,30 @@ export function lifecycleStatus(
   if (expiry <= today) return "For Replacement"
   if (expiry <= oneYearFromNow) return "Expiring soon"
   return "Active"
+}
+
+export function equipmentDisplayStatus(
+  status: StoredEquipmentStatus,
+  condition: string | null | undefined,
+  category: string | null | undefined,
+  yearAcquired: number | null | undefined,
+  today = new Date(),
+): EquipmentDisplayStatus {
+  if (status === "Retired") return status
+  if (condition === "Broken") return "Broken"
+  if (condition === "For Replacement") return "For Replacement"
+  return lifecycleStatus(status, category, yearAcquired, today)
+}
+
+export function needsReplacement(
+  status: StoredEquipmentStatus,
+  condition: string | null | undefined,
+  category: string | null | undefined,
+  yearAcquired: number | null | undefined,
+  today = new Date(),
+) {
+  const displayStatus = equipmentDisplayStatus(status, condition, category, yearAcquired, today)
+  return displayStatus === "For Replacement" || displayStatus === "Broken"
 }
 
 export function monthsUntilExpiry(

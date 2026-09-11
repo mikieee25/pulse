@@ -1,5 +1,5 @@
 import { Button } from "@/components/ui/button"
-import Image from "next/image"
+import { BrandLockup } from "@/components/layout/brand-lockup"
 
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string; message?: string }> }) {
   const { error, message } = await searchParams
@@ -7,7 +7,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
     <div className="min-h-screen flex items-center justify-center bg-canvas-deep p-4">
       <div className="w-full max-w-lg space-y-8">
         <div className="text-center">
-          <Image src="/pulselogo.svg" alt="PULSE — Personnel & Unit Lifecycle System for Equipment" width={440} height={114} priority className="mx-auto mb-4 h-auto w-full max-w-[440px]" />
+          <BrandLockup priority />
           <p className="text-slate text-sm">Sign in to manage ICT equipment.</p>
         </div>
 

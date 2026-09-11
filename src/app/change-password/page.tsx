@@ -1,6 +1,6 @@
-import Image from "next/image"
 import { redirect } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import { BrandLockup } from "@/components/layout/brand-lockup"
 import { createClient } from "@/utils/supabase/server"
 
 export default async function ChangePasswordPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
@@ -14,7 +14,7 @@ export default async function ChangePasswordPage({ searchParams }: { searchParam
     <div className="flex min-h-screen items-center justify-center bg-canvas-deep p-4">
       <div className="w-full max-w-lg space-y-8">
         <div className="text-center">
-          <Image src="/pulselogo.svg" alt="PULSE — Personnel & Unit Lifecycle System for Equipment" width={440} height={114} priority className="mx-auto mb-4 h-auto w-full max-w-[440px]" />
+          <BrandLockup priority />
           <h1 className="font-serif text-3xl text-paper">Change your password</h1>
           <p className="mt-2 text-sm text-slate">Replace the temporary password before continuing to PULSE.</p>
         </div>

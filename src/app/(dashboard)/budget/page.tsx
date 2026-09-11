@@ -1,6 +1,6 @@
 import { createClient } from "@/utils/supabase/server";
 import { saveCategoryCost } from "@/app/actions/admin";
-import { lifecycleStatus } from "@/lib/pulse";
+import { needsReplacement } from "@/lib/pulse";
 import { ExportButton } from "@/components/equipment/export-button";
 import {
   Banknote,
@@ -13,6 +13,7 @@ import {
 
 type Equipment = {
   status: "Active" | "For Replacement" | "Retired";
+  condition_state: string;
   year_acquired: number | null;
   division: { code: string } | null;
   equipment_categories: {
@@ -52,7 +53,7 @@ export default async function BudgetPage({
     supabase
       .from("equipment")
       .select(
-        "status,year_acquired,division:divisions(code),equipment_categories(id,name,lifespan_years)"
+        "status,condition_state,year_acquired,division:divisions(code),equipment_categories(id,name,lifespan_years)"
       ),
     supabase
       .from("equipment_categories")
@@ -92,12 +93,13 @@ export default async function BudgetPage({
     const divisionCode = item.division?.code;
     const categoryName = item.equipment_categories?.name;
     if (!divisionCode || !categoryName) continue;
-    const status = lifecycleStatus(
+    const replacement = needsReplacement(
       item.status,
+      item.condition_state,
       categoryName,
       item.year_acquired
     );
-    if (status !== "For Replacement") continue;
+    if (!replacement) continue;
     const key = `${divisionCode}|${categoryName}`;
     replacementCounts.set(key, (replacementCounts.get(key) || 0) + 1);
   }

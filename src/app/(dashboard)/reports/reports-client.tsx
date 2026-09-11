@@ -6,7 +6,7 @@ import { ExportButton } from "@/components/equipment/export-button"
 import { MetricCard } from "@/components/layout/metric-card"
 import { PageHeader } from "@/components/layout/page-header"
 import { SectionPanel } from "@/components/layout/section-panel"
-import { lifecycleStatus, type StoredEquipmentStatus } from "@/lib/pulse"
+import { equipmentDisplayStatus, type StoredEquipmentStatus } from "@/lib/pulse"
 
 export type ReportEquipment = {
   id: string
@@ -43,8 +43,7 @@ export function ReportsClient({ initialData }: { initialData: ReportEquipment[] 
     if (catName === "Tablet") rate = 115000
     if (catName === "Printer") rate = 45000
     const serviceLife = item.year_acquired ? currentYear - item.year_acquired : 0
-    const dynamic = lifecycleStatus(item.status as StoredEquipmentStatus, catName, item.year_acquired)
-    const displayStatus = item.condition_state === "Good" ? dynamic : item.condition_state
+    const displayStatus = equipmentDisplayStatus(item.status as StoredEquipmentStatus, item.condition_state, catName, item.year_acquired)
     return { ...item, catName, custodian, isUnassigned, rate, serviceLife, displayStatus }
   }), [initialData, currentYear])
 

@@ -54,6 +54,7 @@ export function EquipmentTable<TData, TValue>({ columns, data }: { columns: Colu
         <option>Active</option>
         <option>Expiring soon</option>
         <option>For Replacement</option>
+        <option>Broken</option>
         <option>Retired</option>
       </select>
     </div>

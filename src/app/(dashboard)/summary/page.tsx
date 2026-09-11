@@ -1,12 +1,13 @@
 import { createClient } from "@/utils/supabase/server";
 import { SummaryContent } from "./summary-content";
-import { lifecycleStatus } from "@/lib/pulse";
+import { equipmentDisplayStatus } from "@/lib/pulse";
 
 type RawEquipment = {
   id: string;
   year_acquired: number | null;
   procurement_method: string | null;
   status: "Active" | "For Replacement" | "Retired";
+  condition_state: string;
   equipment_categories: { name: string } | null;
   division: { code: string; full_name: string } | null;
 };
@@ -26,6 +27,7 @@ export default async function SummaryPage(props: {
       year_acquired,
       procurement_method,
       status,
+      condition_state,
       equipment_categories(name),
       division:divisions(code, full_name)
     `);
@@ -41,13 +43,14 @@ export default async function SummaryPage(props: {
 
       if (viewType === "Replacement") {
         // 3 year lifespan logic for Replacement view
-        const status = lifecycleStatus(
+        const status = equipmentDisplayStatus(
           eq.status,
+          eq.condition_state,
           catName,
           eq.year_acquired,
           new Date(viewYear, 0, 1)
         );
-        if (status === "For Replacement" || status === "Expiring soon") {
+        if (status === "For Replacement" || status === "Broken" || status === "Expiring soon") {
           isIncluded = true;
         }
       } else {
