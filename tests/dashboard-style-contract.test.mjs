@@ -55,6 +55,18 @@ test("dashboard navigation preserves the reporting and budget routes", async () 
   assert.match(content, /\["\/reports"/);
 });
 
+test("dashboard exposes the PULSE changelog route on desktop and mobile", async () => {
+  const sidebar = await source("src/components/layout/sidebar.tsx");
+  const layout = await source("src/app/(dashboard)/layout.tsx");
+  const changelog = await source("src/app/(dashboard)/changelog/page.tsx");
+  const changelogComponent = await source("src/components/changelog/changelog.tsx");
+
+  assert.match(sidebar, /\/changelog/);
+  assert.match(layout, /\["\/changelog", "Changelog"\]/);
+  assert.match(changelog, /Changelog/);
+  assert.match(changelogComponent, /PULSE/);
+});
+
 test("dashboard route states use the Budget panel treatment", async () => {
   const files = [
     "src/app/(dashboard)/loading.tsx",
