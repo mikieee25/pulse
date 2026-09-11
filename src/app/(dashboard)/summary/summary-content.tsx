@@ -1,7 +1,8 @@
 "use client"
 
-import { Banknote, CalendarRange, Download, PackageCheck } from "lucide-react"
+import { Banknote, CalendarRange, PackageCheck } from "lucide-react"
 import { useRouter } from "next/navigation"
+import { ExportButton } from "@/components/equipment/export-button"
 import { MetricCard } from "@/components/layout/metric-card"
 import { PageHeader } from "@/components/layout/page-header"
 import { SectionPanel } from "@/components/layout/section-panel"
@@ -19,11 +20,15 @@ export type ProcessedEquipment = {
 export function SummaryContent({
   initialData,
   divisions,
+  categories,
+  categoryRates,
   viewYear,
   viewType,
 }: {
   initialData: ProcessedEquipment[]
   divisions: string[]
+  categories: string[]
+  categoryRates: Record<string, number>
   viewYear: number
   viewType: string
 }) {
@@ -56,9 +61,7 @@ export function SummaryContent({
               <option value="2025-Summary">FY 2025 Summary</option>
             </select>
           </label>
-          <button type="button" className="inline-flex h-12 items-center justify-center gap-2 rounded-xl border border-line bg-canvas px-4 text-sm font-semibold text-paper transition hover:border-pulse/40 hover:text-pulse focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pulse/40">
-            <Download className="size-4" aria-hidden="true" />Export Excel
-          </button>
+          <ExportButton data={initialData.map((item) => ({ Division: item.division?.code || "", Category: item.catName, Units: 1, "Unit Cost": item.rate, "Year": item.year_acquired || "" }))} category="summary" label="Export CSV" />
         </>}
       />
 
@@ -75,9 +78,7 @@ export function SummaryContent({
             <thead className="sticky top-0 z-10 bg-canvas">
               <tr className="border-b border-line text-left text-slate">
                 <th scope="col" className="px-5 py-3 font-medium">Division</th>
-                <th scope="col" className="border-l border-line px-4 py-3 text-center font-medium"><div>Laptop</div><div className="text-[11px] font-normal text-slate">Rate: ₱160,000</div></th>
-                <th scope="col" className="border-l border-line px-4 py-3 text-center font-medium"><div>Tablet</div><div className="text-[11px] font-normal text-slate">Rate: ₱115,000</div></th>
-                <th scope="col" className="border-l border-line px-4 py-3 text-center font-medium"><div>Printer</div><div className="text-[11px] font-normal text-slate">Rate: ₱45,000</div></th>
+                {categories.map((category) => <th key={category} scope="col" className="border-l border-line px-4 py-3 text-center font-medium"><div>{category}</div><div className="text-[11px] font-normal text-slate">Rate: {formatMoney(categoryRates[category] || 0)}</div></th>)}
                 <th scope="col" className="border-l border-line px-5 py-3 text-right font-medium text-pulse">Division total</th>
               </tr>
             </thead>
@@ -85,26 +86,19 @@ export function SummaryContent({
               {divisions.map((div) => {
                 const divItems = initialData.filter((d) => d.division?.code === div)
                 if (divItems.length === 0) return null
-                const lCount = divItems.filter((d) => d.catName === "Laptop").length
-                const tCount = divItems.filter((d) => d.catName === "Tablet").length
-                const pCount = divItems.filter((d) => d.catName === "Printer").length
                 const divTotal = divItems.reduce((sum, item) => sum + item.rate, 0)
 
                 return (
                   <tr key={div} className="border-b border-line/50 transition hover:bg-paper/[0.025]">
                     <th scope="row" className="px-5 py-3 text-left font-semibold text-paper">{div}</th>
-                    <td className={`border-l border-line px-4 py-3 text-center tabular-nums ${lCount ? "text-pulse" : "text-slate/50"}`}>{lCount || "—"}</td>
-                    <td className={`border-l border-line px-4 py-3 text-center tabular-nums ${tCount ? "text-pulse" : "text-slate/50"}`}>{tCount || "—"}</td>
-                    <td className={`border-l border-line px-4 py-3 text-center tabular-nums ${pCount ? "text-pulse" : "text-slate/50"}`}>{pCount || "—"}</td>
+                    {categories.map((category) => { const count = divItems.filter((item) => item.catName === category).length; return <td key={category} className={`border-l border-line px-4 py-3 text-center tabular-nums ${count ? "text-pulse" : "text-slate/50"}`}>{count || "—"}</td> })}
                     <td className="border-l border-line px-5 py-3 text-right font-semibold tabular-nums text-paper">{formatMoney(divTotal)}</td>
                   </tr>
                 )
               })}
               <tr className="border-t-2 border-line bg-canvas text-paper">
                 <th scope="row" className="px-5 py-4 text-left font-semibold">Category totals</th>
-                <td className="border-l border-line px-4 py-4 text-center font-semibold tabular-nums text-pulse">{initialData.filter((d) => d.catName === "Laptop").length}</td>
-                <td className="border-l border-line px-4 py-4 text-center font-semibold tabular-nums text-pulse">{initialData.filter((d) => d.catName === "Tablet").length}</td>
-                <td className="border-l border-line px-4 py-4 text-center font-semibold tabular-nums text-pulse">{initialData.filter((d) => d.catName === "Printer").length}</td>
+                {categories.map((category) => <td key={category} className="border-l border-line px-4 py-4 text-center font-semibold tabular-nums text-pulse">{initialData.filter((item) => item.catName === category).length || "—"}</td>)}
                 <td className="border-l border-line px-5 py-4 text-right text-base font-bold tabular-nums text-pulse">{formatMoney(grandTotal)}</td>
               </tr>
             </tbody>

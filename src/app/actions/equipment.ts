@@ -18,6 +18,8 @@ const equipmentInput = z.object({
   condition_state: z.enum(["Good", "For Replacement", "Broken"]).default("Good"),
   remarks: z.string().trim().nullable(),
 })
+const equipmentId = z.uuid()
+const conditionState = z.enum(["Good", "For Replacement", "Broken"])
 
 export type EquipmentInput = z.infer<typeof equipmentInput>
 
@@ -54,23 +56,21 @@ export async function addEquipment(input: EquipmentInput) {
   const category_id = await categoryId(parsed.data.categoryName)
   if (!category_id) return { error: "Category not found." }
   const supabase = await createClient()
-  const { data: equipment, error } = await supabase.from("equipment").insert({
-    category_id,
-    brand: parsed.data.brand || null,
-    model: parsed.data.model || null,
-    year_acquired: parsed.data.year_acquired,
-    serial_number: parsed.data.serial_number || null,
-    procurement_method: parsed.data.procurement_method || null,
-    division_id: parsed.data.division_id,
-    assigned_to: parsed.data.assigned_to,
-    assignee_id: parsed.data.assignee_id || null,
-    condition_state: parsed.data.condition_state,
-    status: "Active",
-    remarks: parsed.data.remarks || null,
-  }).select("id").single()
-  if (error || !equipment) return { error: error?.message || "Could not add equipment." }
-  if (parsed.data.assigned_to) await supabase.from("assignment_history").insert({ equipment_id: equipment.id, personnel_id: parsed.data.assigned_to, note: "Initial assignment", assignment_type: "Custodian" })
-  if (parsed.data.assignee_id) await supabase.from("assignment_history").insert({ equipment_id: equipment.id, personnel_id: parsed.data.assignee_id, note: "Initial assignment", assignment_type: "Assignee" })
+  const { data: equipmentId, error } = await supabase.rpc("save_equipment", {
+    p_equipment_id: null,
+    p_category_id: category_id,
+    p_brand: parsed.data.brand || null,
+    p_model: parsed.data.model || null,
+    p_year_acquired: parsed.data.year_acquired,
+    p_serial_number: parsed.data.serial_number || null,
+    p_procurement_method: parsed.data.procurement_method || null,
+    p_division_id: parsed.data.division_id,
+    p_assigned_to: parsed.data.assigned_to,
+    p_assignee_id: parsed.data.assignee_id || null,
+    p_condition_state: parsed.data.condition_state,
+    p_remarks: parsed.data.remarks || null,
+  })
+  if (error || !equipmentId) return { error: error?.message || "Could not add equipment." }
   revalidatePath("/equipment")
   return { success: true }
 }
@@ -78,6 +78,7 @@ export async function addEquipment(input: EquipmentInput) {
 export async function updateEquipment(id: string, input: EquipmentInput) {
   const access = await requireProfile("Admin")
   if (access.error) return access
+  if (!equipmentId.safeParse(id).success) return { error: "Equipment not found." }
   const parsed = equipmentInput.safeParse(input)
   if (!parsed.success) return { error: "Please complete the equipment fields." }
   const assignmentError = await validateAssignment(parsed.data)
@@ -85,36 +86,21 @@ export async function updateEquipment(id: string, input: EquipmentInput) {
   const category_id = await categoryId(parsed.data.categoryName)
   if (!category_id) return { error: "Category not found." }
   const supabase = await createClient()
-  
-  // We keep the assignments untouched here because they are managed via reassignEquipment explicitly in the Detail page
-  // However, if the dialog itself can change them, we should process them. Since the dialog currently resets assignments when division changes,
-  // we'll update them if they differ. 
-  const { data: existing } = await supabase.from("equipment").select("assigned_to, assignee_id").eq("id", id).single()
-  
-  const { error } = await supabase.from("equipment").update({
-    category_id,
-    brand: parsed.data.brand || null,
-    model: parsed.data.model || null,
-    year_acquired: parsed.data.year_acquired,
-    serial_number: parsed.data.serial_number || null,
-    procurement_method: parsed.data.procurement_method || null,
-    division_id: parsed.data.division_id,
-    condition_state: parsed.data.condition_state,
-    remarks: parsed.data.remarks || null,
-    // only update assignments if explicitly provided (the dialog will provide them)
-    assigned_to: parsed.data.assigned_to,
-    assignee_id: parsed.data.assignee_id || null,
-  }).eq("id", id)
+  const { error } = await supabase.rpc("save_equipment", {
+    p_equipment_id: id,
+    p_category_id: category_id,
+    p_brand: parsed.data.brand || null,
+    p_model: parsed.data.model || null,
+    p_year_acquired: parsed.data.year_acquired,
+    p_serial_number: parsed.data.serial_number || null,
+    p_procurement_method: parsed.data.procurement_method || null,
+    p_division_id: parsed.data.division_id,
+    p_assigned_to: parsed.data.assigned_to,
+    p_assignee_id: parsed.data.assignee_id || null,
+    p_condition_state: parsed.data.condition_state,
+    p_remarks: parsed.data.remarks || null,
+  })
   if (error) return { error: error.message }
-
-  if (existing?.assigned_to !== parsed.data.assigned_to) {
-    const { error: historyError } = await supabase.rpc("reassign_equipment", { p_equipment_id: id, p_personnel_id: parsed.data.assigned_to, p_note: "Updated from equipment details", p_type: "Custodian" })
-    if (historyError) return { error: historyError.message }
-  }
-  if (existing?.assignee_id !== (parsed.data.assignee_id || null)) {
-    const { error: historyError } = await supabase.rpc("reassign_equipment", { p_equipment_id: id, p_personnel_id: parsed.data.assignee_id || null, p_note: "Updated from equipment details", p_type: "Assignee" })
-    if (historyError) return { error: historyError.message }
-  }
 
   revalidatePath("/equipment")
   revalidatePath(`/equipment/${id}`)
@@ -124,6 +110,7 @@ export async function updateEquipment(id: string, input: EquipmentInput) {
 export async function reassignEquipment(id: string, personnelId: string | null, note = "", role: "Custodian" | "Assignee" = "Custodian") {
   const access = await requireProfile("Admin")
   if (access.error) return access
+  if (!equipmentId.safeParse(id).success || (personnelId !== null && !equipmentId.safeParse(personnelId).success)) return { error: "Invalid equipment assignment." }
   const supabase = await createClient()
   const { data: equipment } = await supabase.from("equipment").select("division_id").eq("id", id).single()
   if (!equipment) return { error: "Equipment not found." }
@@ -142,11 +129,9 @@ export async function reassignEquipment(id: string, personnelId: string | null, 
 export async function retireEquipment(id: string) {
   const access = await requireProfile("Admin")
   if (access.error) return access
+  if (!equipmentId.safeParse(id).success) return { error: "Equipment not found." }
   const supabase = await createClient()
-  const { error: historyError } = await supabase.rpc("reassign_equipment", { p_equipment_id: id, p_personnel_id: null, p_note: "Equipment retired", p_type: "Custodian" })
-  await supabase.rpc("reassign_equipment", { p_equipment_id: id, p_personnel_id: null, p_note: "Equipment retired", p_type: "Assignee" })
-  if (historyError) return { error: historyError.message }
-  const { error } = await supabase.from("equipment").update({ status: "Retired", assigned_to: null, assignee_id: null }).eq("id", id)
+  const { error } = await supabase.rpc("retire_equipment", { p_equipment_id: id })
   if (error) return { error: error.message }
   revalidatePath("/equipment")
   revalidatePath(`/equipment/${id}`)
@@ -156,11 +141,14 @@ export async function retireEquipment(id: string) {
 export async function updateEquipmentState(id: string, condition_state: string) {
   const access = await requireProfile("Admin")
   if (access.error) return access
+  if (!equipmentId.safeParse(id).success) return { error: "Equipment not found." }
+  const parsedState = conditionState.safeParse(condition_state)
+  if (!parsedState.success) return { error: "Invalid equipment state." }
   const supabase = await createClient()
-  const { error } = await supabase.from("equipment").update({ condition_state }).eq("id", id)
+  const { data, error } = await supabase.from("equipment").update({ condition_state: parsedState.data }).eq("id", id).select("id").maybeSingle()
   if (error) return { error: error.message }
+  if (!data) return { error: "Equipment not found." }
   revalidatePath("/equipment")
   revalidatePath(`/equipment/${id}`)
   return { success: true }
 }
-

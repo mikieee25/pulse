@@ -11,6 +11,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { equipmentDisplayStatus } from "@/lib/pulse"
 import type { EquipmentInput } from "@/app/actions/equipment"
+import { getCurrentProfile } from "@/lib/auth"
 
 type DetailEquipment = { id: string; brand: string | null; model: string | null; serial_number: string | null; year_acquired: number | null; procurement_method: string | null; division_id: string; assigned_to: string | null; assignee_id: string | null; condition_state: string; status: "Active" | "For Replacement" | "Retired"; remarks: string | null; division: { full_name: string; code: string } | null; personnel: { full_name: string; position: string; plantilla_status: string } | null; assignee: { full_name: string; position: string; plantilla_status: string } | null; equipment_categories: { name: string } | null }
 type HistoryEntry = { id: string; assigned_at: string; unassigned_at: string | null; note: string | null; personnel: { full_name: string } | null; assignment_type: string }
@@ -18,14 +19,25 @@ type HistoryEntry = { id: string; assigned_at: string; unassigned_at: string | n
 export default async function EquipmentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = await createClient()
-  const { data } = await supabase.from("equipment").select("*,division:divisions(full_name,code),personnel!equipment_assigned_to_fkey(full_name,position,plantilla_status),assignee:personnel!equipment_assignee_id_fkey(full_name,position,plantilla_status),equipment_categories(name)").eq("id", id).single()
+  const profile = await getCurrentProfile()
+  const canManage = profile?.role === "Admin"
+  const { data, error: equipmentError } = await supabase.from("equipment").select("*,division:divisions(full_name,code),personnel!equipment_assigned_to_fkey(full_name,position,plantilla_status),assignee:personnel!equipment_assignee_id_fkey(full_name,position,plantilla_status),equipment_categories(name)").eq("id", id).single()
+  if (equipmentError && equipmentError.code !== "PGRST116") {
+    console.error("Equipment detail query failed", { code: equipmentError.code, message: equipmentError.message });
+    return <div className="rounded-lg border border-alert/30 bg-alert/10 p-6 text-alert">Equipment details are unavailable. Try refreshing.</div>;
+  }
   const equipment = data as unknown as DetailEquipment | null
   if (!equipment) notFound()
 
-  const [{ data: personnel }, { data: historyData }] = await Promise.all([
+  const [{ data: personnel, error: personnelError }, { data: historyData, error: historyError }] = await Promise.all([
     supabase.from("personnel").select("id,full_name,position,plantilla_status,division_id").eq("division_id", equipment.division_id).order("full_name"),
     supabase.from("assignment_history").select("id,assigned_at,unassigned_at,note,assignment_type,personnel(full_name)").eq("equipment_id", id).order("assigned_at", { ascending: false }),
   ])
+  if (personnelError || historyError) {
+    const queryError = personnelError || historyError;
+    console.error("Equipment detail support query failed", { code: queryError?.code, message: queryError?.message });
+    return <div className="rounded-lg border border-alert/30 bg-alert/10 p-6 text-alert">Equipment assignment data is unavailable. Try refreshing.</div>;
+  }
   const history = (historyData || []) as unknown as HistoryEntry[]
   const categoryName = equipment.equipment_categories?.name || "Laptop"
   const status = equipmentDisplayStatus(equipment.status, equipment.condition_state, categoryName, equipment.year_acquired)
@@ -41,9 +53,9 @@ export default async function EquipmentDetailPage({ params }: { params: Promise<
           <Link href="/equipment" className="inline-flex items-center justify-center gap-2 rounded-xl border border-line bg-canvas px-4 py-2.5 text-sm font-semibold text-paper transition hover:border-pulse/40 hover:text-pulse focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pulse/40">
             <ArrowLeft className="size-4" aria-hidden="true" />Back to equipment
           </Link>
-          <AddEquipmentDialog category={categoryName} divisions={division} personnel={personnel || []} initial={{ id: equipment.id, categoryName, brand: equipment.brand, model: equipment.model, year_acquired: equipment.year_acquired, serial_number: equipment.serial_number, procurement_method: equipment.procurement_method, division_id: equipment.division_id, assigned_to: equipment.assigned_to, assignee_id: equipment.assignee_id, condition_state: equipment.condition_state as EquipmentInput["condition_state"], remarks: equipment.remarks }}>
+          {canManage && <AddEquipmentDialog category={categoryName} divisions={division} personnel={personnel || []} initial={{ id: equipment.id, categoryName, brand: equipment.brand, model: equipment.model, year_acquired: equipment.year_acquired, serial_number: equipment.serial_number, procurement_method: equipment.procurement_method, division_id: equipment.division_id, assigned_to: equipment.assigned_to, assignee_id: equipment.assignee_id, condition_state: equipment.condition_state as EquipmentInput["condition_state"], remarks: equipment.remarks }}>
             <Button>Edit details</Button>
-          </AddEquipmentDialog>
+          </AddEquipmentDialog>}
         </>}
       >
         <div className="mt-4 flex flex-wrap gap-2">
@@ -72,9 +84,9 @@ export default async function EquipmentDetailPage({ params }: { params: Promise<
         </SectionPanel>
       </div>
 
-      <SectionPanel title="Assignment actions" description="Update custodian, assignee, and equipment condition">
-        <div className="p-5"><EquipmentActions id={equipment.id} personnel={personnel || []} currentState={equipment.condition_state} /></div>
-      </SectionPanel>
+      {canManage && <SectionPanel title="Assignment actions" description="Update custodian, assignee, and equipment condition">
+        <div className="p-5"><EquipmentActions id={equipment.id} personnel={personnel || []} currentState={equipment.condition_state as EquipmentInput["condition_state"]} currentCustodianId={equipment.assigned_to} currentAssigneeId={equipment.assignee_id} /></div>
+      </SectionPanel>}
 
       <SectionPanel title="Assignment history" description="Recorded assignment events for this asset">
         {history.length ? (

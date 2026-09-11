@@ -28,15 +28,17 @@ type Division = { id: string; code: string; full_name: string }
 interface PersonnelTableProps {
   data: PersonnelData[]
   divisions: Division[]
+  canManage: boolean
 }
 
 export function PersonnelTable({
   data,
   divisions,
+  canManage,
 }: PersonnelTableProps) {
   const [sorting, setSorting] = React.useState<SortingState>([])
   const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-  const columns = React.useMemo(() => getPersonnelColumns(divisions), [divisions])
+  const columns = React.useMemo(() => getPersonnelColumns(divisions, canManage), [canManage, divisions])
 
   const positions = React.useMemo(() => Array.from(new Set(data.map((d) => d.position).filter((value): value is string => Boolean(value)))).sort(), [data])
   const statuses = React.useMemo(() => Array.from(new Set(data.map((d) => d.plantilla_status).filter((value): value is NonNullable<PersonnelData["plantilla_status"]> => Boolean(value)))).sort(), [data])

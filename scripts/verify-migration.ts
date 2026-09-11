@@ -1,8 +1,11 @@
 import fs from "fs"
+import path from "path"
 import * as xlsx from "xlsx"
 
 type Row = Record<string, string | number | null | undefined>
-const workbook = xlsx.readFile("01 EUMB ICT List.xlsx")
+const workbookPath = process.env.PULSE_WORKBOOK_PATH || path.join(process.cwd(), "01 EUMB ICT List.xlsx")
+if (!fs.existsSync(workbookPath)) throw new Error(`Workbook not found: ${workbookPath}. Set PULSE_WORKBOOK_PATH to the source workbook.`)
+const workbook = xlsx.readFile(workbookPath)
 const expectedSheets = ["Laptop", "Tablet", "Drone", "Camera", "Printer"]
 const expectedCounts = Object.fromEntries(expectedSheets.map((name) => [name, xlsx.utils.sheet_to_json<Row>(workbook.Sheets[name], { defval: null }).filter((row) => Object.values(row).some(Boolean)).length]))
 const seed = fs.readFileSync("supabase/seed.sql", "utf8")

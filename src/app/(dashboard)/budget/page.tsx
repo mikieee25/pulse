@@ -72,11 +72,8 @@ export default async function BudgetPage({
   const queryError =
     equipmentError || categoriesError || costsError || divisionsError;
   if (queryError) {
-    return (
-      <div className="rounded-lg border border-line bg-canvas-deep p-6 text-alert">
-        Couldn’t load the budget data — {queryError.message}. Try refreshing.
-      </div>
-    );
+    console.error("Budget query failed", { code: queryError.code, message: queryError.message });
+    return <div className="rounded-lg border border-alert/30 bg-alert/10 p-6 text-alert">Budget data is unavailable. Try refreshing.</div>;
   }
 
   const isAdmin = appUser?.role === "Admin";
@@ -97,7 +94,8 @@ export default async function BudgetPage({
       item.status,
       item.condition_state,
       categoryName,
-      item.year_acquired
+      item.year_acquired,
+      new Date(year, 0, 1)
     );
     if (!replacement) continue;
     const key = `${divisionCode}|${categoryName}`;

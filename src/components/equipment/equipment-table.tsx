@@ -19,14 +19,14 @@ export function EquipmentTable<TData, TValue>({ columns, data }: { columns: Colu
 
   return <div className="space-y-4">
     <div className="flex flex-wrap items-center gap-3 rounded-xl border border-line bg-canvas/80 p-3">
-      <input 
+      <input aria-label="Search custodian"
         placeholder="Search custodian..." 
         value={(table.getColumn("custodian")?.getFilterValue() as string) ?? ""} 
         onChange={(event) => table.getColumn("custodian")?.setFilterValue(event.target.value)} 
         className="h-10 min-w-[220px] flex-1 rounded-lg border border-line bg-canvas-deep px-3 text-sm text-paper outline-none transition-colors focus:border-pulse focus:ring-2 focus:ring-pulse/15" 
       />
       
-      <select 
+      <select aria-label="Filter division"
         value={(table.getColumn("division")?.getFilterValue() as string) ?? ""} 
         onChange={(event) => table.getColumn("division")?.setFilterValue(event.target.value)} 
         className="h-10 rounded-lg border border-line bg-canvas-deep px-3 text-sm text-paper outline-none transition-colors focus:border-pulse focus:ring-2 focus:ring-pulse/15"
@@ -35,7 +35,7 @@ export function EquipmentTable<TData, TValue>({ columns, data }: { columns: Colu
         {divisions.map(d => <option key={d} value={d}>{d}</option>)}
       </select>
 
-      <select 
+      <select aria-label="Filter brand"
         value={(table.getColumn("brand")?.getFilterValue() as string) ?? ""} 
         onChange={(event) => table.getColumn("brand")?.setFilterValue(event.target.value)} 
         className="h-10 rounded-lg border border-line bg-canvas-deep px-3 text-sm text-paper outline-none transition-colors focus:border-pulse focus:ring-2 focus:ring-pulse/15"

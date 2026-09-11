@@ -15,8 +15,9 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           <form className="space-y-6" action="/auth/login" method="POST">
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate mb-1">Email</label>
+                <label htmlFor="login-email" className="block text-sm font-medium text-slate mb-1">Email</label>
                 <input
+                  id="login-email"
                   type="email"
                   name="email"
                   className="w-full bg-canvas-deep border border-line rounded-md px-3 py-2 text-paper focus:outline-none focus:border-pulse focus:ring-1 focus:ring-pulse transition-all"
@@ -24,8 +25,9 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-slate mb-1">Password</label>
+                <label htmlFor="login-password" className="block text-sm font-medium text-slate mb-1">Password</label>
                 <input
+                  id="login-password"
                   type="password"
                   name="password"
                   className="w-full bg-canvas-deep border border-line rounded-md px-3 py-2 text-paper focus:outline-none focus:border-pulse focus:ring-1 focus:ring-pulse transition-all"

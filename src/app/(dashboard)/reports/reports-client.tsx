@@ -17,6 +17,7 @@ export type ReportEquipment = {
   procurement_method: string | null
   status: string
   condition_state: string
+  rate: number
   division: { code: string } | null
   personnel: { full_name: string } | null
   assignee: { full_name: string } | null
@@ -36,15 +37,11 @@ export function ReportsClient({ initialData }: { initialData: ReportEquipment[] 
 
   const processedData = useMemo(() => initialData.map(item => {
     const catName = item.equipment_categories?.name || "Other"
-    const custodian = item.personnel?.full_name || ""
-    const isUnassigned = !custodian
-    let rate = 0
-    if (catName === "Laptop" || catName === "Desktop") rate = 160000
-    if (catName === "Tablet") rate = 115000
-    if (catName === "Printer") rate = 45000
+    const custodian = item.personnel?.full_name || item.assignee?.full_name || ""
+    const isUnassigned = !item.personnel && !item.assignee
     const serviceLife = item.year_acquired ? currentYear - item.year_acquired : 0
     const displayStatus = equipmentDisplayStatus(item.status as StoredEquipmentStatus, item.condition_state, catName, item.year_acquired)
-    return { ...item, catName, custodian, isUnassigned, rate, serviceLife, displayStatus }
+    return { ...item, catName, custodian, isUnassigned, serviceLife, displayStatus }
   }), [initialData, currentYear])
 
   const filteredData = useMemo(() => {
@@ -96,8 +93,7 @@ export function ReportsClient({ initialData }: { initialData: ReportEquipment[] 
         title="Inventory & Audit Report"
         description="Generate, filter, and export verified asset reports for COA audit and budget review."
         actions={<>
-          <ExportButton data={exportRows} category="inventory" label="Export CSV" format="csv" />
-          <ExportButton data={exportRows} category="inventory" label="Export Excel" format="xlsx" />
+          <ExportButton data={exportRows} category="inventory" label="Export CSV" />
         </>}
       />
 

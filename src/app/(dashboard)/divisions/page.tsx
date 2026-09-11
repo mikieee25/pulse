@@ -8,13 +8,16 @@ import { Building2, CircleAlert, UsersRound } from "lucide-react"
 import { MetricCard } from "@/components/layout/metric-card"
 import { PageHeader } from "@/components/layout/page-header"
 import { SectionPanel } from "@/components/layout/section-panel"
+import { getCurrentProfile } from "@/lib/auth"
 
 export default async function DivisionsPage() {
   const supabase = await createClient()
+  const profile = await getCurrentProfile()
+  const canManage = profile?.role === "Admin"
 
   // In a real app with proper typegen, we might get this natively or via a view.
   // We fetch divisions and a raw count of personnel to show in the table.
-  const { data: divisionsData } = await supabase
+  const { data: divisionsData, error: divisionsError } = await supabase
     .from('divisions')
     .select(`
       id,
@@ -24,6 +27,11 @@ export default async function DivisionsPage() {
        equipment (id, status, condition_state, year_acquired, equipment_categories(name))
     `)
     .order('code')
+
+  if (divisionsError) {
+    console.error("Divisions query failed", { code: divisionsError.code, message: divisionsError.message });
+    return <div className="rounded-lg border border-alert/30 bg-alert/10 p-6 text-alert">Division data is unavailable. Try refreshing.</div>;
+  }
 
   type DivisionRow = {
     id: string
@@ -52,11 +60,11 @@ export default async function DivisionsPage() {
         eyebrow={<span className="inline-flex items-center gap-2"><Building2 className="size-3.5" aria-hidden="true" />Organization</span>}
         title="Divisions"
         description="Manage bureau divisions and offices."
-        actions={<AddDivisionDialog>
+        actions={canManage ? <AddDivisionDialog>
           <Button>
             + Add Division
           </Button>
-        </AddDivisionDialog>}
+        </AddDivisionDialog> : undefined}
       />
 
       <section aria-labelledby="divisions-overview-title" className="grid gap-4 sm:grid-cols-3">

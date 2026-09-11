@@ -1,6 +1,6 @@
 import { createClient } from "@/utils/supabase/server"
 import { InventoryByDivisionChart, StatusBreakdownChart } from "@/components/dashboard/dashboard-charts"
-import { equipmentDisplayStatus, needsReplacement } from "@/lib/pulse"
+import { equipmentDisplayStatus, inventoryCardStats, needsReplacement } from "@/lib/pulse"
 import { Activity, Building2, CircleAlert, PackageCheck } from "lucide-react"
 import { EmptyState } from "@/components/layout/empty-state"
 import { MetricCard } from "@/components/layout/metric-card"
@@ -26,21 +26,20 @@ export default async function Home() {
   const equipment = (data || []) as unknown as EquipmentRow[]
   const categories = (categoryData || []) as EquipmentCategory[]
   const statuses = equipment.map((item) => equipmentDisplayStatus(item.status, item.condition_state, item.equipment_categories?.name, item.year_acquired))
+  const cardStats = inventoryCardStats(equipment.map((item) => ({ status: item.status, condition_state: item.condition_state, category: item.equipment_categories?.name, year_acquired: item.year_acquired })))
   const divisionCounts: Record<string, number> = {}
   
   // New replacement plan tracking
   const plan: Record<string, ReplacementStats> = {}
   const allCategories = new Set(categories.map((category) => category.name))
 
-  let totalBrokenAll = 0
   equipment.forEach((item, index) => {
     const division = item.division?.code || "Unknown"
     const cat = item.equipment_categories?.name || "Unknown"
     const isBroken = statuses[index] === "Broken"
-    const isExpiring = !isBroken && statuses[index] === "For Replacement"
+    const isExpiring = statuses[index] === "Expiring soon"
     const isReplacement = needsReplacement(item.status, item.condition_state, item.equipment_categories?.name, item.year_acquired)
 
-    if (isBroken) totalBrokenAll++
     allCategories.add(cat)
     divisionCounts[division] = (divisionCounts[division] || 0) + 1
     
@@ -75,9 +74,9 @@ export default async function Home() {
       <section aria-labelledby="dashboard-overview-title" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <h2 id="dashboard-overview-title" className="sr-only">Dashboard overview</h2>
         <MetricCard label="Total equipment" value={equipment.length} detail="Tracked ICT assets" icon={PackageCheck} />
-        <MetricCard label="Active" value={statusCounts.Active || 0} detail="Currently in service" icon={Activity} tone="pulse" />
-        <MetricCard label="For replacement" value={(statusCounts["For Replacement"] || 0) + totalBrokenAll} detail={`${totalBrokenAll} broken units`} icon={CircleAlert} tone="alert" />
-        <MetricCard label="Expiring in 1 year" value={statusCounts["Expiring soon"] || 0} detail="Lifecycle attention needed" icon={Building2} tone="warning" />
+         <MetricCard label="Active" value={cardStats.active} detail="Operational, replacement, and expiry flagged" icon={Activity} tone="pulse" />
+         <MetricCard label="For replacement" value={cardStats.replacement} detail={`${cardStats.broken} broken units`} icon={CircleAlert} tone="alert" />
+         <MetricCard label="Expiring in 1 year" value={cardStats.expiring} detail="Lifecycle attention needed" icon={Building2} tone="warning" />
       </section>
 
       <div className="grid gap-6 lg:grid-cols-2">

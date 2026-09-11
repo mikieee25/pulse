@@ -53,14 +53,15 @@ function normalizeDivision(value: string) {
   const aliases: Record<string, string> = {
     OOTD: "OD",
     "Office of the Director": "OD",
-    "Energy Efficiency and Conservation Performance Regulation and Enforcement Division": "EEACPRAED",
+    "Energy Efficiency and Conservation Performance Regulation and Enforcement Division": "EPRED",
+    EEACPRAED: "EPRED",
   }
   return aliases[value] || value
 }
 
 async function run() {
   const datasetRows = parseDataset(path.join(root, "dataset.md"))
-  const workbook = xlsx.readFile(path.join(root, "01 EUMB ICT List.xlsx"))
+  const workbook = xlsx.readFile(process.env.PULSE_WORKBOOK_PATH || path.join(root, "01 EUMB ICT List.xlsx"))
   const dataRows = xlsx.utils.sheet_to_json<Row>(workbook.Sheets.Data, { defval: null })
 
   const divisions = new Map<string, Division>()
@@ -69,7 +70,7 @@ async function run() {
     if (!divisions.has(normalizedCode)) divisions.set(normalizedCode, { id: uuid(), code: normalizedCode, fullName: name })
   }
   for (const row of datasetRows) addDivision(row.division)
-  for (const code of ["OD", "NED", "AFETD", "EVIMD", "EPMPD", "EPSMD", "EPRED", "EEACPRAED"]) {
+  for (const code of ["OD", "NED", "AFETD", "EVIMD", "EPMPD", "EPSMD", "EPRED"]) {
     const names: Record<string, string> = {
       OD: "Office of the Director",
       EPRED: "Energy Efficiency and Conservation Performance Regulation and Enforcement Division (EPRED)",
@@ -79,11 +80,13 @@ async function run() {
   const divisionCodeById = new Map([...divisions.values()].map((division) => [division.id, division.code]))
 
   const unmatchedPersonnel: string[] = []
+  const unresolvedPlantilla: string[] = []
   const personnel: Person[] = datasetRows.map((row) => {
     const match = dataRows.find((excelRow) => text(excelRow.Initials) === row.initials || text(excelRow["Full Name"]).includes(row.fullName))
     const rawPlantilla = text(match?.Plantilla)
-    const plantillaStatus = validPlantilla.has(rawPlantilla) ? rawPlantilla : "Regular"
+    const plantillaStatus = validPlantilla.has(rawPlantilla) ? rawPlantilla : "For Transfer"
     if (!match) unmatchedPersonnel.push(`${row.fullName} (${row.initials})`)
+    if (!validPlantilla.has(rawPlantilla)) unresolvedPlantilla.push(`${row.fullName} (${rawPlantilla || "blank"})`)
     const divisionCode = codeForDivision(row.division)
     const person = {
       id: uuid(),
@@ -121,7 +124,8 @@ async function run() {
     for (const row of rows) {
       if (!Object.values(row).some((value) => text(value))) continue
       const divisionCode = normalizeDivision(text(row.Division) || "OD")
-      const division = divisions.get(divisionCode) || divisions.get("OD")!
+      const division = divisions.get(divisionCode)
+      if (!division) throw new Error(`Unknown equipment division ${divisionCode} in ${sheetName} row ${text(row["No."]) || "?"}`)
       const model = text(row.Model)
       const brand = text(row.Brand)
       const year = headerValue(row, ["Year Acquired", "Year Acquired/Transferred", "Year Acquired/ Transferred"])
@@ -133,6 +137,7 @@ async function run() {
         ? [
             match.divisionId !== division.id ? `${divisionCode} equipment; ${divisionCodeById.get(match.divisionId) || "unknown"} personnel` : "",
             match.plantillaStatus !== "Regular" ? `personnel status ${match.plantillaStatus}` : "",
+            ["PSS", "PES"].includes(match.position) ? `custodian position ${match.position} is not eligible` : "",
           ].filter(Boolean)
         : []
       const assignmentIssue = match && assignmentReasons.length
@@ -184,6 +189,9 @@ async function run() {
     "",
     "Unmatched personnel plantilla rows:",
     ...(unmatchedPersonnel.length ? unmatchedPersonnel.map((name) => `- ${name}`) : ["- None"]),
+    "",
+    "Unresolved plantilla values (stored as For Transfer):",
+    ...(unresolvedPlantilla.length ? unresolvedPlantilla.map((name) => `- ${name}`) : ["- None"]),
     "",
     "Unmatched custodians:",
     ...(unmatchedCustodians.size ? [...unmatchedCustodians].map((name) => `- ${name}`) : ["- None"]),

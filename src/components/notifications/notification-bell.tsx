@@ -8,9 +8,9 @@ import type { NotificationItem, NotificationKind } from "@/lib/notifications"
 const STORAGE_KEY = "pulse-read-notifications"
 const MENU_ID = "pulse-notification-menu"
 
-function readStoredIds() {
+function readStoredIds(userKey: string) {
   try {
-    const stored = JSON.parse(window.localStorage.getItem(STORAGE_KEY) || "[]")
+    const stored = JSON.parse(window.localStorage.getItem(`${STORAGE_KEY}:${userKey}`) || "[]")
     return Array.isArray(stored) ? stored.filter((id): id is string => typeof id === "string") : []
   } catch {
     return []
@@ -34,16 +34,18 @@ function toneClass(tone: NotificationItem["tone"]) {
 export function NotificationBell({
   notifications,
   unavailable = false,
+  userKey,
 }: {
   notifications: NotificationItem[]
   unavailable?: boolean
+  userKey: string
 }) {
   const [open, setOpen] = useState(false)
   const [readIds, setReadIds] = useState<string[]>([])
 
   useEffect(() => {
-    startTransition(() => setReadIds(readStoredIds()))
-  }, [])
+    startTransition(() => setReadIds(readStoredIds(userKey)))
+  }, [userKey])
 
   const unreadIds = useMemo(
     () => notifications.map((notification) => notification.id).filter((id) => !readIds.includes(id)),
@@ -54,7 +56,7 @@ export function NotificationBell({
     const ids = notifications.map((notification) => notification.id)
     setReadIds(ids)
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(ids))
+      window.localStorage.setItem(`${STORAGE_KEY}:${userKey}`, JSON.stringify(ids))
     } catch {
       // React state still keeps the current session usable when storage is unavailable.
     }
@@ -65,7 +67,7 @@ export function NotificationBell({
     const nextReadIds = [...readIds, id]
     setReadIds(nextReadIds)
     try {
-      window.localStorage.setItem(STORAGE_KEY, JSON.stringify(nextReadIds))
+      window.localStorage.setItem(`${STORAGE_KEY}:${userKey}`, JSON.stringify(nextReadIds))
     } catch {
       // React state still keeps the current session usable when storage is unavailable.
     }

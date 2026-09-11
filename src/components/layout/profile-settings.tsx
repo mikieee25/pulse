@@ -40,15 +40,15 @@ export function ProfileSettings({ children }: { children: ReactElement }) {
         </DialogHeader>
         <form action={handleSubmit} className="space-y-4 mt-2">
           <div className="space-y-1">
-            <label className="text-sm text-slate">New password</label>
-            <Input type="password" name="password" required minLength={6} className="bg-canvas border-line text-paper" />
+            <label htmlFor="profile-new-password" className="text-sm text-slate">New password</label>
+            <Input id="profile-new-password" type="password" name="password" required minLength={12} className="bg-canvas border-line text-paper" />
           </div>
           <div className="space-y-1">
-            <label className="text-sm text-slate">Confirm new password</label>
-            <Input type="password" name="confirmPassword" required minLength={6} className="bg-canvas border-line text-paper" />
+            <label htmlFor="profile-confirm-password" className="text-sm text-slate">Confirm new password</label>
+            <Input id="profile-confirm-password" type="password" name="confirmPassword" required minLength={12} className="bg-canvas border-line text-paper" />
           </div>
-          {error && <p className="text-sm text-alert">{error}</p>}
-          {success && <p className="text-sm text-pulse">{success}</p>}
+          {error && <p role="alert" className="text-sm text-alert">{error}</p>}
+          {success && <p role="status" className="text-sm text-pulse">{success}</p>}
           <div className="flex justify-end pt-2">
             <Button type="submit">Update Password</Button>
           </div>

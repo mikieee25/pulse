@@ -10,17 +10,20 @@ import { Activity, CircleAlert, MonitorSmartphone, PackageCheck } from "lucide-r
 import { MetricCard } from "@/components/layout/metric-card";
 import { PageHeader } from "@/components/layout/page-header";
 import { SectionPanel } from "@/components/layout/section-panel";
-import { equipmentDisplayStatus, needsReplacement } from "@/lib/pulse";
+import { equipmentDisplayStatus, inventoryCardStats } from "@/lib/pulse";
+import { getCurrentProfile } from "@/lib/auth";
 
 export default async function EquipmentPage(props: {
   searchParams: Promise<{ category?: string }>;
 }) {
   const searchParams = await props.searchParams;
   const supabase = await createClient();
+  const profile = await getCurrentProfile();
+  const canManage = profile?.role === "Admin";
   const category = searchParams.category || 'Camera';
   
   // Fetch categories for tabs
-  const { data: categories } = await supabase
+  const { data: categories, error: categoriesError } = await supabase
     .from('equipment_categories')
     .select('*')
     .order('name');
@@ -56,11 +59,14 @@ export default async function EquipmentPage(props: {
     Custodian: item.personnel?.full_name || "Unassigned",
     Status: equipmentDisplayStatus(item.status, item.condition_state, item.equipment_categories?.name, item.year_acquired),
   }));
-  const { data: divisions } = await supabase.from('divisions').select('id,code,full_name').order('code');
-  const { data: personnel } = await supabase.from('personnel').select('id,full_name,plantilla_status,division_id').eq('plantilla_status', 'Regular').order('full_name');
-  const activeCount = equipment.filter((item) => equipmentDisplayStatus(item.status, item.condition_state, item.equipment_categories?.name, item.year_acquired) === "Active").length;
-  const replacementCount = equipment.filter((item) => needsReplacement(item.status, item.condition_state, item.equipment_categories?.name, item.year_acquired)).length;
-  const brokenCount = equipment.filter((item) => equipmentDisplayStatus(item.status, item.condition_state, item.equipment_categories?.name, item.year_acquired) === "Broken").length;
+  const { data: divisions, error: divisionsError } = await supabase.from('divisions').select('id,code,full_name').order('code');
+  const { data: personnel, error: personnelError } = await supabase.from('personnel').select('id,full_name,plantilla_status,division_id').eq('plantilla_status', 'Regular').order('full_name');
+  if (categoriesError || error || divisionsError || personnelError) {
+    const queryError = categoriesError || error || divisionsError || personnelError;
+    console.error("Equipment query failed", { code: queryError?.code, message: queryError?.message });
+    return <div className="rounded-lg border border-alert/30 bg-alert/10 p-6 text-alert">Equipment data is unavailable. Try refreshing.</div>;
+  }
+  const cardStats = inventoryCardStats(equipment.map((item) => ({ status: item.status, condition_state: item.condition_state, category: item.equipment_categories?.name, year_acquired: item.year_acquired })));
     
   return (
     <div className="space-y-8 pb-8">
@@ -70,19 +76,19 @@ export default async function EquipmentPage(props: {
         description="Manage ICT equipment across the bureau."
         actions={<>
           <ExportButton data={exportRows} category={category} />
-          <AddEquipmentDialog category={category} divisions={divisions || []} personnel={personnel || []}>
+          {canManage && <AddEquipmentDialog category={category} divisions={divisions || []} personnel={personnel || []}>
             <Button>
               + Add {category}
             </Button>
-          </AddEquipmentDialog>
+          </AddEquipmentDialog>}
         </>}
       />
 
       <section aria-labelledby="equipment-overview-title" className="grid gap-4 sm:grid-cols-3">
         <h2 id="equipment-overview-title" className="sr-only">Equipment overview</h2>
-        <MetricCard label="Category total" value={equipment.length} detail={`${category} assets`} icon={PackageCheck} />
-        <MetricCard label="Active" value={activeCount} detail="Currently in service" icon={Activity} tone="pulse" />
-        <MetricCard label="For replacement" value={replacementCount} detail={`${brokenCount} broken units`} icon={CircleAlert} tone="alert" />
+        <MetricCard label="Category total" value={cardStats.total} detail={`${category} assets`} icon={PackageCheck} />
+        <MetricCard label="Active" value={cardStats.active} detail="Operational, replacement, and expiry flagged" icon={Activity} tone="pulse" />
+        <MetricCard label="For replacement" value={cardStats.replacement} detail={`${cardStats.broken} broken units`} icon={CircleAlert} tone="alert" />
       </section>
 
       <SectionPanel title="Equipment categories" description="Choose a category to review its inventory">

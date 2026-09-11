@@ -1,4 +1,3 @@
-import Link from "next/link"
 import { UsersRound } from "lucide-react"
 import { redirect } from "next/navigation"
 import { createClient } from "@/utils/supabase/server"

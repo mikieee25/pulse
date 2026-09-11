@@ -23,6 +23,13 @@ export type LifecycleStatus = StoredEquipmentStatus | "Expiring soon"
 export type EquipmentCondition = "Good" | "For Replacement" | "Broken"
 export type EquipmentDisplayStatus = LifecycleStatus | "Broken"
 
+export type InventoryCardRecord = {
+  status: StoredEquipmentStatus
+  condition_state: string | null | undefined
+  category: string | null | undefined
+  year_acquired: number | null | undefined
+}
+
 export function lifecycleStatus(
   status: StoredEquipmentStatus,
   category: string | null | undefined,
@@ -62,6 +69,15 @@ export function needsReplacement(
 ) {
   const displayStatus = equipmentDisplayStatus(status, condition, category, yearAcquired, today)
   return displayStatus === "For Replacement" || displayStatus === "Broken"
+}
+
+export function inventoryCardStats(records: InventoryCardRecord[], today = new Date()) {
+  const statuses = records.map((record) => equipmentDisplayStatus(record.status, record.condition_state, record.category, record.year_acquired, today))
+  const broken = statuses.filter((status) => status === "Broken").length
+  const replacement = statuses.filter((status) => status === "For Replacement" || status === "Broken").length
+  const expiring = statuses.filter((status) => status === "Expiring soon").length
+  const active = statuses.filter((status) => status === "Active" || status === "For Replacement" || status === "Expiring soon").length
+  return { total: statuses.length, active, replacement, expiring, broken }
 }
 
 export function monthsUntilExpiry(
