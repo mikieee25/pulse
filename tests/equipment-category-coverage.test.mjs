@@ -6,6 +6,9 @@ const budgetSource = await readFile(new URL("../src/app/(dashboard)/budget/page.
 const dashboardSource = await readFile(new URL("../src/app/(dashboard)/page.tsx", import.meta.url), "utf8")
 const layoutSource = await readFile(new URL("../src/app/layout.tsx", import.meta.url), "utf8")
 const proxySource = await readFile(new URL("../src/proxy.ts", import.meta.url), "utf8")
+const equipmentPageSource = await readFile(new URL("../src/app/(dashboard)/equipment/page.tsx", import.meta.url), "utf8")
+const equipmentDialogSource = await readFile(new URL("../src/components/equipment/add-equipment-dialog.tsx", import.meta.url), "utf8")
+const categoryActionSource = await readFile(new URL("../src/app/actions/equipment-categories.ts", import.meta.url), "utf8")
 
 test("budget includes every database category, including manual replacement categories", () => {
   assert.doesNotMatch(budgetSource, /\.filter\(\s*\(category\) => category\.lifespan_years !== null\s*\)/)
@@ -23,4 +26,23 @@ test("PULSE uses its branded SVG instead of the default file favicon", async () 
   assert.doesNotMatch(layoutSource, /favicon\.ico/)
   assert.match(proxySource, /pulseicon\.svg/)
   assert.match(proxySource, /pulselogo\.svg/)
+})
+
+test("equipment exposes an admin-only circular category action", () => {
+  assert.match(equipmentPageSource, /AddCategoryDialog/)
+  assert.match(equipmentPageSource, /aria-label=\"Add equipment category\"/)
+  assert.match(equipmentPageSource, /canManage && <AddCategoryDialog/)
+})
+
+test("category creation is server-authorized and revalidates dependent views", () => {
+  assert.match(categoryActionSource, /requireProfile\("Admin"\)/)
+  assert.match(categoryActionSource, /equipment_categories.*insert/s)
+  assert.match(categoryActionSource, /revalidatePath\("\/equipment"\)/)
+  assert.match(categoryActionSource, /revalidatePath\("\/budget"\)/)
+})
+
+test("new categories are available in the equipment form", () => {
+  assert.match(equipmentPageSource, /categories=\{categories\?\.map\(\(cat\) => cat\.name\)/)
+  assert.match(equipmentDialogSource, /categories\?: string\[\]/)
+  assert.match(equipmentDialogSource, /categoryOptions\.map\(\(value\)/)
 })

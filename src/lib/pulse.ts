@@ -37,7 +37,7 @@ export function lifecycleStatus(
   today = new Date(),
 ): LifecycleStatus {
   if (status === "Retired") return status
-  const lifespan = category && ["Laptop", "Tablet", "Desktop"].includes(category) ? 3 : null
+  const lifespan = category ? 3 : null
   if (!lifespan || !yearAcquired) return status
 
   const expiry = new Date(yearAcquired + lifespan, 0, 1)
@@ -85,7 +85,7 @@ export function monthsUntilExpiry(
   yearAcquired: number | null | undefined,
   today = new Date(),
 ) {
-  if (!yearAcquired || !category || !["Laptop", "Tablet", "Desktop"].includes(category)) return null
+  if (!yearAcquired || !category) return null
   const expiry = new Date(yearAcquired + 3, 0, 1)
   return Math.ceil((expiry.getTime() - today.getTime()) / (30.44 * 24 * 60 * 60 * 1000))
 }

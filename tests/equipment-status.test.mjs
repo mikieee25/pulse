@@ -7,6 +7,7 @@ const today = new Date("2026-09-11")
 
 test("equipment status reflects lifecycle and manual condition signals", () => {
   assert.equal(equipmentDisplayStatus("Active", "Good", "Laptop", 2020, today), "For Replacement")
+  assert.equal(equipmentDisplayStatus("Active", "Good", "Server", 2020, today), "For Replacement")
   assert.equal(equipmentDisplayStatus("Active", "For Replacement", "Camera", 2026, today), "For Replacement")
   assert.equal(equipmentDisplayStatus("Active", "Broken", "Camera", 2026, today), "Broken")
   assert.equal(equipmentDisplayStatus("Retired", "Broken", "Laptop", 2020, today), "Retired")

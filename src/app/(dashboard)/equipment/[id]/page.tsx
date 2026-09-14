@@ -29,12 +29,13 @@ export default async function EquipmentDetailPage({ params }: { params: Promise<
   const equipment = data as unknown as DetailEquipment | null
   if (!equipment) notFound()
 
-  const [{ data: personnel, error: personnelError }, { data: historyData, error: historyError }] = await Promise.all([
+  const [{ data: personnel, error: personnelError }, { data: historyData, error: historyError }, { data: categories, error: categoriesError }] = await Promise.all([
     supabase.from("personnel").select("id,full_name,position,plantilla_status,division_id").eq("division_id", equipment.division_id).order("full_name"),
     supabase.from("assignment_history").select("id,assigned_at,unassigned_at,note,assignment_type,personnel(full_name)").eq("equipment_id", id).order("assigned_at", { ascending: false }),
+    supabase.from("equipment_categories").select("name").order("name"),
   ])
-  if (personnelError || historyError) {
-    const queryError = personnelError || historyError;
+  if (personnelError || historyError || categoriesError) {
+    const queryError = personnelError || historyError || categoriesError;
     console.error("Equipment detail support query failed", { code: queryError?.code, message: queryError?.message });
     return <div className="rounded-lg border border-alert/30 bg-alert/10 p-6 text-alert">Equipment assignment data is unavailable. Try refreshing.</div>;
   }
@@ -53,7 +54,7 @@ export default async function EquipmentDetailPage({ params }: { params: Promise<
           <Link href="/equipment" className="inline-flex items-center justify-center gap-2 rounded-xl border border-line bg-canvas px-4 py-2.5 text-sm font-semibold text-paper transition hover:border-pulse/40 hover:text-pulse focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pulse/40">
             <ArrowLeft className="size-4" aria-hidden="true" />Back to equipment
           </Link>
-          {canManage && <AddEquipmentDialog category={categoryName} divisions={division} personnel={personnel || []} initial={{ id: equipment.id, categoryName, brand: equipment.brand, model: equipment.model, year_acquired: equipment.year_acquired, serial_number: equipment.serial_number, procurement_method: equipment.procurement_method, division_id: equipment.division_id, assigned_to: equipment.assigned_to, assignee_id: equipment.assignee_id, condition_state: equipment.condition_state as EquipmentInput["condition_state"], remarks: equipment.remarks }}>
+          {canManage && <AddEquipmentDialog category={categoryName} categories={categories?.map((category) => category.name) || [categoryName]} divisions={division} personnel={personnel || []} initial={{ id: equipment.id, categoryName, brand: equipment.brand, model: equipment.model, year_acquired: equipment.year_acquired, serial_number: equipment.serial_number, procurement_method: equipment.procurement_method, division_id: equipment.division_id, assigned_to: equipment.assigned_to, assignee_id: equipment.assignee_id, condition_state: equipment.condition_state as EquipmentInput["condition_state"], remarks: equipment.remarks }}>
             <Button>Edit details</Button>
           </AddEquipmentDialog>}
         </>}

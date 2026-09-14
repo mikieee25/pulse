@@ -3,6 +3,7 @@ import { EquipmentTable } from "@/components/equipment/equipment-table";
 import { columns, type EquipmentData } from "@/components/equipment/columns";
 
 import { AddEquipmentDialog } from "@/components/equipment/add-equipment-dialog";
+import { AddCategoryDialog } from "@/components/equipment/add-category-dialog";
 import { ExportButton } from "@/components/equipment/export-button";
 
 import { Button } from "@/components/ui/button";
@@ -78,7 +79,7 @@ export default async function EquipmentPage(props: {
         description="Manage ICT equipment across the bureau."
         actions={<>
           <ExportButton data={exportRows} category={category} />
-          {canManage && <AddEquipmentDialog category={category} divisions={divisions || []} personnel={personnel || []}>
+          {canManage && <AddEquipmentDialog category={category} categories={categories?.map((cat) => cat.name) || []} divisions={divisions || []} personnel={personnel || []}>
             <Button>
               + Add {category}
             </Button>
@@ -109,6 +110,9 @@ export default async function EquipmentPage(props: {
               {cat.name}
             </a>
           ))}
+          {canManage && <AddCategoryDialog>
+            <Button type="button" variant="outline" size="icon" aria-label="Add equipment category" title="Add equipment category" className="size-9 shrink-0 rounded-full border-dashed text-lg text-pulse hover:border-pulse/60 hover:bg-pulse/10">+</Button>
+          </AddCategoryDialog>}
         </nav>
       </SectionPanel>
 

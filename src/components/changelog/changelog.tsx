@@ -36,6 +36,7 @@ const changelogGroups: ChangelogGroup[] = [
       { kind: "enhancement", title: "Expanded personnel and assignment visibility", description: "Equipment lists now show Custodian and Assignee separately, while Personnel highlights the current Outsourced / COS staff count from the registered directory." },
       { kind: "fix", title: "Improved the Bagong Pilipinas dark-mode lockup", description: "The official transparent logo now sits directly on the theme surface without a forced white tile in dark mode." },
       { kind: "feature", title: "Added an in-app PULSE Tutorial", description: "The help button, sidebar, and mobile navigation now open a native tutorial with real PULSE workflows for equipment, personnel, planning, reports, and notifications." },
+      { kind: "feature", title: "Added admin-created equipment categories", description: "Administrators can now add categories from the circular plus button beside the Equipment tabs. New categories are immediately available in inventory entry and reflected by the reporting views." },
     ],
   },
   {

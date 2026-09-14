@@ -5,11 +5,12 @@ import { addEquipment, type EquipmentInput, updateEquipment } from "@/app/action
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
+import { EQUIPMENT_CATEGORIES } from "@/lib/pulse"
 
 type Option = { id: string; code?: string; full_name?: string; fullName?: string; name?: string; plantilla_status?: string; division_id?: string; position?: string }
 export type EquipmentFormValue = EquipmentInput & { id?: string }
 
-export function AddEquipmentDialog({ children, category, divisions, personnel, initial }: { children: ReactNode; category: string; divisions: Option[]; personnel: Option[]; initial?: EquipmentFormValue }) {
+export function AddEquipmentDialog({ children, category, categories, divisions, personnel, initial }: { children: ReactNode; category: string; categories?: string[]; divisions: Option[]; personnel: Option[]; initial?: EquipmentFormValue }) {
   const [open, setOpen] = useState(false)
   const [error, setError] = useState("")
   const [form, setForm] = useState<EquipmentInput>(initial || {
@@ -25,6 +26,7 @@ export function AddEquipmentDialog({ children, category, divisions, personnel, i
     condition_state: "Good",
     remarks: null,
   })
+  const categoryOptions = categories?.length ? categories : [...EQUIPMENT_CATEGORIES]
   
   const eligibleCustodians = useMemo(() => personnel.filter((person) => person.division_id === form.division_id && person.plantilla_status === "Regular" && !["PSS", "PES"].includes(person.position || "")), [personnel, form.division_id])
   const eligibleAssignees = useMemo(() => personnel.filter((person) => person.division_id === form.division_id && ["PSS", "PES"].includes(person.position || "")), [personnel, form.division_id])
@@ -44,7 +46,7 @@ export function AddEquipmentDialog({ children, category, divisions, personnel, i
     <DialogContent className="sm:max-w-[560px] bg-canvas-deep border-line text-paper">
       <DialogHeader><DialogTitle>{initial?.id ? "Edit equipment" : `Add ${category}`}</DialogTitle><DialogDescription className="text-slate">All changes are checked against the database rules.</DialogDescription></DialogHeader>
       <form onSubmit={submit} className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <label className="space-y-1 text-sm text-slate">Category<select value={form.categoryName} onChange={(e) => set("categoryName", e.target.value)} className="w-full h-9 rounded-md border border-line bg-canvas px-2 text-paper">{["Laptop", "Tablet", "Desktop", "Drone", "Camera", "Printer"].map((value) => <option key={value}>{value}</option>)}</select></label>
+        <label className="space-y-1 text-sm text-slate">Category<select value={form.categoryName} onChange={(e) => set("categoryName", e.target.value)} className="w-full h-9 rounded-md border border-line bg-canvas px-2 text-paper">{categoryOptions.map((value) => <option key={value}>{value}</option>)}</select></label>
         <label className="space-y-1 text-sm text-slate">Division<select required value={form.division_id} onChange={(e) => setForm((current) => ({ ...current, division_id: e.target.value, assigned_to: null, assignee_id: null }))} className="w-full h-9 rounded-md border border-line bg-canvas px-2 text-paper">{divisions.map((division) => <option key={division.id} value={division.id}>{division.code} — {division.full_name || division.fullName}</option>)}</select></label>
         <label className="space-y-1 text-sm text-slate">Brand<Input value={form.brand || ""} onChange={(e) => set("brand", e.target.value || null)} /></label>
         <label className="space-y-1 text-sm text-slate">Model<Input value={form.model || ""} onChange={(e) => set("model", e.target.value || null)} /></label>
@@ -61,4 +63,3 @@ export function AddEquipmentDialog({ children, category, divisions, personnel, i
     </DialogContent>
   </Dialog>
 }
-
