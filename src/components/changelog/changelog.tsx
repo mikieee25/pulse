@@ -35,6 +35,7 @@ const changelogGroups: ChangelogGroup[] = [
       { kind: "enhancement", title: "Completed the government brand lockup", description: "The shared full lockup now presents DOE first, PULSE second, and the official Bagong Pilipinas mark rightmost with responsive clear space." },
       { kind: "enhancement", title: "Expanded personnel and assignment visibility", description: "Equipment lists now show Custodian and Assignee separately, while Personnel highlights the current Outsourced / COS staff count from the registered directory." },
       { kind: "fix", title: "Improved the Bagong Pilipinas dark-mode lockup", description: "The official transparent logo now sits directly on the theme surface without a forced white tile in dark mode." },
+      { kind: "feature", title: "Added an in-app PULSE Tutorial", description: "The help button, sidebar, and mobile navigation now open a native tutorial with real PULSE workflows for equipment, personnel, planning, reports, and notifications." },
     ],
   },
   {

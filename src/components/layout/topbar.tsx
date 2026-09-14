@@ -1,5 +1,6 @@
-import { Settings, LogOut } from "lucide-react";
+import { CircleHelp, Settings, LogOut } from "lucide-react";
 import Image from "next/image";
+import Link from "next/link";
 import { getCurrentProfile } from "@/lib/auth";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { NotificationBell } from "@/components/notifications/notification-bell";
@@ -26,6 +27,9 @@ export async function Topbar() {
         </span>
       </div>
       <div className="ml-auto flex items-center gap-3 pl-4 border-l border-line">
+        <Link href="/tutorial" className="flex items-center justify-center text-slate transition-colors hover:text-pulse" title="Open PULSE Tutorial" aria-label="Open PULSE Tutorial">
+          <CircleHelp className="size-4" />
+        </Link>
         <ThemeToggle />
         <NotificationBell notifications={notifications} unavailable={notificationUnavailable} userKey={profile?.id || profile?.email || "current-user"} />
         <div className="flex flex-col items-end hidden sm:flex pl-3 border-l border-line">
