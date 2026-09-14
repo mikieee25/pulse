@@ -105,7 +105,7 @@ export default async function Home() {
                 {Object.entries(plan).sort().map(([division, stats]) => (
                   <tr key={division} className="border-b border-line/50 transition hover:bg-paper/[0.025]">
                     <th scope="row" className="px-5 py-3 text-left font-semibold text-paper">{division}</th>
-                    <td className={`px-4 py-3 text-right tabular-nums ${stats.totalExpiring > 0 ? "text-amber-300" : "text-slate"}`}>{stats.totalExpiring}</td>
+                    <td className={`px-4 py-3 text-right tabular-nums ${stats.totalExpiring > 0 ? "text-warning" : "text-slate"}`}>{stats.totalExpiring}</td>
                     <td className={`px-4 py-3 text-right tabular-nums ${stats.totalBroken > 0 ? "text-alert" : "text-slate"}`}>{stats.totalBroken}</td>
                     {catArray.map(cat => {
                       const catStats = stats.categories[cat] || { total: 0, replacement: 0 }

@@ -41,6 +41,7 @@ export default async function EquipmentPage(props: {
       condition_state,
       division:divisions(code),
       personnel!equipment_assigned_to_fkey(full_name),
+      assignee:personnel!equipment_assignee_id_fkey(full_name),
       equipment_categories!inner(name)
     `)
     .eq('equipment_categories.name', category);
@@ -57,6 +58,7 @@ export default async function EquipmentPage(props: {
     Year: item.year_acquired || "",
     Division: item.division?.code || "",
     Custodian: item.personnel?.full_name || "Unassigned",
+    Assignee: item.assignee?.full_name || "Unassigned",
     Status: equipmentDisplayStatus(item.status, item.condition_state, item.equipment_categories?.name, item.year_acquired),
   }));
   const { data: divisions, error: divisionsError } = await supabase.from('divisions').select('id,code,full_name').order('code');

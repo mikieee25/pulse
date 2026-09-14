@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "shadcn/tailwind.css";
+@import "../styles/theme.css";
 
 @custom-variant dark (&:is(.dark *));
 
@@ -28,6 +29,9 @@
   --color-popover-foreground: var(--paper);
   --color-destructive: var(--alert);
   --color-destructive-foreground: var(--paper);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
   --color-accent: var(--accent);
   --color-accent-foreground: var(--paper);
   --color-input: var(--line);
@@ -38,35 +42,6 @@
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
-}
-
-:root {
-  --canvas: #10151c;
-  --canvas-deep: #0b0f15;
-  --paper: #efe9dc;
-  --paper-dim: #e3dccb;
-  --ink: #1c1912;
-  --ink-soft: #4a473e;
-  --pulse: #3ed9a0;
-  --alert: #e2572b;
-  --slate: #8792a0;
-  --line: rgba(239, 233, 220, 0.14);
-  --accent: rgba(239, 233, 220, 0.05);
-  --radius: 0.5rem;
-}
-
-html.light {
-  --canvas: #f3f7f5;
-  --canvas-deep: #ffffff;
-  --paper: #17231f;
-  --paper-dim: #30403a;
-  --ink: #f3f7f5;
-  --ink-soft: #dfe9e4;
-  --pulse: #159b70;
-  --alert: #c94a25;
-  --slate: #5d6e68;
-  --line: rgba(23, 35, 31, 0.14);
-  --accent: rgba(23, 35, 31, 0.05);
 }
 
 @layer base {

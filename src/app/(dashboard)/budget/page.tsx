@@ -167,7 +167,7 @@ export default async function BudgetPage({
               <CalendarRange className="size-3.5" aria-hidden="true" />
               Fiscal year {year}
             </div>
-            <h1 className="font-serif text-3xl tracking-tight text-paper sm:text-4xl">
+            <h1 className="font-sans text-3xl tracking-tight text-paper sm:text-4xl">
               Budget & Replacement Planning
             </h1>
             <p className="mt-3 max-w-xl text-sm leading-6 text-slate">
@@ -206,7 +206,7 @@ export default async function BudgetPage({
           <div className="flex items-start justify-between gap-4">
             <div>
               <p className="text-xs font-semibold uppercase tracking-[0.18em] text-pulse">Forecast requirement</p>
-              <p className="mt-3 break-words font-serif text-3xl tabular-nums text-paper sm:text-4xl">
+              <p className="mt-3 break-words font-sans text-3xl tabular-nums text-paper sm:text-4xl">
                 {peso.format(grandTotalCost)}
               </p>
             </div>
@@ -224,7 +224,7 @@ export default async function BudgetPage({
           {[
             { label: "Units for replacement", value: grandTotalUnits, detail: "ICT assets", icon: PackageCheck, tone: "text-paper bg-paper/5 border-line" },
             { label: "Requesting divisions", value: requestingDivisions, detail: `of ${divisions?.length || 0} divisions`, icon: Building2, tone: "text-paper bg-paper/5 border-line" },
-            { label: "Rate coverage", value: `${coveragePercentage}%`, detail: `${pricedCategories} of ${categories.length} priced`, icon: ShieldCheck, tone: unpricedCount ? "text-amber-300 bg-amber-300/5 border-amber-300/20" : "text-pulse bg-pulse/5 border-pulse/20" },
+            { label: "Rate coverage", value: `${coveragePercentage}%`, detail: `${pricedCategories} of ${categories.length} priced`, icon: ShieldCheck, tone: unpricedCount ? "text-warning bg-warning/5 border-warning/20" : "text-pulse bg-pulse/5 border-pulse/20" },
           ].map(({ label, value, detail, icon: Icon, tone }) => (
             <article key={label} className="rounded-2xl border border-line bg-canvas-deep p-5 transition-colors hover:border-paper/25">
               <span className={`grid size-9 place-items-center rounded-lg border ${tone}`}>
@@ -239,10 +239,10 @@ export default async function BudgetPage({
       </section>
 
       {unpricedCount > 0 && (
-        <div className="flex items-start gap-3 rounded-xl border border-amber-300/20 bg-amber-300/5 px-4 py-3 text-sm">
-          <CircleAlert className="mt-0.5 size-4 shrink-0 text-amber-300" aria-hidden="true" />
+        <div className="flex items-start gap-3 rounded-xl border border-warning/20 bg-warning/5 px-4 py-3 text-sm">
+          <CircleAlert className="mt-0.5 size-4 shrink-0 text-warning" aria-hidden="true" />
           <p className="text-slate">
-            <span className="font-medium text-amber-300">{unpricedCount} {unpricedCount === 1 ? "category needs" : "categories need"} a rate.</span>{" "}
+            <span className="font-medium text-warning">{unpricedCount} {unpricedCount === 1 ? "category needs" : "categories need"} a rate.</span>{" "}
             Forecast totals exclude replacement units without a standard cost.
           </p>
         </div>
@@ -252,7 +252,7 @@ export default async function BudgetPage({
         <section className="min-w-0 overflow-hidden rounded-2xl border border-line bg-canvas-deep shadow-xl shadow-black/5" aria-labelledby="replacement-breakdown-title">
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-4">
             <div>
-              <h2 id="replacement-breakdown-title" className="font-serif text-xl text-paper">Replacement breakdown</h2>
+              <h2 id="replacement-breakdown-title" className="font-sans text-xl text-paper">Replacement breakdown</h2>
               <p className="mt-1 text-xs text-slate">Division totals with category-level costing</p>
             </div>
             <span className="rounded-full border border-line bg-canvas px-3 py-1 text-xs text-slate">
@@ -297,11 +297,11 @@ export default async function BudgetPage({
                           <td className="px-5 py-3 pl-9 font-medium text-paper">
                             <div className="flex items-center gap-2">
                               <span>{item.categoryName}</span>
-                              {hasMissingRate && <span className="rounded-full border border-amber-300/20 bg-amber-300/10 px-2 py-0.5 text-[10px] font-medium text-amber-300">Missing rate</span>}
+                              {hasMissingRate && <span className="rounded-full border border-warning/20 bg-warning/10 px-2 py-0.5 text-[10px] font-medium text-warning">Missing rate</span>}
                             </div>
                           </td>
                           <td className="px-4 py-3 text-right font-semibold tabular-nums text-paper">{item.units}</td>
-                          <td className={`px-4 py-3 text-right tabular-nums ${hasMissingRate ? "text-amber-300" : "text-slate"}`}>{item.unitCost > 0 ? peso.format(item.unitCost) : "—"}</td>
+                          <td className={`px-4 py-3 text-right tabular-nums ${hasMissingRate ? "text-warning" : "text-slate"}`}>{item.unitCost > 0 ? peso.format(item.unitCost) : "—"}</td>
                           <td className={`px-5 py-3 text-right font-semibold tabular-nums ${item.subtotal > 0 ? "text-pulse" : "text-slate"}`}>{peso.format(item.subtotal)}</td>
                         </tr>
                       );
@@ -326,7 +326,7 @@ export default async function BudgetPage({
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-pulse">Admin controls</p>
-                <h2 id="standard-rates-title" className="mt-1 font-serif text-xl text-paper">Standard rates</h2>
+                <h2 id="standard-rates-title" className="mt-1 font-sans text-xl text-paper">Standard rates</h2>
                 <p className="mt-1 text-xs leading-5 text-slate">Set one replacement cost per category for FY {year}.</p>
               </div>
               <span className="grid size-9 shrink-0 place-items-center rounded-lg border border-line bg-canvas text-slate">
@@ -349,7 +349,7 @@ export default async function BudgetPage({
                           {category.lifespan_years === null ? "Manual replacement" : `${category.lifespan_years}-year lifecycle`}
                         </span>
                       </div>
-                      {!currentCost && <span className="shrink-0 rounded-full bg-amber-300/10 px-2 py-0.5 text-[9px] font-medium text-amber-300">Unpriced</span>}
+                      {!currentCost && <span className="shrink-0 rounded-full bg-warning/10 px-2 py-0.5 text-[9px] font-medium text-warning">Unpriced</span>}
                     </div>
                     <div className="mt-3 flex gap-2">
                       <div className="relative min-w-0 flex-1">

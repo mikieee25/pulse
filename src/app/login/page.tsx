@@ -4,7 +4,7 @@ import { BrandLockup } from "@/components/layout/brand-lockup"
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string; message?: string }> }) {
   const { error, message } = await searchParams
   return (
-    <div className="min-h-screen flex items-center justify-center bg-canvas-deep p-4">
+    <div className="min-h-screen flex items-center justify-center bg-white p-4 dark:bg-canvas-deep">
       <div className="w-full max-w-lg space-y-8">
         <div className="text-center">
           <BrandLockup priority />

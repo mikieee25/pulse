@@ -4,7 +4,7 @@ export default function Error({ reset }: { error: Error & { digest?: string }; r
   return (
     <div className="rounded-2xl border border-line border-alert/30 bg-canvas-deep p-6 shadow-xl shadow-black/5 sm:p-8">
       <p className="text-xs font-semibold uppercase tracking-[0.18em] text-alert">Dashboard unavailable</p>
-      <h2 className="mt-3 font-serif text-2xl text-paper">Something went wrong</h2>
+      <h2 className="mt-3 font-sans text-2xl text-paper">Something went wrong</h2>
       <p className="mt-2 text-sm leading-6 text-slate">The page could not load. Try again.</p>
       <button
         onClick={() => reset()}

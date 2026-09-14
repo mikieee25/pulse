@@ -1,0 +1,19 @@
+<svg width="620" height="160" viewBox="0 0 620 160" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="PULSE wordmark">
+  <style>
+    .word {
+      font-family: Fraunces, Georgia, 'Times New Roman', serif;
+      font-weight: 500;
+      font-size: 84px;
+      letter-spacing: 0.5px;
+      fill: #F4F7FF;
+    }
+    .tag {
+      font-family: 'IBM Plex Mono', 'Courier New', monospace;
+      font-size: 13.5px;
+      letter-spacing: 2.2px;
+      fill: #D8E2F7;
+    }
+  </style>
+  <text x="170" y="102" class="word">PULSE</text>
+  <text x="172" y="130" class="tag">PERSONNEL &amp; UNIT LIFECYCLE SYSTEM FOR EQUIPMENT</text>
+</svg>

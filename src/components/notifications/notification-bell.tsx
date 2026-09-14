@@ -26,7 +26,7 @@ function iconFor(kind: NotificationKind) {
 
 function toneClass(tone: NotificationItem["tone"]) {
   if (tone === "alert") return "text-alert bg-alert/10"
-  if (tone === "warning") return "text-amber-500 bg-amber-500/10"
+  if (tone === "warning") return "text-warning bg-warning/10"
   if (tone === "pulse") return "text-pulse bg-pulse/10"
   return "text-slate bg-slate/10"
 }

@@ -1,0 +1,87 @@
+:root {
+  color-scheme: light;
+
+  /* DOE brand primitives */
+  --doe-blue: #0000FE;
+  --doe-yellow: #FFFF00;
+  --doe-blue-light: #397DFF;
+  --doe-yellow-light: #FFFE77;
+  --doe-blue-balanced: #1F5BF6;
+  --doe-yellow-balanced: #FFEE4D;
+  --doe-blue-bold: #0341CB;
+  --doe-yellow-bold: #FADB09;
+  --doe-blue-deep: #0016A8;
+  --doe-yellow-deep: #E8B911;
+
+  /* Light semantic roles */
+  --surface-light: #F7F9FF;
+  --surface-light-raised: #FFFFFF;
+  --text-light: #0C1B3A;
+  --text-light-muted: #52617D;
+  --line-light: rgba(0, 22, 168, 0.16);
+  --accent-light: rgba(31, 91, 246, 0.08);
+  --success-light: #047857;
+  --warning-light: #9A6700;
+  --danger-light: #B42318;
+  --info-light: #6D28D9;
+
+  --canvas: var(--surface-light);
+  --canvas-deep: var(--surface-light-raised);
+  --paper: var(--text-light);
+  --paper-dim: #263B64;
+  --ink: #FFFFFF;
+  --ink-soft: #E8EEFF;
+  --pulse: var(--doe-blue-balanced);
+  --alert: var(--danger-light);
+  --slate: var(--text-light-muted);
+  --line: var(--line-light);
+  --accent: var(--accent-light);
+  --success: var(--success-light);
+  --warning: var(--warning-light);
+  --info: var(--info-light);
+  --chart-primary: var(--doe-blue-balanced);
+  --chart-secondary: var(--doe-yellow-deep);
+  --chart-tertiary: var(--doe-blue-light);
+  --chart-muted: #7890BC;
+  --chart-neutral: var(--doe-blue-deep);
+  --radius: 0.5rem;
+}
+
+html.light {
+  color-scheme: light;
+}
+
+.dark {
+  color-scheme: dark;
+
+  --surface-dark: #08132C;
+  --surface-dark-raised: #0E1D3B;
+  --text-dark: #F4F7FF;
+  --text-dark-muted: #A8B7D3;
+  --line-dark: rgba(168, 183, 211, 0.2);
+  --accent-dark: rgba(57, 125, 255, 0.14);
+  --success-dark: #34D399;
+  --warning-dark: var(--doe-yellow-bold);
+  --danger-dark: #F97066;
+  --info-dark: #C4B5FD;
+
+  --canvas: var(--surface-dark);
+  --canvas-deep: var(--surface-dark-raised);
+  --paper: var(--text-dark);
+  --paper-dim: #D8E2F7;
+  --ink: #071126;
+  --ink-soft: #132A55;
+  --pulse: var(--doe-blue-light);
+  --alert: var(--danger-dark);
+  --slate: var(--text-dark-muted);
+  --line: var(--line-dark);
+  --accent: var(--accent-dark);
+  --success: var(--success-dark);
+  --warning: var(--warning-dark);
+  --info: var(--info-dark);
+  --chart-primary: var(--doe-blue-light);
+  --chart-secondary: var(--doe-yellow-bold);
+  --chart-tertiary: var(--doe-blue-balanced);
+  --chart-muted: #8EA4C9;
+  --chart-neutral: var(--doe-yellow-deep);
+}

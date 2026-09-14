@@ -4,7 +4,7 @@ import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContaine
 
 type DivisionDatum = { name: string; count: number }
 type StatusDatum = { name: string; value: number }
-const COLORS = ["#3ed9a0", "#e2572b", "#f4b942", "#8792a0", "#efe9dc"]
+const COLORS = ["var(--chart-primary)", "var(--alert)", "var(--chart-secondary)", "var(--chart-muted)", "var(--chart-neutral)"]
 const chartStyle = { backgroundColor: "var(--canvas-deep)", borderColor: "var(--line)", color: "var(--paper)" }
 
 export function InventoryByDivisionChart({ data }: { data: DivisionDatum[] }) {

@@ -21,7 +21,7 @@ export function SectionPanel({
       {(title || description || actions) && (
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-4">
           <div>
-            {title && <h2 className="font-serif text-xl text-paper">{title}</h2>}
+            {title && <h2 className="font-sans text-xl text-paper">{title}</h2>}
             {description && <p className="mt-1 text-xs text-slate">{description}</p>}
           </div>
           {actions}

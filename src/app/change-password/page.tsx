@@ -15,7 +15,7 @@ export default async function ChangePasswordPage({ searchParams }: { searchParam
       <div className="w-full max-w-lg space-y-8">
         <div className="text-center">
           <BrandLockup priority />
-          <h1 className="font-serif text-3xl text-paper">Change your password</h1>
+          <h1 className="font-sans text-3xl text-paper">Change your password</h1>
           <p className="mt-2 text-sm text-slate">Replace the temporary password before continuing to PULSE.</p>
         </div>
         <div className="rounded-xl border border-line bg-canvas p-8 shadow-2xl">

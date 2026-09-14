@@ -14,7 +14,7 @@ type MetricCardProps = {
 const toneClasses: Record<MetricTone, string> = {
   neutral: "border-line bg-paper/5 text-paper",
   pulse: "border-pulse/20 bg-pulse/5 text-pulse",
-  warning: "border-amber-300/20 bg-amber-300/5 text-amber-300",
+  warning: "border-warning/20 bg-warning/5 text-warning",
   alert: "border-alert/20 bg-alert/5 text-alert",
 };
 

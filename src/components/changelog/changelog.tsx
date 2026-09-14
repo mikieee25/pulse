@@ -20,12 +20,23 @@ type ChangelogGroup = {
 
 const kindStyles: Record<ChangeKind, { label: string; icon: LucideIcon; color: string; background: string }> = {
   feature: { label: "New feature", icon: Sparkles, color: "text-pulse", background: "border-pulse/20 bg-pulse/10" },
-  enhancement: { label: "Enhancement", icon: CheckCircle2, color: "text-amber-300", background: "border-amber-300/20 bg-amber-300/10" },
+  enhancement: { label: "Enhancement", icon: CheckCircle2, color: "text-warning", background: "border-warning/20 bg-warning/10" },
   fix: { label: "Bug fix", icon: Wrench, color: "text-alert", background: "border-alert/20 bg-alert/10" },
-  security: { label: "Security", icon: ShieldCheck, color: "text-sky-300", background: "border-sky-300/20 bg-sky-300/10" },
+  security: { label: "Security", icon: ShieldCheck, color: "text-info", background: "border-info/20 bg-info/10" },
 }
 
 const changelogGroups: ChangelogGroup[] = [
+  {
+    date: "September 14, 2026",
+    release: "DOE visual system",
+    changes: [
+      { kind: "feature", title: "Added a central DOE color theme", description: "PULSE now uses one semantic theme source for the DOE blue and yellow palette, tonal variations, light surfaces, dark mode, statuses, notifications, and charts." },
+      { kind: "enhancement", title: "Made the light theme the default", description: "New sessions open with a mostly white professional interface, while saved dark-mode preferences continue to work across the application." },
+      { kind: "enhancement", title: "Completed the government brand lockup", description: "The shared full lockup now presents DOE first, PULSE second, and the official Bagong Pilipinas mark rightmost with responsive clear space." },
+      { kind: "enhancement", title: "Expanded personnel and assignment visibility", description: "Equipment lists now show Custodian and Assignee separately, while Personnel highlights the current Outsourced / COS staff count from the registered directory." },
+      { kind: "fix", title: "Improved the Bagong Pilipinas dark-mode lockup", description: "The official transparent logo now sits directly on the theme surface without a forced white tile in dark mode." },
+    ],
+  },
   {
     date: "September 11, 2026",
     release: "Production readiness",
@@ -83,7 +94,7 @@ export function Changelog() {
         eyebrow={<span className="inline-flex items-center gap-2"><History className="size-3.5" aria-hidden="true" />Product history</span>}
         title="PULSE Changelog"
         description="A plain-language record of the features, fixes, and operational improvements delivered to the Personnel & Unit Lifecycle System for Equipment."
-        actions={<span className="rounded-full border border-pulse/20 bg-pulse/10 px-3 py-2 text-xs font-medium text-pulse">Updated September 11, 2026</span>}
+        actions={<span className="rounded-full border border-pulse/20 bg-pulse/10 px-3 py-2 text-xs font-medium text-pulse">Updated September 14, 2026</span>}
       />
 
       <section aria-labelledby="changelog-overview-title" className="grid gap-4 sm:grid-cols-3">
@@ -108,11 +119,11 @@ export function Changelog() {
               {changelogGroups.map((group, groupIndex) => (
                 <article key={group.date} className="relative grid grid-cols-[36px_minmax(0,1fr)] gap-4 sm:grid-cols-[52px_minmax(0,1fr)] sm:gap-5">
                   <div className="relative flex justify-center">
-                    <span className="relative z-10 mt-1.5 size-3.5 rounded-full border-4 border-canvas-deep bg-pulse shadow-[0_0_0_3px_rgba(62,211,161,0.18)]" aria-hidden="true" />
+                    <span className="relative z-10 mt-1.5 size-3.5 rounded-full border-4 border-canvas-deep bg-pulse ring-2 ring-pulse/20" aria-hidden="true" />
                   </div>
                   <div className="min-w-0">
                     <div className="mb-3 flex flex-col gap-1 sm:flex-row sm:items-center sm:gap-3">
-                      <h3 className="font-serif text-xl text-paper">{group.date}</h3>
+                      <h3 className="font-sans text-xl text-paper">{group.date}</h3>
                       <span className="text-xs text-slate">{group.release}</span>
                     </div>
                     <div className="space-y-2">

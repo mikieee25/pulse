@@ -147,7 +147,7 @@ export function ReportsClient({ initialData }: { initialData: ReportEquipment[] 
             </thead>
             <tbody>
               {paginatedData.map((item) => {
-                const stateStyles: Record<string, string> = { Active: "bg-pulse/10 text-pulse border-pulse/30", "Expiring soon": "bg-amber-300/10 text-amber-300 border-amber-300/30", "For Replacement": "bg-alert/10 text-alert border-alert/30", Broken: "bg-alert/10 text-alert border-alert/30" }
+                const stateStyles: Record<string, string> = { Active: "bg-pulse/10 text-pulse border-pulse/30", "Expiring soon": "bg-warning/10 text-warning border-warning/30", "For Replacement": "bg-alert/10 text-alert border-alert/30", Broken: "bg-alert/10 text-alert border-alert/30" }
                 const stateStyle = stateStyles[item.displayStatus] || "bg-slate/10 text-slate border-slate/30"
                 return (
                   <tr key={item.id} className="border-b border-line/50 transition hover:bg-paper/[0.025]">

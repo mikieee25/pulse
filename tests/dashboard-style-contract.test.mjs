@@ -67,6 +67,32 @@ test("dashboard exposes the PULSE changelog route on desktop and mobile", async 
   assert.match(changelogComponent, /PULSE/);
 });
 
+test("changelog records the DOE central theme and three-logo lockup", async () => {
+  const changelog = await source("src/components/changelog/changelog.tsx");
+
+  assert.match(changelog, /central DOE color theme/);
+  assert.match(changelog, /Bagong Pilipinas/);
+  assert.match(changelog, /light theme the default/);
+});
+
+test("equipment list exposes the assignee beside the custodian", async () => {
+  const page = await source("src/app/(dashboard)/equipment/page.tsx");
+  const columns = await source("src/components/equipment/columns.tsx");
+
+  assert.match(page, /assignee:personnel!equipment_assignee_id_fkey\(full_name\)/);
+  assert.match(page, /Assignee: item\.assignee/);
+  assert.match(columns, /id: "custodian"[\s\S]*id: "assignee"/);
+  assert.match(columns, /header: "Assignee"/);
+});
+
+test("personnel overview includes a data-driven outsourced staff card", async () => {
+  const page = await source("src/app/(dashboard)/personnel/page.tsx");
+
+  assert.match(page, /outsourcedCount/);
+  assert.match(page, /\["Outsourced", "COS"\]\.includes\(person\.plantilla_status \?\? ""\)/);
+  assert.match(page, /label="Outsourced \/ COS"/);
+});
+
 test("dashboard route states use the Budget panel treatment", async () => {
   const files = [
     "src/app/(dashboard)/loading.tsx",
@@ -78,6 +104,23 @@ test("dashboard route states use the Budget panel treatment", async () => {
     assert.match(content, /rounded-2xl/);
     assert.match(content, /border-line/);
     assert.match(content, /bg-canvas-deep/);
+  }
+});
+
+test("interface typography uses Inter-backed sans text instead of serif overrides", async () => {
+  const files = [
+    "src/app/not-found.tsx",
+    "src/app/change-password/page.tsx",
+    "src/app/(dashboard)/error.tsx",
+    "src/app/(dashboard)/budget/page.tsx",
+    "src/components/changelog/changelog.tsx",
+    "src/components/layout/brand-lockup.tsx",
+    "src/components/layout/page-header.tsx",
+    "src/components/layout/section-panel.tsx",
+  ];
+
+  for (const file of files) {
+    assert.doesNotMatch(await source(file), /font-serif/);
   }
 });
 

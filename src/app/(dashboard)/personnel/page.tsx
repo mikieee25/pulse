@@ -3,7 +3,7 @@ import { PersonnelTable } from "@/components/personnel/personnel-table"
 import type { PersonnelData } from "@/components/personnel/columns"
 import { AddPersonnelDialog } from "@/components/personnel/add-personnel-dialog"
 import { Button } from "@/components/ui/button"
-import { ContactRound, UserCheck, UsersRound } from "lucide-react"
+import { BriefcaseBusiness, ContactRound, UserCheck, UsersRound } from "lucide-react"
 import { MetricCard } from "@/components/layout/metric-card"
 import { PageHeader } from "@/components/layout/page-header"
 import { SectionPanel } from "@/components/layout/section-panel"
@@ -47,6 +47,7 @@ export default async function PersonnelPage() {
     return <div className="rounded-lg border border-alert/30 bg-alert/10 p-6 text-alert">Personnel data is unavailable. Try refreshing.</div>;
   }
   const regularCount = personnel.filter((person) => person.plantilla_status === "Regular").length
+  const outsourcedCount = personnel.filter((person) => ["Outsourced", "COS"].includes(person.plantilla_status ?? "")).length
   const assignedCount = personnel.filter((person) => (person.equipment?.length || 0) > 0).length
 
   return (
@@ -62,10 +63,11 @@ export default async function PersonnelPage() {
         </AddPersonnelDialog> : undefined}
       />
 
-      <section aria-labelledby="personnel-overview-title" className="grid gap-4 sm:grid-cols-3">
+      <section aria-labelledby="personnel-overview-title" className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <h2 id="personnel-overview-title" className="sr-only">Personnel overview</h2>
         <MetricCard label="Total personnel" value={personnel.length} detail="Registered staff" icon={UsersRound} />
         <MetricCard label="Regular staff" value={regularCount} detail="Eligible custodians" icon={UserCheck} tone="pulse" />
+        <MetricCard label="Outsourced / COS" value={outsourcedCount} detail="Contracted personnel" icon={BriefcaseBusiness} tone="warning" />
         <MetricCard label="With equipment" value={assignedCount} detail="Active custodians" icon={ContactRound} tone="warning" />
       </section>
 

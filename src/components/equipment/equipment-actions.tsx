@@ -69,7 +69,7 @@ export function EquipmentActions({ id, personnel, currentState, currentCustodian
       <div className="flex items-center rounded-lg border border-line bg-canvas p-1">
          {["Good", "For Replacement", "Broken"].map(s => {
             const isActive = state === s
-            const activeColor = s === "Good" ? "text-pulse" : s === "For Replacement" ? "text-alert" : "text-amber-300"
+            const activeColor = s === "Good" ? "text-pulse" : s === "For Replacement" ? "text-alert" : "text-warning"
              return <button key={s} type="button" aria-pressed={isActive} aria-labelledby="equipment-state-label" onClick={() => handleStateChange(s as EquipmentCondition)} className={`flex-1 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${isActive ? `${activeColor} bg-canvas-deep shadow-sm` : 'text-slate hover:text-paper'}`}>
               {s}
             </button>
