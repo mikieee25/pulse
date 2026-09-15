@@ -20,6 +20,13 @@ test("new categories created by list import use the shared three-year lifespan",
   assert.match(importerSource, /lifespan_years:\s*3/)
 })
 
+test("list import keeps unknown category labels intact after normalization", () => {
+  assert.match(importerSource, /canonicalEquipmentCategory/)
+  assert.equal(buildImportPlan([
+    { Category: "Dynamic UPS", Description: "Test UPS", "Serial No.": "UPS-1", Custodian: "", Assignee: "", Division: "OD" },
+  ], [], [{ id: "od-id", code: "OD" }]).categories[0], "Dynamic UPS")
+})
+
 test("list import maps the two OD source division labels to OD", () => {
   const plan = buildImportPlan(source, [], [
     { id: "od-id", code: "OD" },

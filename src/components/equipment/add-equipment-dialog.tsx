@@ -5,7 +5,7 @@ import { addEquipment, type EquipmentInput, updateEquipment } from "@/app/action
 import { Button } from "@/components/ui/button"
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Input } from "@/components/ui/input"
-import { EQUIPMENT_CATEGORIES } from "@/lib/pulse"
+import { DEFAULT_EQUIPMENT_CATEGORIES } from "@/lib/pulse"
 
 type Option = { id: string; code?: string; full_name?: string; fullName?: string; name?: string; plantilla_status?: string; division_id?: string; position?: string }
 export type EquipmentFormValue = EquipmentInput & { id?: string }
@@ -26,7 +26,7 @@ export function AddEquipmentDialog({ children, category, categories, divisions, 
     condition_state: "Good",
     remarks: null,
   })
-  const categoryOptions = categories?.length ? categories : [...EQUIPMENT_CATEGORIES]
+  const categoryOptions = categories?.length ? categories : [...DEFAULT_EQUIPMENT_CATEGORIES]
   
   const eligibleCustodians = useMemo(() => personnel.filter((person) => person.division_id === form.division_id && person.plantilla_status === "Regular" && !["PSS", "PES"].includes(person.position || "")), [personnel, form.division_id])
   const eligibleAssignees = useMemo(() => personnel.filter((person) => person.division_id === form.division_id && ["PSS", "PES"].includes(person.position || "")), [personnel, form.division_id])

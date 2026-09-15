@@ -7,7 +7,7 @@ export const PLANTILLA_STATUSES = [
   "For RTS",
 ] as const
 
-export const EQUIPMENT_CATEGORIES = [
+export const DEFAULT_EQUIPMENT_CATEGORIES = [
   "Laptop",
   "Tablet",
   "Desktop",
@@ -17,41 +17,38 @@ export const EQUIPMENT_CATEGORIES = [
 ] as const
 
 export type PlantillaStatus = (typeof PLANTILLA_STATUSES)[number]
-export type EquipmentCategory = (typeof EQUIPMENT_CATEGORIES)[number]
 export type StoredEquipmentStatus = "Active" | "For Replacement" | "Retired"
 export type LifecycleStatus = StoredEquipmentStatus | "Expiring soon"
 export type EquipmentCondition = "Good" | "For Replacement" | "Broken"
 export type EquipmentDisplayStatus = LifecycleStatus | "Broken"
 
+const CATEGORY_ALIASES: ReadonlyArray<[RegExp, string]> = [
+  [/\bmonitors?\b/i, "Monitors"],
+  [/\b(?:headphones?|earbuds?)\b/i, "Headphones"],
+  [/\b(?:printers?|scanners?)\b/i, "Printers & Scanners"],
+  [/\bspeakers?\b/i, "Speakers"],
+  [/\b(?:microphones?|mics?)\b/i, "Microphones"],
+  [/\b(?:hubs?|splitters?)\b/i, "USB Hubs & Splitters"],
+  [/\b(?:keyboards?|mice|mouses?)\b/i, "Keyboards & Mice"],
+  [/\btablet\s+pen\b/i, "Tablet Accessories"],
+  [/\bssd\b/i, "Storage"],
+  [/\bpowerbanks?\b/i, "Powerbanks"],
+  [/\bhotspots?\b/i, "Wi-Fi Hotspots"],
+  [/\b(?:teleprompters?|presentations?|display\s+adapters?)\b/i, "Presentation Equipment"],
+  [/\bvoice\s+recorders?\b/i, "Voice Recorders"],
+  [/\btelephones?\b/i, "Telephones"],
+  [/\bgimbals?\b/i, "GIMBAL"],
+  [/\bradios?\b/i, "Radio Set"],
+  [/\blaptops?\b/i, "Laptop"],
+  [/\bdesktops?\b/i, "Desktop"],
+  [/^tablets?$/i, "Tablet"],
+  [/\bdrones?\b/i, "Drone"],
+  [/\bcameras?\b/i, "Camera"],
+]
+
 export function canonicalEquipmentCategory(category: string | null | undefined) {
   const value = category?.trim() || ""
-  const normalized = value.toLowerCase()
-
-  if (normalized.includes("monitor")) return "Monitors"
-  if (normalized.includes("headphone") || normalized.includes("earbud")) return "Headphones"
-  if (normalized.includes("printer") || normalized.includes("scanner")) return "Printers & Scanners"
-  if (normalized.includes("speaker")) return "Speakers"
-  if (normalized.includes("mic") || normalized.includes("microphone")) return "Microphones"
-  if (normalized.includes("hub") || normalized.includes("splitter")) return "USB Hubs & Splitters"
-  if (normalized.includes("keyboard") || normalized.includes("mouse")) return "Keyboards & Mice"
-  if (normalized.includes("tablet pen")) return "Tablet Accessories"
-  if (normalized.includes("ssd")) return "Storage"
-  if (normalized.includes("powerbank")) return "Powerbanks"
-  if (normalized.includes("hotspot")) return "Wi-Fi Hotspots"
-  if (normalized.includes("teleprompter") || normalized.includes("presentation") || normalized.includes("display adapter")) {
-    return "Presentation Equipment"
-  }
-  if (normalized.includes("voice recorder")) return "Voice Recorders"
-  if (normalized.includes("telephone")) return "Telephones"
-  if (normalized.includes("gimbal")) return "GIMBAL"
-  if (normalized.includes("radio")) return "Radio Set"
-  if (normalized.includes("laptop")) return "Laptop"
-  if (normalized.includes("desktop")) return "Desktop"
-  if (normalized === "tablet") return "Tablet"
-  if (normalized.includes("drone")) return "Drone"
-  if (normalized.includes("camera")) return "Camera"
-
-  return value
+  return CATEGORY_ALIASES.find(([pattern]) => pattern.test(value))?.[1] || value
 }
 
 export type InventoryCardRecord = {
