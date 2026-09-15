@@ -23,28 +23,22 @@ const equipmentId = z.uuid()
 const conditionState = z.enum(["Good", "For Replacement", "Broken"])
 
 export type EquipmentInput = z.infer<typeof equipmentInput>
+type Supabase = Awaited<ReturnType<typeof createClient>>
 
-async function validateAssignment(input: EquipmentInput) {
-  const supabase = await createClient()
-  if (input.assigned_to) {
-    const { data: person, error } = await supabase.from("personnel").select("plantilla_status,division_id,position").eq("id", input.assigned_to).single()
-    if (error || !person) return "Selected Custodian was not found."
-    if (person.plantilla_status !== "Regular" || ["PSS", "PES"].includes(person.position)) return "Custodian must be Regular personnel and NOT a PSS/PES user."
-    if (person.division_id !== input.division_id) return "Custodian must be within the same division."
-  }
-  if (input.assignee_id) {
-    const { data: person, error } = await supabase.from("personnel").select("plantilla_status,division_id,position").eq("id", input.assignee_id).single()
-    if (error || !person) return "Selected Assignee was not found."
-    if (!["PSS", "PES"].includes(person.position)) return "Assignee must be a PSS or PES user."
-    if (person.division_id !== input.division_id) return "Assignee must be within the same division."
-  }
+async function validateAssignment(supabase: Supabase, divisionId: string, personnelId: string | null, role: "Custodian" | "Assignee") {
+  if (!personnelId) return null
+  const { data: person, error } = await supabase.from("personnel").select("plantilla_status,division_id,position").eq("id", personnelId).single()
+  if (error || !person) return `Selected ${role} was not found.`
+  if (person.division_id !== divisionId) return `${role} must be within the same division.`
+  if (role === "Custodian" && (person.plantilla_status !== "Regular" || ["PSS", "PES"].includes(person.position))) return "Custodian must be Regular personnel and NOT a PSS/PES user."
+  if (role === "Assignee" && !["PSS", "PES"].includes(person.position)) return "Assignee must be a PSS or PES user."
   return null
 }
 
-async function categoryId(categoryName: string) {
-  const supabase = await createClient()
-  const { data } = await supabase.from("equipment_categories").select("id").eq("name", canonicalEquipmentCategory(categoryName)).single()
-  return data?.id || null
+async function findCategoryId(supabase: Supabase, categoryName: string) {
+  const { data, error } = await supabase.from("equipment_categories").select("id").eq("name", canonicalEquipmentCategory(categoryName)).maybeSingle()
+  if (error) return { id: null, error: "Could not load equipment categories." }
+  return { id: data?.id ?? null, error: null }
 }
 
 export async function addEquipment(input: EquipmentInput) {
@@ -52,14 +46,17 @@ export async function addEquipment(input: EquipmentInput) {
   if (access.error) return access
   const parsed = equipmentInput.safeParse(input)
   if (!parsed.success) return { error: "Please complete the equipment fields." }
-  const assignmentError = await validateAssignment(parsed.data)
-  if (assignmentError) return { error: assignmentError }
-  const category_id = await categoryId(parsed.data.categoryName)
-  if (!category_id) return { error: "Category not found." }
   const supabase = await createClient()
+  const custodianError = await validateAssignment(supabase, parsed.data.division_id, parsed.data.assigned_to, "Custodian")
+  if (custodianError) return { error: custodianError }
+  const assigneeError = await validateAssignment(supabase, parsed.data.division_id, parsed.data.assignee_id || null, "Assignee")
+  if (assigneeError) return { error: assigneeError }
+  const category = await findCategoryId(supabase, parsed.data.categoryName)
+  if (category.error) return { error: category.error }
+  if (!category.id) return { error: "Category not found." }
   const { data: equipmentId, error } = await supabase.rpc("save_equipment", {
     p_equipment_id: null,
-    p_category_id: category_id,
+    p_category_id: category.id,
     p_brand: parsed.data.brand || null,
     p_model: parsed.data.model || null,
     p_year_acquired: parsed.data.year_acquired,
@@ -82,14 +79,17 @@ export async function updateEquipment(id: string, input: EquipmentInput) {
   if (!equipmentId.safeParse(id).success) return { error: "Equipment not found." }
   const parsed = equipmentInput.safeParse(input)
   if (!parsed.success) return { error: "Please complete the equipment fields." }
-  const assignmentError = await validateAssignment(parsed.data)
-  if (assignmentError) return { error: assignmentError }
-  const category_id = await categoryId(parsed.data.categoryName)
-  if (!category_id) return { error: "Category not found." }
   const supabase = await createClient()
+  const custodianError = await validateAssignment(supabase, parsed.data.division_id, parsed.data.assigned_to, "Custodian")
+  if (custodianError) return { error: custodianError }
+  const assigneeError = await validateAssignment(supabase, parsed.data.division_id, parsed.data.assignee_id || null, "Assignee")
+  if (assigneeError) return { error: assigneeError }
+  const category = await findCategoryId(supabase, parsed.data.categoryName)
+  if (category.error) return { error: category.error }
+  if (!category.id) return { error: "Category not found." }
   const { error } = await supabase.rpc("save_equipment", {
     p_equipment_id: id,
-    p_category_id: category_id,
+    p_category_id: category.id,
     p_brand: parsed.data.brand || null,
     p_model: parsed.data.model || null,
     p_year_acquired: parsed.data.year_acquired,
@@ -116,8 +116,7 @@ export async function reassignEquipment(id: string, personnelId: string | null, 
   const { data: equipment } = await supabase.from("equipment").select("division_id").eq("id", id).single()
   if (!equipment) return { error: "Equipment not found." }
   
-  const input: EquipmentInput = { categoryName: "Laptop", brand: null, model: null, year_acquired: null, serial_number: null, procurement_method: null, division_id: equipment.division_id, assigned_to: role === "Custodian" ? personnelId : null, assignee_id: role === "Assignee" ? personnelId : null, remarks: null, condition_state: "Good" }
-  const assignmentError = await validateAssignment(input)
+  const assignmentError = await validateAssignment(supabase, equipment.division_id, personnelId, role)
   if (assignmentError) return { error: assignmentError }
   
   const { error } = await supabase.rpc("reassign_equipment", { p_equipment_id: id, p_personnel_id: personnelId, p_note: note || null, p_type: role })
