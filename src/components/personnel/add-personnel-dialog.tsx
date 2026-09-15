@@ -13,6 +13,7 @@ type PersonnelFormValue = PersonnelInput & { id?: string }
 export function AddPersonnelDialog({ children, divisions, initial }: { children: ReactNode; divisions: Division[]; initial?: PersonnelFormValue }) {
   const [open, setOpen] = useState(false)
   const [error, setError] = useState("")
+  const [saving, setSaving] = useState(false)
   const [form, setForm] = useState<PersonnelInput>(initial || {
     full_name: "",
     initials: "",
@@ -23,14 +24,22 @@ export function AddPersonnelDialog({ children, divisions, initial }: { children:
   const set = <K extends keyof PersonnelInput>(key: K, value: PersonnelInput[K]) => setForm((current) => ({ ...current, [key]: value }))
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (saving) return
+    setSaving(true)
     setError("")
-    const result = initial?.id
-      ? await updatePersonnel(initial.id, { ...form, initials: form.initials || suggestedInitials(form.full_name) })
-      : await addPersonnel({ ...form, initials: form.initials || suggestedInitials(form.full_name) })
-    if (result.error) setError(result.error)
-    else {
-      setOpen(false)
-      if (!initial?.id) setForm({ ...form, full_name: "", initials: "", position: "" })
+    try {
+      const result = initial?.id
+        ? await updatePersonnel(initial.id, { ...form, initials: form.initials || suggestedInitials(form.full_name) })
+        : await addPersonnel({ ...form, initials: form.initials || suggestedInitials(form.full_name) })
+      if (result.error) setError(result.error)
+      else {
+        setOpen(false)
+        if (!initial?.id) setForm({ ...form, full_name: "", initials: "", position: "" })
+      }
+    } catch {
+      setError("Could not save personnel.")
+    } finally {
+      setSaving(false)
     }
   }
   return <Dialog open={open} onOpenChange={setOpen}><DialogTrigger render={children as React.ReactElement} /><DialogContent className="sm:max-w-[520px] bg-canvas-deep border-line text-paper"><DialogHeader><DialogTitle>{initial?.id ? "Edit personnel" : "Add personnel"}</DialogTitle><DialogDescription className="text-slate">Initials are suggested from the name but remain editable.</DialogDescription></DialogHeader><form onSubmit={submit} className="space-y-4">
@@ -39,6 +48,6 @@ export function AddPersonnelDialog({ children, divisions, initial }: { children:
     <label className="block space-y-1 text-sm text-slate">Position<Input required value={form.position} onChange={(e) => set("position", e.target.value)} /></label>
     <label className="block space-y-1 text-sm text-slate">Division<select required value={form.division_id} onChange={(e) => set("division_id", e.target.value)} className="w-full h-9 rounded-md border border-line bg-canvas px-2 text-paper">{divisions.map((division) => <option key={division.id} value={division.id}>{division.code} — {division.full_name}</option>)}</select></label>
     <label className="block space-y-1 text-sm text-slate">Plantilla status<select value={form.plantilla_status} onChange={(e) => set("plantilla_status", e.target.value as PlantillaStatus)} className="w-full h-9 rounded-md border border-line bg-canvas px-2 text-paper">{PLANTILLA_STATUSES.map((value) => <option key={value}>{value}</option>)}</select></label>
-    {error && <p className="text-sm text-alert">{error}</p>}<div className="flex justify-end"><Button type="submit">{initial?.id ? "Save changes" : "Save personnel"}</Button></div>
+    {error && <p role="alert" className="text-sm text-alert">{error}</p>}<div className="flex justify-end"><Button type="submit" disabled={saving}>{saving ? "Saving…" : initial?.id ? "Save changes" : "Save personnel"}</Button></div>
   </form></DialogContent></Dialog>
 }

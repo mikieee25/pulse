@@ -96,6 +96,22 @@ test("equipment filters persist in the URL and search across asset fields", asyn
   assert.match(table, /Showing .* matching/);
 });
 
+test("mutation controls expose pending guards and accessible feedback", async () => {
+  const equipmentDialog = await source("src/components/equipment/add-equipment-dialog.tsx");
+  const equipmentActions = await source("src/components/equipment/equipment-actions.tsx");
+  const personnelDialog = await source("src/components/personnel/add-personnel-dialog.tsx");
+  const divisionDialog = await source("src/components/divisions/add-division-dialog.tsx");
+  const userManagement = await source("src/components/admin/user-management.tsx");
+
+  assert.match(equipmentDialog, /disabled=\{saving\}/);
+  assert.match(equipmentDialog, /Saving…/);
+  assert.match(equipmentDialog, /role="alert"/);
+  assert.match(equipmentActions, /disabled=\{pendingAction !== null\}/);
+  assert.match(personnelDialog, /disabled=\{saving\}/);
+  assert.match(divisionDialog, /disabled=\{saving\}/);
+  assert.match(userManagement, /creating/);
+});
+
 test("personnel overview includes a data-driven outsourced staff card", async () => {
   const page = await source("src/app/(dashboard)/personnel/page.tsx");
 

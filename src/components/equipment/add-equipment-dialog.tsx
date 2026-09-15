@@ -10,10 +10,8 @@ import { DEFAULT_EQUIPMENT_CATEGORIES } from "@/lib/pulse"
 type Option = { id: string; code?: string; full_name?: string; fullName?: string; name?: string; plantilla_status?: string; division_id?: string; position?: string }
 export type EquipmentFormValue = EquipmentInput & { id?: string }
 
-export function AddEquipmentDialog({ children, category, categories, divisions, personnel, initial }: { children: ReactNode; category: string; categories?: string[]; divisions: Option[]; personnel: Option[]; initial?: EquipmentFormValue }) {
-  const [open, setOpen] = useState(false)
-  const [error, setError] = useState("")
-  const [form, setForm] = useState<EquipmentInput>(initial || {
+function newEquipmentForm(category: string, divisions: Option[]): EquipmentInput {
+  return {
     categoryName: category,
     brand: null,
     model: null,
@@ -25,7 +23,14 @@ export function AddEquipmentDialog({ children, category, categories, divisions, 
     assignee_id: null,
     condition_state: "Good",
     remarks: null,
-  })
+  }
+}
+
+export function AddEquipmentDialog({ children, category, categories, divisions, personnel, initial }: { children: ReactNode; category: string; categories?: string[]; divisions: Option[]; personnel: Option[]; initial?: EquipmentFormValue }) {
+  const [open, setOpen] = useState(false)
+  const [error, setError] = useState("")
+  const [saving, setSaving] = useState(false)
+  const [form, setForm] = useState<EquipmentInput>(initial || newEquipmentForm(category, divisions))
   const categoryOptions = categories?.length ? categories : [...DEFAULT_EQUIPMENT_CATEGORIES]
   
   const eligibleCustodians = useMemo(() => personnel.filter((person) => person.division_id === form.division_id && person.plantilla_status === "Regular" && !["PSS", "PES"].includes(person.position || "")), [personnel, form.division_id])
@@ -35,10 +40,21 @@ export function AddEquipmentDialog({ children, category, categories, divisions, 
   
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault()
+    if (saving) return
+    setSaving(true)
     setError("")
-    const result = initial?.id ? await updateEquipment(initial.id, form) : await addEquipment(form)
-    if (result.error) setError(result.error)
-    else setOpen(false)
+    try {
+      const result = initial?.id ? await updateEquipment(initial.id, form) : await addEquipment(form)
+      if (result.error) setError(result.error)
+      else {
+        setOpen(false)
+        if (!initial?.id) setForm(newEquipmentForm(category, divisions))
+      }
+    } catch {
+      setError("Could not save equipment.")
+    } finally {
+      setSaving(false)
+    }
   }
 
   return <Dialog open={open} onOpenChange={setOpen}>
@@ -57,8 +73,8 @@ export function AddEquipmentDialog({ children, category, categories, divisions, 
         <label className="space-y-1 text-sm text-slate">Custodian (Regulars)<select value={form.assigned_to || ""} onChange={(e) => set("assigned_to", e.target.value || null)} className="w-full h-9 rounded-md border border-line bg-canvas px-2 text-paper"><option value="">Unassigned</option>{eligibleCustodians.map((person) => <option key={person.id} value={person.id}>{person.full_name || person.fullName}</option>)}</select></label>
         <label className="space-y-1 text-sm text-slate">Assignee (PSS/PES)<select value={form.assignee_id || ""} onChange={(e) => set("assignee_id", e.target.value || null)} className="w-full h-9 rounded-md border border-line bg-canvas px-2 text-paper"><option value="">Unassigned</option>{eligibleAssignees.map((person) => <option key={person.id} value={person.id}>{person.full_name || person.fullName}</option>)}</select></label>
         <label className="space-y-1 text-sm text-slate sm:col-span-2">Remarks<textarea value={form.remarks || ""} onChange={(e) => set("remarks", e.target.value || null)} className="min-h-20 w-full rounded-md border border-line bg-canvas px-3 py-2 text-paper" /></label>
-        {error && <p className="sm:col-span-2 text-sm text-alert">{error}</p>}
-        <div className="sm:col-span-2 flex justify-end"><Button type="submit">{initial?.id ? "Save changes" : `Save ${category}`}</Button></div>
+        {error && <p role="alert" className="sm:col-span-2 text-sm text-alert">{error}</p>}
+        <div className="sm:col-span-2 flex justify-end"><Button type="submit" disabled={saving}>{saving ? "Saving…" : initial?.id ? "Save changes" : `Save ${category}`}</Button></div>
       </form>
     </DialogContent>
   </Dialog>

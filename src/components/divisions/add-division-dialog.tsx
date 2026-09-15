@@ -31,6 +31,8 @@ const formSchema = z.object({
 
 export function AddDivisionDialog({ children }: { children: React.ReactNode }) {
   const [open, setOpen] = useState(false)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState("")
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -41,12 +43,21 @@ export function AddDivisionDialog({ children }: { children: React.ReactNode }) {
   })
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    const result = await addDivision(values)
-    if (!result?.error) {
-      setOpen(false)
-      form.reset()
-    } else {
-      console.error(result.error)
+    if (saving) return
+    setSaving(true)
+    setError("")
+    try {
+      const result = await addDivision(values)
+      if (!result?.error) {
+        setOpen(false)
+        form.reset()
+      } else {
+        setError(result.error)
+      }
+    } catch {
+      setError("Could not save division.")
+    } finally {
+      setSaving(false)
     }
   }
 
@@ -88,9 +99,10 @@ export function AddDivisionDialog({ children }: { children: React.ReactNode }) {
                 </FormItem>
               )}
             />
+            {error && <p role="alert" className="text-sm text-alert">{error}</p>}
             <div className="flex justify-end pt-4">
-              <Button type="submit" className="bg-pulse text-canvas-deep hover:bg-pulse/90">
-                Save Division
+              <Button type="submit" disabled={saving} className="bg-pulse text-canvas-deep hover:bg-pulse/90">
+                {saving ? "Saving…" : "Save Division"}
               </Button>
             </div>
           </form>

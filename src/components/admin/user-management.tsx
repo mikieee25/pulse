@@ -26,48 +26,68 @@ export function UserManagement({
 }) {
   const [errorMsg, setErrorMsg] = useState("");
   const [successMsg, setSuccessMsg] = useState("");
+  const [creating, setCreating] = useState(false);
+  const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
+  const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
   const router = useRouter();
 
   async function addUser(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (creating || updatingUserId || deletingUserId) return;
+    setCreating(true);
     setErrorMsg("");
     setSuccessMsg("");
     const formElement = event.currentTarget;
     const form = new FormData(formElement);
-    const result = await createUser({
-      email: String(form.get("email")),
-      full_name: String(form.get("full_name")),
-      temporary_password: String(form.get("temporary_password")),
-      role: String(form.get("role")) as "Admin" | "Viewer",
-      division_scope: String(form.get("division_scope") || "") || null,
-    });
-    if (result.error) {
-      setErrorMsg(result.error);
-    } else {
-      setSuccessMsg("User created. Give them the temporary password securely.");
-      formElement.reset();
-      router.refresh();
+    try {
+      const result = await createUser({
+        email: String(form.get("email")),
+        full_name: String(form.get("full_name")),
+        temporary_password: String(form.get("temporary_password")),
+        role: String(form.get("role")) as "Admin" | "Viewer",
+        division_scope: String(form.get("division_scope") || "") || null,
+      });
+      if (result.error) {
+        setErrorMsg(result.error);
+      } else {
+        setSuccessMsg("User created. Give them the temporary password securely.");
+        formElement.reset();
+        router.refresh();
+      }
+    } catch {
+      setErrorMsg("Could not create user.");
+    } finally {
+      setCreating(false);
     }
   }
 
   async function save(user: User, event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (creating || updatingUserId || deletingUserId) return;
+    setUpdatingUserId(user.id);
     setErrorMsg("");
     setSuccessMsg("");
     const form = new FormData(event.currentTarget);
-    const result = await updateUser(user.id, {
-      role: String(form.get("role")) as "Admin" | "Viewer",
-      division_scope: String(form.get("division_scope") || "") || null,
-    });
-    if (result.error) {
-      setErrorMsg(result.error);
-    } else {
-      setSuccessMsg("User settings saved.");
-      router.refresh();
+    try {
+      const result = await updateUser(user.id, {
+        role: String(form.get("role")) as "Admin" | "Viewer",
+        division_scope: String(form.get("division_scope") || "") || null,
+      });
+      if (result.error) {
+        setErrorMsg(result.error);
+      } else {
+        setSuccessMsg("User settings saved.");
+        router.refresh();
+      }
+    } catch {
+      setErrorMsg("Could not update user.");
+    } finally {
+      setUpdatingUserId(null);
     }
   }
 
   async function removeUser(userId: string) {
+    if (creating || updatingUserId || deletingUserId) return;
     if (
       !window.confirm(
         "Are you sure you want to remove this user? This cannot be undone."
@@ -76,12 +96,19 @@ export function UserManagement({
       return;
     setErrorMsg("");
     setSuccessMsg("");
-    const result = await deleteUser(userId);
-    if (result.error) {
-      setErrorMsg(result.error);
-    } else {
-      setSuccessMsg("User removed successfully.");
-      router.refresh();
+    setDeletingUserId(userId);
+    try {
+      const result = await deleteUser(userId);
+      if (result.error) {
+        setErrorMsg(result.error);
+      } else {
+        setSuccessMsg("User removed successfully.");
+        router.refresh();
+      }
+    } catch {
+      setErrorMsg("Could not remove user.");
+    } finally {
+      setDeletingUserId(null);
     }
   }
 
@@ -142,17 +169,18 @@ export function UserManagement({
           <Button
             type="submit"
             size="lg"
+            disabled={creating || updatingUserId !== null || deletingUserId !== null}
             className="inline-flex items-center gap-2"
           >
             <UserPlus className="size-4" aria-hidden="true" />
-            Add user
+            {creating ? "Creating…" : "Add user"}
           </Button>
         </form>
       </SectionPanel>
 
       {errorMsg && (
         <p
-          role="status"
+          role="alert"
           className="rounded-xl border border-alert/20 bg-alert/5 px-4 py-3 text-sm text-alert"
         >
           {errorMsg}
@@ -227,11 +255,12 @@ export function UserManagement({
                           </option>
                         ))}
                       </select>
-                      <Button size="lg">Save</Button>
+                      <Button type="submit" size="lg" disabled={creating || updatingUserId !== null || deletingUserId !== null}>{updatingUserId === user.id ? "Saving…" : "Save"}</Button>
                       <Button
                         type="button"
                         size="icon-lg"
                         variant="destructive"
+                        disabled={creating || updatingUserId !== null || deletingUserId !== null}
                         onClick={() => removeUser(user.id)}
                         title="Remove user"
                       >
