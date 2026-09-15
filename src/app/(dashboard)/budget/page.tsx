@@ -1,7 +1,7 @@
 import { createClient } from "@/utils/supabase/server";
-import { saveCategoryCost } from "@/app/actions/admin";
 import { needsReplacement } from "@/lib/pulse";
 import { ExportButton } from "@/components/equipment/export-button";
+import { CategoryCostForm } from "@/components/budget/category-cost-form";
 import {
   Banknote,
   Building2,
@@ -337,37 +337,8 @@ export default async function BudgetPage({
             <div className="mt-5 space-y-3">
               {categories.map((category) => {
                 const currentCost = costByCategory.get(category.id);
-                const inputId = `cost-${category.id}`;
                 return (
-                  <form key={category.id} action={saveCategoryCost} className="rounded-xl border border-line bg-canvas/60 p-3 transition-colors focus-within:border-pulse/50">
-                    <input type="hidden" name="category_id" value={category.id} />
-                    <input type="hidden" name="year" value={year} />
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <label htmlFor={inputId} className="block truncate text-xs font-semibold text-paper">{category.name}</label>
-                        <span className="mt-0.5 block text-[10px] text-slate">
-                          {category.lifespan_years === null ? "Manual replacement" : `${category.lifespan_years}-year lifecycle`}
-                        </span>
-                      </div>
-                      {!currentCost && <span className="shrink-0 rounded-full bg-warning/10 px-2 py-0.5 text-[9px] font-medium text-warning">Unpriced</span>}
-                    </div>
-                    <div className="mt-3 flex gap-2">
-                      <div className="relative min-w-0 flex-1">
-                        <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-xs text-slate">₱</span>
-                        <input
-                          id={inputId}
-                          aria-label={`Set ${category.name} unit cost`}
-                          name="unit_cost"
-                          type="number"
-                          min="0"
-                          defaultValue={currentCost || ""}
-                          placeholder="0"
-                          className="h-9 w-full rounded-lg border border-line bg-canvas-deep pl-7 pr-2 text-right text-xs tabular-nums text-paper outline-none transition focus:border-pulse focus:ring-2 focus:ring-pulse/15"
-                        />
-                      </div>
-                      <button type="submit" className="h-9 rounded-lg border border-line bg-canvas px-3 text-xs font-semibold text-paper transition hover:border-pulse/40 hover:text-pulse focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pulse/40">Save</button>
-                    </div>
-                  </form>
+                  <CategoryCostForm key={category.id} categoryId={category.id} year={year} categoryName={category.name} lifespanYears={category.lifespan_years} unitCost={currentCost} />
                 );
               })}
             </div>

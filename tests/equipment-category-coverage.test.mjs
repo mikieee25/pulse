@@ -4,6 +4,7 @@ import test from "node:test"
 import { canonicalEquipmentCategory } from "../src/lib/pulse.ts"
 
 const budgetSource = await readFile(new URL("../src/app/(dashboard)/budget/page.tsx", import.meta.url), "utf8")
+const categoryCostFormSource = await readFile(new URL("../src/components/budget/category-cost-form.tsx", import.meta.url), "utf8").catch(() => "")
 const dashboardSource = await readFile(new URL("../src/app/(dashboard)/page.tsx", import.meta.url), "utf8")
 const layoutSource = await readFile(new URL("../src/app/layout.tsx", import.meta.url), "utf8")
 const proxySource = await readFile(new URL("../src/proxy.ts", import.meta.url), "utf8")
@@ -16,7 +17,7 @@ const generalizedCategoryMigrationSource = await readFile(new URL("../supabase/m
 
 test("budget includes every database category, including manual replacement categories", () => {
   assert.doesNotMatch(budgetSource, /\.filter\(\s*\(category\) => category\.lifespan_years !== null\s*\)/)
-  assert.match(budgetSource, /category\.lifespan_years === null \? "Manual replacement"/)
+  assert.match(`${budgetSource}\n${categoryCostFormSource}`, /lifespanYears === null \? "Manual replacement"/)
 })
 
 test("replacement plan seeds columns from the complete category list", () => {

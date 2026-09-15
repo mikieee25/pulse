@@ -78,21 +78,18 @@ export async function deleteUser(id: string) {
   return { success: true }
 }
 
-export async function updateCategoryCost(formData: FormData) {
+export type CategoryCostState = { error: string; success: boolean }
+
+export async function saveCategoryCost(_previousState: CategoryCostState, formData: FormData): Promise<CategoryCostState> {
   const access = await requireProfile("Admin")
-  if (access.error) return access
+  if (access.error) return { error: access.error, success: false }
   const categoryId = z.string().uuid().safeParse(formData.get("category_id"))
   const year = z.coerce.number().int().min(2000).max(2100).safeParse(formData.get("year"))
   const unitCost = z.coerce.number().nonnegative().safeParse(formData.get("unit_cost"))
-  if (!categoryId.success || !year.success || !unitCost.success) return { error: "Invalid cost values." }
+  if (!categoryId.success || !year.success || !unitCost.success) return { error: "Invalid cost values.", success: false }
   const supabase = await createClient()
   const { error } = await supabase.from("category_unit_costs").upsert({ category_id: categoryId.data, year: year.data, unit_cost: unitCost.data }, { onConflict: "category_id,year" })
-  if (error) return { error: error.message }
+  if (error) return { error: error.message, success: false }
   revalidatePath("/budget")
-  return { success: true }
-}
-
-export async function saveCategoryCost(formData: FormData): Promise<void> {
-  const result = await updateCategoryCost(formData)
-  if (result.error) throw new Error(result.error)
+  return { error: "", success: true }
 }
