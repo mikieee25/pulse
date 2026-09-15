@@ -8,7 +8,7 @@ type RawEquipment = {
   procurement_method: string | null;
   status: "Active" | "For Replacement" | "Retired";
   condition_state: string;
-  equipment_categories: { id: string; name: string } | null;
+  equipment_categories: { id: string; name: string; lifespan_years: number | null } | null;
   division: { code: string; full_name: string } | null;
 };
 
@@ -29,7 +29,7 @@ export default async function SummaryPage(props: {
       procurement_method,
       status,
       condition_state,
-      equipment_categories(id, name),
+      equipment_categories(id, name, lifespan_years),
       division:divisions(code, full_name)
     `),
     supabase.from("equipment_categories").select("id,name").order("name"),
@@ -57,7 +57,7 @@ export default async function SummaryPage(props: {
       let isIncluded = false;
 
       if (viewType === "Replacement") {
-        isIncluded = needsReplacement(eq.status, eq.condition_state, catName, eq.year_acquired, new Date(viewYear, 0, 1));
+        isIncluded = needsReplacement(eq.status, eq.condition_state, eq.equipment_categories?.lifespan_years, eq.year_acquired, new Date(viewYear, 0, 1));
       } else {
         if (eq.year_acquired === viewYear) {
           isIncluded = true;

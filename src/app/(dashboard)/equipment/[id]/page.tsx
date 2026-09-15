@@ -13,7 +13,7 @@ import { canonicalEquipmentCategory, equipmentDisplayStatus } from "@/lib/pulse"
 import type { EquipmentInput } from "@/app/actions/equipment"
 import { getCurrentProfile } from "@/lib/auth"
 
-type DetailEquipment = { id: string; brand: string | null; model: string | null; serial_number: string | null; year_acquired: number | null; procurement_method: string | null; division_id: string; assigned_to: string | null; assignee_id: string | null; condition_state: string; status: "Active" | "For Replacement" | "Retired"; remarks: string | null; division: { full_name: string; code: string } | null; personnel: { full_name: string; position: string; plantilla_status: string } | null; assignee: { full_name: string; position: string; plantilla_status: string } | null; equipment_categories: { name: string } | null }
+type DetailEquipment = { id: string; brand: string | null; model: string | null; serial_number: string | null; year_acquired: number | null; procurement_method: string | null; division_id: string; assigned_to: string | null; assignee_id: string | null; condition_state: string; status: "Active" | "For Replacement" | "Retired"; remarks: string | null; division: { full_name: string; code: string } | null; personnel: { full_name: string; position: string; plantilla_status: string } | null; assignee: { full_name: string; position: string; plantilla_status: string } | null; equipment_categories: { name: string; lifespan_years: number | null } | null }
 type HistoryEntry = { id: string; assigned_at: string; unassigned_at: string | null; note: string | null; personnel: { full_name: string } | null; assignment_type: string }
 
 export default async function EquipmentDetailPage({ params }: { params: Promise<{ id: string }> }) {
@@ -21,7 +21,7 @@ export default async function EquipmentDetailPage({ params }: { params: Promise<
   const supabase = await createClient()
   const profile = await getCurrentProfile()
   const canManage = profile?.role === "Admin"
-  const { data, error: equipmentError } = await supabase.from("equipment").select("*,division:divisions(full_name,code),personnel!equipment_assigned_to_fkey(full_name,position,plantilla_status),assignee:personnel!equipment_assignee_id_fkey(full_name,position,plantilla_status),equipment_categories(name)").eq("id", id).single()
+  const { data, error: equipmentError } = await supabase.from("equipment").select("*,division:divisions(full_name,code),personnel!equipment_assigned_to_fkey(full_name,position,plantilla_status),assignee:personnel!equipment_assignee_id_fkey(full_name,position,plantilla_status),equipment_categories(name,lifespan_years)").eq("id", id).single()
   if (equipmentError && equipmentError.code !== "PGRST116") {
     console.error("Equipment detail query failed", { code: equipmentError.code, message: equipmentError.message });
     return <div className="rounded-lg border border-alert/30 bg-alert/10 p-6 text-alert">Equipment details are unavailable. Try refreshing.</div>;
@@ -41,7 +41,7 @@ export default async function EquipmentDetailPage({ params }: { params: Promise<
   }
   const history = (historyData || []) as unknown as HistoryEntry[]
   const categoryName = canonicalEquipmentCategory(equipment.equipment_categories?.name || "Laptop")
-  const status = equipmentDisplayStatus(equipment.status, equipment.condition_state, categoryName, equipment.year_acquired)
+  const status = equipmentDisplayStatus(equipment.status, equipment.condition_state, equipment.equipment_categories?.lifespan_years, equipment.year_acquired)
   const division = equipment.division ? [{ id: equipment.division_id, code: equipment.division.code, full_name: equipment.division.full_name }] : []
   const categoryOptions = Array.from(new Set((categories || []).map((category) => canonicalEquipmentCategory(category.name)))).filter(Boolean)
 

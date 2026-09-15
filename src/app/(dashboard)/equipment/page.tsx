@@ -43,7 +43,7 @@ export default async function EquipmentPage(props: {
       division:divisions(code),
       personnel!equipment_assigned_to_fkey(full_name),
       assignee:personnel!equipment_assignee_id_fkey(full_name),
-      equipment_categories!inner(name)
+      equipment_categories!inner(name,lifespan_years)
     `)
     .eq('equipment_categories.name', category);
   
@@ -64,7 +64,7 @@ export default async function EquipmentPage(props: {
     Division: item.division?.code || "",
     Custodian: item.personnel?.full_name || "Unassigned",
     Assignee: item.assignee?.full_name || "Unassigned",
-    Status: equipmentDisplayStatus(item.status, item.condition_state, canonicalEquipmentCategory(item.equipment_categories?.name), item.year_acquired),
+    Status: equipmentDisplayStatus(item.status, item.condition_state, item.equipment_categories?.lifespan_years, item.year_acquired),
   }));
   const { data: divisions, error: divisionsError } = await supabase.from('divisions').select('id,code,full_name').order('code');
   const { data: personnel, error: personnelError } = await supabase.from('personnel').select('id,full_name,plantilla_status,division_id,position').order('full_name');
@@ -73,7 +73,7 @@ export default async function EquipmentPage(props: {
     console.error("Equipment query failed", { code: queryError?.code, message: queryError?.message });
     return <div className="rounded-lg border border-alert/30 bg-alert/10 p-6 text-alert">Equipment data is unavailable. Try refreshing.</div>;
   }
-  const cardStats = inventoryCardStats(equipment.map((item) => ({ status: item.status, condition_state: item.condition_state, category: canonicalEquipmentCategory(item.equipment_categories?.name), year_acquired: item.year_acquired })));
+  const cardStats = inventoryCardStats(equipment.map((item) => ({ status: item.status, condition_state: item.condition_state, lifespan_years: item.equipment_categories?.lifespan_years, year_acquired: item.year_acquired })));
     
   return (
     <div className="space-y-8 pb-8">

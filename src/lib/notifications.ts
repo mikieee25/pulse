@@ -20,7 +20,7 @@ export type NotificationEquipment = {
   year_acquired: number | null
   assigned_to: string | null
   assignee_id: string | null
-  equipment_categories: { name: string } | null
+  equipment_categories: { name: string; lifespan_years: number | null } | null
 }
 
 export type NotificationAssignment = {
@@ -35,10 +35,10 @@ export function buildNotifications(
   assignmentHistory: NotificationAssignment[],
   now = new Date(),
 ): NotificationItem[] {
-  const replacementCount = equipment.filter((item) => needsReplacement(item.status, item.condition_state, item.equipment_categories?.name, item.year_acquired, now)).length
+  const replacementCount = equipment.filter((item) => needsReplacement(item.status, item.condition_state, item.equipment_categories?.lifespan_years, item.year_acquired, now)).length
 
   const expiringCount = equipment.filter((item) => {
-    const status = equipmentDisplayStatus(item.status, item.condition_state, item.equipment_categories?.name, item.year_acquired, now)
+    const status = equipmentDisplayStatus(item.status, item.condition_state, item.equipment_categories?.lifespan_years, item.year_acquired, now)
     return status === "Expiring soon"
   }).length
 

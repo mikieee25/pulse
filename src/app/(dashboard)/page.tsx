@@ -7,7 +7,7 @@ import { MetricCard } from "@/components/layout/metric-card"
 import { PageHeader } from "@/components/layout/page-header"
 import { SectionPanel } from "@/components/layout/section-panel"
 
-type EquipmentRow = { status: "Active" | "For Replacement" | "Retired"; condition_state: string; year_acquired: number | null; division: { code: string } | null; equipment_categories: { name: string } | null }
+type EquipmentRow = { status: "Active" | "For Replacement" | "Retired"; condition_state: string; year_acquired: number | null; division: { code: string } | null; equipment_categories: { name: string; lifespan_years: number | null } | null }
 type EquipmentCategory = { name: string }
 
 type ReplacementStats = { totalExpiring: number; totalBroken: number; categories: Record<string, { total: number; replacement: number }> }
@@ -15,7 +15,7 @@ type ReplacementStats = { totalExpiring: number; totalBroken: number; categories
 export default async function Home() {
   const supabase = await createClient()
   const [{ data, error }, { data: categoryData, error: categoryError }] = await Promise.all([
-    supabase.from("equipment").select("status,condition_state,year_acquired,division:divisions(code),equipment_categories(name)"),
+    supabase.from("equipment").select("status,condition_state,year_acquired,division:divisions(code),equipment_categories(name,lifespan_years)"),
     supabase.from("equipment_categories").select("name").order("name"),
   ])
   const queryError = error || categoryError
@@ -25,8 +25,8 @@ export default async function Home() {
   }
   const equipment = (data || []) as unknown as EquipmentRow[]
   const categories = (categoryData || []) as EquipmentCategory[]
-  const statuses = equipment.map((item) => equipmentDisplayStatus(item.status, item.condition_state, item.equipment_categories?.name, item.year_acquired))
-  const cardStats = inventoryCardStats(equipment.map((item) => ({ status: item.status, condition_state: item.condition_state, category: item.equipment_categories?.name, year_acquired: item.year_acquired })))
+  const statuses = equipment.map((item) => equipmentDisplayStatus(item.status, item.condition_state, item.equipment_categories?.lifespan_years, item.year_acquired))
+  const cardStats = inventoryCardStats(equipment.map((item) => ({ status: item.status, condition_state: item.condition_state, lifespan_years: item.equipment_categories?.lifespan_years, year_acquired: item.year_acquired })))
   const divisionCounts: Record<string, number> = {}
   
   // New replacement plan tracking
@@ -38,7 +38,7 @@ export default async function Home() {
     const cat = item.equipment_categories?.name || "Unknown"
     const isBroken = statuses[index] === "Broken"
     const isExpiring = statuses[index] === "Expiring soon"
-    const isReplacement = needsReplacement(item.status, item.condition_state, item.equipment_categories?.name, item.year_acquired)
+    const isReplacement = needsReplacement(item.status, item.condition_state, item.equipment_categories?.lifespan_years, item.year_acquired)
 
     allCategories.add(cat)
     divisionCounts[division] = (divisionCounts[division] || 0) + 1

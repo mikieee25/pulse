@@ -17,7 +17,7 @@ export default async function ReportsPage() {
       division:divisions(code),
       personnel!equipment_assigned_to_fkey(full_name),
       assignee:personnel!equipment_assignee_id_fkey(full_name),
-      equipment_categories(id,name)
+      equipment_categories(id,name,lifespan_years)
     `).order("created_at", { ascending: false }),
     supabase.from("category_unit_costs").select("category_id,year,unit_cost").lte("year", currentYear).order("year", { ascending: false }),
   ])
@@ -30,7 +30,7 @@ export default async function ReportsPage() {
 
   const rateByCategory = new Map<string, number>()
   for (const cost of costs || []) if (!rateByCategory.has(cost.category_id)) rateByCategory.set(cost.category_id, cost.unit_cost)
-  const equipment = ((data || []) as unknown as Array<ReportEquipment & { equipment_categories: { id: string; name: string } | null }>).map((item) => ({ ...item, rate: item.equipment_categories ? rateByCategory.get(item.equipment_categories.id) || 0 : 0 }))
+  const equipment = ((data || []) as unknown as Array<ReportEquipment & { equipment_categories: { id: string; name: string; lifespan_years: number | null } | null }>).map((item) => ({ ...item, rate: item.equipment_categories ? rateByCategory.get(item.equipment_categories.id) || 0 : 0 }))
   
   return <ReportsClient initialData={equipment} />
 }

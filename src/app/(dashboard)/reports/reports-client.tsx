@@ -21,7 +21,7 @@ export type ReportEquipment = {
   division: { code: string } | null
   personnel: { full_name: string } | null
   assignee: { full_name: string } | null
-  equipment_categories: { name: string } | null
+  equipment_categories: { name: string; lifespan_years: number | null } | null
 }
 
 export function ReportsClient({ initialData }: { initialData: ReportEquipment[] }) {
@@ -40,7 +40,7 @@ export function ReportsClient({ initialData }: { initialData: ReportEquipment[] 
     const custodian = item.personnel?.full_name || item.assignee?.full_name || ""
     const isUnassigned = !item.personnel && !item.assignee
     const serviceLife = item.year_acquired ? currentYear - item.year_acquired : 0
-    const displayStatus = equipmentDisplayStatus(item.status as StoredEquipmentStatus, item.condition_state, catName, item.year_acquired)
+    const displayStatus = equipmentDisplayStatus(item.status as StoredEquipmentStatus, item.condition_state, item.equipment_categories?.lifespan_years, item.year_acquired)
     return { ...item, catName, custodian, isUnassigned, serviceLife, displayStatus }
   }), [initialData, currentYear])
 

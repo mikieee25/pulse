@@ -57,21 +57,20 @@ export function canonicalEquipmentCategory(category: string | null | undefined) 
 export type InventoryCardRecord = {
   status: StoredEquipmentStatus
   condition_state: string | null | undefined
-  category: string | null | undefined
+  lifespan_years: number | null | undefined
   year_acquired: number | null | undefined
 }
 
 export function lifecycleStatus(
   status: StoredEquipmentStatus,
-  category: string | null | undefined,
+  lifespanYears: number | null | undefined,
   yearAcquired: number | null | undefined,
   today = new Date(),
 ): LifecycleStatus {
   if (status === "Retired") return status
-  const lifespan = category ? 3 : null
-  if (!lifespan || !yearAcquired) return status
+  if (!lifespanYears || !yearAcquired) return status
 
-  const expiry = new Date(yearAcquired + lifespan, 0, 1)
+  const expiry = new Date(yearAcquired + lifespanYears, 0, 1)
   const oneYearFromNow = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate())
   if (expiry <= today) return "For Replacement"
   if (expiry <= oneYearFromNow) return "Expiring soon"
@@ -81,29 +80,29 @@ export function lifecycleStatus(
 export function equipmentDisplayStatus(
   status: StoredEquipmentStatus,
   condition: string | null | undefined,
-  category: string | null | undefined,
+  lifespanYears: number | null | undefined,
   yearAcquired: number | null | undefined,
   today = new Date(),
 ): EquipmentDisplayStatus {
   if (status === "Retired") return status
   if (condition === "Broken") return "Broken"
   if (condition === "For Replacement") return "For Replacement"
-  return lifecycleStatus(status, category, yearAcquired, today)
+  return lifecycleStatus(status, lifespanYears, yearAcquired, today)
 }
 
 export function needsReplacement(
   status: StoredEquipmentStatus,
   condition: string | null | undefined,
-  category: string | null | undefined,
+  lifespanYears: number | null | undefined,
   yearAcquired: number | null | undefined,
   today = new Date(),
 ) {
-  const displayStatus = equipmentDisplayStatus(status, condition, category, yearAcquired, today)
+  const displayStatus = equipmentDisplayStatus(status, condition, lifespanYears, yearAcquired, today)
   return displayStatus === "For Replacement" || displayStatus === "Broken"
 }
 
 export function inventoryCardStats(records: InventoryCardRecord[], today = new Date()) {
-  const statuses = records.map((record) => equipmentDisplayStatus(record.status, record.condition_state, record.category, record.year_acquired, today))
+  const statuses = records.map((record) => equipmentDisplayStatus(record.status, record.condition_state, record.lifespan_years, record.year_acquired, today))
   const broken = statuses.filter((status) => status === "Broken").length
   const replacement = statuses.filter((status) => status === "For Replacement" || status === "Broken").length
   const expiring = statuses.filter((status) => status === "Expiring soon").length
@@ -112,12 +111,12 @@ export function inventoryCardStats(records: InventoryCardRecord[], today = new D
 }
 
 export function monthsUntilExpiry(
-  category: string | null | undefined,
+  lifespanYears: number | null | undefined,
   yearAcquired: number | null | undefined,
   today = new Date(),
 ) {
-  if (!yearAcquired || !category) return null
-  const expiry = new Date(yearAcquired + 3, 0, 1)
+  if (!yearAcquired || !lifespanYears) return null
+  const expiry = new Date(yearAcquired + lifespanYears, 0, 1)
   return Math.ceil((expiry.getTime() - today.getTime()) / (30.44 * 24 * 60 * 60 * 1000))
 }
 

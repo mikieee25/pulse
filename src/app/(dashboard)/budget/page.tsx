@@ -93,7 +93,7 @@ export default async function BudgetPage({
     const replacement = needsReplacement(
       item.status,
       item.condition_state,
-      categoryName,
+      item.equipment_categories?.lifespan_years,
       item.year_acquired,
       new Date(year, 0, 1)
     );

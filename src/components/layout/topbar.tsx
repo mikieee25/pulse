@@ -11,7 +11,7 @@ import { createClient } from "@/utils/supabase/server";
 export async function Topbar() {
   const [profile, supabase] = await Promise.all([getCurrentProfile(), createClient()]);
   const [{ data: equipmentData, error: equipmentError }, { data: historyData, error: historyError }] = await Promise.all([
-    supabase.from("equipment").select("id,status,condition_state,year_acquired,assigned_to,assignee_id,equipment_categories(name)"),
+    supabase.from("equipment").select("id,status,condition_state,year_acquired,assigned_to,assignee_id,equipment_categories(name,lifespan_years)"),
     supabase.from("assignment_history").select("id,assigned_at,note,personnel(full_name)").order("assigned_at", { ascending: false }).limit(5),
   ]);
   const notificationUnavailable = Boolean(equipmentError || historyError);

@@ -24,7 +24,7 @@ export default async function DivisionsPage() {
       code,
       full_name,
        personnel (count),
-       equipment (id, status, condition_state, year_acquired, equipment_categories(name))
+       equipment (id, status, condition_state, year_acquired, equipment_categories(name, lifespan_years))
     `)
     .order('code')
 
@@ -38,7 +38,7 @@ export default async function DivisionsPage() {
     code: string
     full_name: string
     personnel?: Array<{ count: number }>
-    equipment?: Array<{ status: 'Active' | 'For Replacement' | 'Retired'; condition_state: string; year_acquired: number | null; equipment_categories?: { name: string } | null }>
+    equipment?: Array<{ status: 'Active' | 'For Replacement' | 'Retired'; condition_state: string; year_acquired: number | null; equipment_categories?: { name: string; lifespan_years: number | null } | null }>
   }
   const divisions = ((divisionsData || []) as unknown as DivisionRow[]).map((d) => ({
     id: d.id,
@@ -47,7 +47,7 @@ export default async function DivisionsPage() {
      _count: {
        personnel: d.personnel?.[0]?.count || 0,
        equipment: d.equipment?.length || 0,
-       expired: d.equipment?.filter((item) => needsReplacement(item.status, item.condition_state, item.equipment_categories?.name, item.year_acquired)).length || 0,
+       expired: d.equipment?.filter((item) => needsReplacement(item.status, item.condition_state, item.equipment_categories?.lifespan_years, item.year_acquired)).length || 0,
      }
   })) as DivisionData[]
   const totalPersonnel = divisions.reduce((total, division) => total + (division._count?.personnel || 0), 0)

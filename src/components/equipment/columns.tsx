@@ -16,7 +16,7 @@ export type EquipmentData = {
   division: { code: string } | null
   personnel: { full_name: string } | null
   assignee: { full_name: string } | null
-  equipment_categories: { name: string } | null
+  equipment_categories: { name: string; lifespan_years: number | null } | null
 }
 
 function statusBadge(status: EquipmentDisplayStatus) {
@@ -32,6 +32,6 @@ export const columns: ColumnDef<EquipmentData>[] = [
   { accessorKey: "personnel.full_name", id: "custodian", header: "Custodian", cell: ({ row }) => row.original.personnel?.full_name || <span className="text-slate italic">Unassigned</span> },
   { accessorKey: "assignee.full_name", id: "assignee", header: "Assignee", cell: ({ row }) => row.original.assignee?.full_name || <span className="text-slate italic">Unassigned</span> },
   { accessorKey: "division.code", id: "division", header: "Division", cell: ({ row }) => <Badge variant="secondary" className="bg-canvas-deep border-line text-slate">{row.original.division?.code || "N/A"}</Badge> },
-  { id: "status", header: "Status", accessorFn: (row) => equipmentDisplayStatus(row.status, row.condition_state, row.equipment_categories?.name, row.year_acquired), cell: ({ row }) => statusBadge(row.getValue("status") as EquipmentDisplayStatus) },
+  { id: "status", header: "Status", accessorFn: (row) => equipmentDisplayStatus(row.status, row.condition_state, row.equipment_categories?.lifespan_years, row.year_acquired), cell: ({ row }) => statusBadge(row.getValue("status") as EquipmentDisplayStatus) },
   { id: "actions", cell: ({ row }) => <Link href={`/equipment/${row.original.id}`} className="text-sm font-medium text-pulse hover:underline">View</Link> },
 ]

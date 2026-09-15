@@ -8,9 +8,9 @@ const topbar = await readFile(new URL("../src/components/layout/topbar.tsx", imp
 
 test("live notifications cover lifecycle and assignment signals", () => {
   const equipment = [
-    { id: "1", status: "Active", condition_state: "Good", year_acquired: 2020, assigned_to: "person-1", assignee_id: null, equipment_categories: { name: "Laptop" } },
-    { id: "2", status: "Active", condition_state: "Good", year_acquired: 2024, assigned_to: "person-2", assignee_id: null, equipment_categories: { name: "Tablet" } },
-    { id: "3", status: "Active", condition_state: "Good", year_acquired: 2026, assigned_to: null, assignee_id: null, equipment_categories: { name: "Camera" } },
+    { id: "1", status: "Active", condition_state: "Good", year_acquired: 2020, assigned_to: "person-1", assignee_id: null, equipment_categories: { name: "Laptop", lifespan_years: 3 } },
+    { id: "2", status: "Active", condition_state: "Good", year_acquired: 2024, assigned_to: "person-2", assignee_id: null, equipment_categories: { name: "Tablet", lifespan_years: 3 } },
+    { id: "3", status: "Active", condition_state: "Good", year_acquired: 2026, assigned_to: null, assignee_id: null, equipment_categories: { name: "Camera", lifespan_years: null } },
   ]
   const notifications = buildNotifications(equipment, [], new Date("2026-09-11"))
 
