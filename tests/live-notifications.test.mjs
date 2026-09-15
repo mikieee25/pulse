@@ -15,6 +15,13 @@ test("live notifications cover lifecycle and assignment signals", () => {
   const notifications = buildNotifications(equipment, [], new Date("2026-09-11"))
 
   assert.deepEqual(notifications.map((item) => item.kind), ["replacement", "expiring", "unassigned"])
+  const replacementEquipment = { id: "4", status: "Active", condition_state: "Good", year_acquired: 2019, assigned_to: "person-3", assignee_id: null, equipment_categories: { name: "Laptop", lifespan_years: 3 } }
+  const first = buildNotifications(equipment, [], new Date("2026-09-11"))
+  const second = buildNotifications([...equipment, replacementEquipment], [], new Date("2026-09-11"))
+  assert.equal(first[0].id, buildNotifications(equipment, [], new Date("2026-09-11"))[0].id)
+  assert.notEqual(first[0].id, second[0].id)
+  assert.equal(first.find((item) => item.kind === "replacement")?.href, "/equipment?status=For+Replacement")
+  assert.equal(first.find((item) => item.kind === "unassigned")?.href, "/equipment?assignment=unassigned")
   assert.match(bell, /Mark all as read/)
   assert.match(bell, /localStorage/)
   assert.match(topbar, /NotificationBell/)
