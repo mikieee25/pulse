@@ -13,15 +13,17 @@ import { PageHeader } from "@/components/layout/page-header";
 import { SectionPanel } from "@/components/layout/section-panel";
 import { canonicalEquipmentCategory, equipmentDisplayStatus, inventoryCardStats } from "@/lib/pulse";
 import { getCurrentProfile } from "@/lib/auth";
+import { parseEquipmentFilters } from "@/lib/equipment-filters";
 
 export default async function EquipmentPage(props: {
-  searchParams: Promise<{ category?: string }>;
+  searchParams: Promise<{ category?: string; q?: string; division?: string; brand?: string; status?: string; assignment?: string; page?: string }>;
 }) {
   const searchParams = await props.searchParams;
   const supabase = await createClient();
   const profile = await getCurrentProfile();
   const canManage = profile?.role === "Admin";
   const category = canonicalEquipmentCategory(searchParams.category || 'Camera');
+  const filters = parseEquipmentFilters(searchParams);
   
   // Fetch categories for tabs
   const { data: categories, error: categoriesError } = await supabase
@@ -121,7 +123,7 @@ export default async function EquipmentPage(props: {
       </SectionPanel>
 
       <SectionPanel title={`${category} inventory`} description="Search, filter, and manage registered assets">
-        <div className="p-5"><EquipmentTable columns={columns} data={equipment} /></div>
+        <div className="p-5"><EquipmentTable columns={columns} data={equipment} category={category} initialFilters={filters} /></div>
       </SectionPanel>
     </div>
   );

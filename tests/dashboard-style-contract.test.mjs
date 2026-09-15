@@ -85,6 +85,17 @@ test("equipment list exposes the assignee beside the custodian", async () => {
   assert.match(columns, /header: "Assignee"/);
 });
 
+test("equipment filters persist in the URL and search across asset fields", async () => {
+  const page = await source("src/app/(dashboard)/equipment/page.tsx");
+  const table = await source("src/components/equipment/equipment-table.tsx");
+
+  assert.match(page, /parseEquipmentFilters/);
+  assert.match(table, /Search serial, model, brand, custodian/);
+  assert.match(table, /Clear filters/);
+  assert.match(table, /window\.history\.replaceState/);
+  assert.match(table, /Showing .* matching/);
+});
+
 test("personnel overview includes a data-driven outsourced staff card", async () => {
   const page = await source("src/app/(dashboard)/personnel/page.tsx");
 
