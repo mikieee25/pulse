@@ -11,7 +11,7 @@ import { Activity, CircleAlert, MonitorSmartphone, PackageCheck } from "lucide-r
 import { MetricCard } from "@/components/layout/metric-card";
 import { PageHeader } from "@/components/layout/page-header";
 import { SectionPanel } from "@/components/layout/section-panel";
-import { equipmentDisplayStatus, inventoryCardStats } from "@/lib/pulse";
+import { canonicalEquipmentCategory, equipmentDisplayStatus, inventoryCardStats } from "@/lib/pulse";
 import { getCurrentProfile } from "@/lib/auth";
 
 export default async function EquipmentPage(props: {
@@ -21,7 +21,7 @@ export default async function EquipmentPage(props: {
   const supabase = await createClient();
   const profile = await getCurrentProfile();
   const canManage = profile?.role === "Admin";
-  const category = searchParams.category || 'Camera';
+  const category = canonicalEquipmentCategory(searchParams.category || 'Camera');
   
   // Fetch categories for tabs
   const { data: categories, error: categoriesError } = await supabase
@@ -51,8 +51,12 @@ export default async function EquipmentPage(props: {
     
   // Need to cast because Supabase types might be inferred loosely here without typegen
   const equipment = (equipmentData || []) as unknown as EquipmentData[];
+  const visibleCategories = Array.from(new Map((categories || []).map((item) => {
+    const name = canonicalEquipmentCategory(item.name)
+    return [name, { ...item, name }]
+  })).values()).sort((a, b) => a.name.localeCompare(b.name));
   const exportRows = equipment.map((item) => ({
-    Category: item.equipment_categories?.name || category,
+    Category: canonicalEquipmentCategory(item.equipment_categories?.name || category),
     Brand: item.brand || "",
     Model: item.model || "",
     "Serial Number": item.serial_number || "",
@@ -60,16 +64,16 @@ export default async function EquipmentPage(props: {
     Division: item.division?.code || "",
     Custodian: item.personnel?.full_name || "Unassigned",
     Assignee: item.assignee?.full_name || "Unassigned",
-    Status: equipmentDisplayStatus(item.status, item.condition_state, item.equipment_categories?.name, item.year_acquired),
+    Status: equipmentDisplayStatus(item.status, item.condition_state, canonicalEquipmentCategory(item.equipment_categories?.name), item.year_acquired),
   }));
   const { data: divisions, error: divisionsError } = await supabase.from('divisions').select('id,code,full_name').order('code');
-  const { data: personnel, error: personnelError } = await supabase.from('personnel').select('id,full_name,plantilla_status,division_id').eq('plantilla_status', 'Regular').order('full_name');
+  const { data: personnel, error: personnelError } = await supabase.from('personnel').select('id,full_name,plantilla_status,division_id,position').order('full_name');
   if (categoriesError || error || divisionsError || personnelError) {
     const queryError = categoriesError || error || divisionsError || personnelError;
     console.error("Equipment query failed", { code: queryError?.code, message: queryError?.message });
     return <div className="rounded-lg border border-alert/30 bg-alert/10 p-6 text-alert">Equipment data is unavailable. Try refreshing.</div>;
   }
-  const cardStats = inventoryCardStats(equipment.map((item) => ({ status: item.status, condition_state: item.condition_state, category: item.equipment_categories?.name, year_acquired: item.year_acquired })));
+  const cardStats = inventoryCardStats(equipment.map((item) => ({ status: item.status, condition_state: item.condition_state, category: canonicalEquipmentCategory(item.equipment_categories?.name), year_acquired: item.year_acquired })));
     
   return (
     <div className="space-y-8 pb-8">
@@ -79,7 +83,7 @@ export default async function EquipmentPage(props: {
         description="Manage ICT equipment across the bureau."
         actions={<>
           <ExportButton data={exportRows} category={category} />
-          {canManage && <AddEquipmentDialog category={category} categories={categories?.map((cat) => cat.name) || []} divisions={divisions || []} personnel={personnel || []}>
+          {canManage && <AddEquipmentDialog category={category} categories={visibleCategories.map((cat) => cat.name)} divisions={divisions || []} personnel={personnel || []}>
             <Button>
               + Add {category}
             </Button>
@@ -96,7 +100,7 @@ export default async function EquipmentPage(props: {
 
       <SectionPanel title="Equipment categories" description="Choose a category to review its inventory">
         <nav className="flex gap-2 overflow-x-auto p-5" aria-label="Equipment categories">
-          {categories?.map((cat) => (
+          {visibleCategories.map((cat) => (
             <a
               key={cat.id}
               href={`/equipment?category=${cat.name}`}

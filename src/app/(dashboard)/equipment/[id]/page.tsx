@@ -9,7 +9,7 @@ import { PageHeader } from "@/components/layout/page-header"
 import { SectionPanel } from "@/components/layout/section-panel"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { equipmentDisplayStatus } from "@/lib/pulse"
+import { canonicalEquipmentCategory, equipmentDisplayStatus } from "@/lib/pulse"
 import type { EquipmentInput } from "@/app/actions/equipment"
 import { getCurrentProfile } from "@/lib/auth"
 
@@ -40,9 +40,10 @@ export default async function EquipmentDetailPage({ params }: { params: Promise<
     return <div className="rounded-lg border border-alert/30 bg-alert/10 p-6 text-alert">Equipment assignment data is unavailable. Try refreshing.</div>;
   }
   const history = (historyData || []) as unknown as HistoryEntry[]
-  const categoryName = equipment.equipment_categories?.name || "Laptop"
+  const categoryName = canonicalEquipmentCategory(equipment.equipment_categories?.name || "Laptop")
   const status = equipmentDisplayStatus(equipment.status, equipment.condition_state, categoryName, equipment.year_acquired)
   const division = equipment.division ? [{ id: equipment.division_id, code: equipment.division.code, full_name: equipment.division.full_name }] : []
+  const categoryOptions = Array.from(new Set((categories || []).map((category) => canonicalEquipmentCategory(category.name)))).filter(Boolean)
 
   return (
     <div className="space-y-8 pb-8">
@@ -54,7 +55,7 @@ export default async function EquipmentDetailPage({ params }: { params: Promise<
           <Link href="/equipment" className="inline-flex items-center justify-center gap-2 rounded-xl border border-line bg-canvas px-4 py-2.5 text-sm font-semibold text-paper transition hover:border-pulse/40 hover:text-pulse focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pulse/40">
             <ArrowLeft className="size-4" aria-hidden="true" />Back to equipment
           </Link>
-          {canManage && <AddEquipmentDialog category={categoryName} categories={categories?.map((category) => category.name) || [categoryName]} divisions={division} personnel={personnel || []} initial={{ id: equipment.id, categoryName, brand: equipment.brand, model: equipment.model, year_acquired: equipment.year_acquired, serial_number: equipment.serial_number, procurement_method: equipment.procurement_method, division_id: equipment.division_id, assigned_to: equipment.assigned_to, assignee_id: equipment.assignee_id, condition_state: equipment.condition_state as EquipmentInput["condition_state"], remarks: equipment.remarks }}>
+          {canManage && <AddEquipmentDialog category={categoryName} categories={categoryOptions.length ? categoryOptions : [categoryName]} divisions={division} personnel={personnel || []} initial={{ id: equipment.id, categoryName, brand: equipment.brand, model: equipment.model, year_acquired: equipment.year_acquired, serial_number: equipment.serial_number, procurement_method: equipment.procurement_method, division_id: equipment.division_id, assigned_to: equipment.assigned_to, assignee_id: equipment.assignee_id, condition_state: equipment.condition_state as EquipmentInput["condition_state"], remarks: equipment.remarks }}>
             <Button>Edit details</Button>
           </AddEquipmentDialog>}
         </>}

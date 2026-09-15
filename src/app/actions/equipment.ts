@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { requireProfile } from "@/lib/auth"
+import { canonicalEquipmentCategory } from "@/lib/pulse"
 import { createClient } from "@/utils/supabase/server"
 
 const equipmentInput = z.object({
@@ -42,7 +43,7 @@ async function validateAssignment(input: EquipmentInput) {
 
 async function categoryId(categoryName: string) {
   const supabase = await createClient()
-  const { data } = await supabase.from("equipment_categories").select("id").eq("name", categoryName).single()
+  const { data } = await supabase.from("equipment_categories").select("id").eq("name", canonicalEquipmentCategory(categoryName)).single()
   return data?.id || null
 }
 

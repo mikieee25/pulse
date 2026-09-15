@@ -23,6 +23,14 @@ export type LifecycleStatus = StoredEquipmentStatus | "Expiring soon"
 export type EquipmentCondition = "Good" | "For Replacement" | "Broken"
 export type EquipmentDisplayStatus = LifecycleStatus | "Broken"
 
+export function canonicalEquipmentCategory(category: string | null | undefined) {
+  const value = category?.trim() || ""
+  const normalized = value.toLowerCase()
+  if (normalized.includes("monitor")) return "Monitors"
+  if (normalized.includes("headphone") || normalized.includes("earbud")) return "Headphones"
+  return value
+}
+
 export type InventoryCardRecord = {
   status: StoredEquipmentStatus
   condition_state: string | null | undefined

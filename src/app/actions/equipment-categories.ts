@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 import { z } from "zod"
 import { requireProfile } from "@/lib/auth"
 import { createClient } from "@/utils/supabase/server"
+import { canonicalEquipmentCategory } from "@/lib/pulse"
 
 const categoryInput = z.object({
   name: z.string().trim().min(1, "Category name is required.").max(50, "Category name is too long."),
@@ -19,7 +20,8 @@ export async function addEquipmentCategory(input: EquipmentCategoryInput) {
   if (!parsed.success) return { error: parsed.error.issues[0]?.message || "Enter a valid category name." }
 
   const supabase = await createClient()
-  const { error } = await supabase.from("equipment_categories").insert({ name: parsed.data.name })
+  const name = canonicalEquipmentCategory(parsed.data.name)
+  const { error } = await supabase.from("equipment_categories").insert({ name })
   if (error) {
     if (error.code === "23505") return { error: "That equipment category already exists." }
     return { error: error.message }

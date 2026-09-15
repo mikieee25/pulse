@@ -1,6 +1,7 @@
 import assert from "node:assert/strict"
 import { access, readFile } from "node:fs/promises"
 import test from "node:test"
+import { canonicalEquipmentCategory } from "../src/lib/pulse.ts"
 
 const budgetSource = await readFile(new URL("../src/app/(dashboard)/budget/page.tsx", import.meta.url), "utf8")
 const dashboardSource = await readFile(new URL("../src/app/(dashboard)/page.tsx", import.meta.url), "utf8")
@@ -8,7 +9,9 @@ const layoutSource = await readFile(new URL("../src/app/layout.tsx", import.meta
 const proxySource = await readFile(new URL("../src/proxy.ts", import.meta.url), "utf8")
 const equipmentPageSource = await readFile(new URL("../src/app/(dashboard)/equipment/page.tsx", import.meta.url), "utf8")
 const equipmentDialogSource = await readFile(new URL("../src/components/equipment/add-equipment-dialog.tsx", import.meta.url), "utf8")
+const equipmentActionsSource = await readFile(new URL("../src/components/equipment/equipment-actions.tsx", import.meta.url), "utf8")
 const categoryActionSource = await readFile(new URL("../src/app/actions/equipment-categories.ts", import.meta.url), "utf8")
+const categoryMigrationSource = await readFile(new URL("../supabase/migrations/20260915000000_normalize_equipment_categories.sql", import.meta.url), "utf8")
 
 test("budget includes every database category, including manual replacement categories", () => {
   assert.doesNotMatch(budgetSource, /\.filter\(\s*\(category\) => category\.lifespan_years !== null\s*\)/)
@@ -42,7 +45,23 @@ test("category creation is server-authorized and revalidates dependent views", (
 })
 
 test("new categories are available in the equipment form", () => {
-  assert.match(equipmentPageSource, /categories=\{categories\?\.map\(\(cat\) => cat\.name\)/)
+  assert.match(equipmentPageSource, /categories=\{visibleCategories\.map\(\(cat\) => cat\.name\)/)
   assert.match(equipmentDialogSource, /categories\?: string\[\]/)
   assert.match(equipmentDialogSource, /categoryOptions\.map\(\(value\)/)
+})
+
+test("assignee options are not limited to Regular personnel", () => {
+  assert.doesNotMatch(equipmentPageSource, /\.eq\(['"]plantilla_status['"], ['"]Regular['"]\)/)
+  assert.match(equipmentDialogSource, /\["PSS", "PES"\]/)
+  assert.match(equipmentActionsSource, /\["PSS", "PES"\]/)
+})
+
+test("equipment category aliases share one reporting category", () => {
+  assert.equal(canonicalEquipmentCategory("Portable Monitor"), "Monitors")
+  assert.equal(canonicalEquipmentCategory('MONITOR 27"'), "Monitors")
+  assert.equal(canonicalEquipmentCategory("Earbuds"), "Headphones")
+  assert.equal(canonicalEquipmentCategory("NOISE CANCELLING OVER-THE-HEAD HEADPHONES"), "Headphones")
+  assert.equal(canonicalEquipmentCategory("GIMBAL"), "GIMBAL")
+  assert.match(categoryMigrationSource, /UPDATE equipment/)
+  assert.match(categoryMigrationSource, /DELETE FROM equipment_categories/)
 })

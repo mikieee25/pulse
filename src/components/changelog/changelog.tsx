@@ -27,6 +27,15 @@ const kindStyles: Record<ChangeKind, { label: string; icon: LucideIcon; color: s
 
 const changelogGroups: ChangelogGroup[] = [
   {
+    date: "September 15, 2026",
+    release: "Inventory assignment and category consistency",
+    changes: [
+      { kind: "fix", title: "Restored PSS/PES assignee options", description: "The equipment form now loads all personnel records before applying the PSS/PES assignee rule, so eligible Outsourced, COS, and For Transfer staff appear in the selector." },
+      { kind: "enhancement", title: "Unified monitor and headphone categories", description: "Portable Monitor and Monitor records now share Monitors, while Headphones and Earbuds share Headphones across Equipment, Budget, Summary, and Reports." },
+      { kind: "feature", title: "Imported the latest EUMB ICT inventory", description: "Added 451 equipment records from list.json, preserved duplicate serial rows for review, matched custodians to existing personnel, and left duplicate Custodian/Assignee values blank as intended." },
+    ],
+  },
+  {
     date: "September 14, 2026",
     release: "DOE visual system",
     changes: [
@@ -96,13 +105,13 @@ export function Changelog() {
         eyebrow={<span className="inline-flex items-center gap-2"><History className="size-3.5" aria-hidden="true" />Product history</span>}
         title="PULSE Changelog"
         description="A plain-language record of the features, fixes, and operational improvements delivered to the Personnel & Unit Lifecycle System for Equipment."
-        actions={<span className="rounded-full border border-pulse/20 bg-pulse/10 px-3 py-2 text-xs font-medium text-pulse">Updated September 14, 2026</span>}
+        actions={<span className="rounded-full border border-pulse/20 bg-pulse/10 px-3 py-2 text-xs font-medium text-pulse">Updated September 15, 2026</span>}
       />
 
       <section aria-labelledby="changelog-overview-title" className="grid gap-4 sm:grid-cols-3">
         <h2 id="changelog-overview-title" className="sr-only">Changelog overview</h2>
         <MetricCard label="Tracked releases" value={changelogGroups.length} detail="From foundation to production" icon={History} />
-        <MetricCard label="Current inventory" value="436" detail="Equipment records covered" icon={Database} tone="pulse" />
+        <MetricCard label="Current inventory" value="887" detail="Equipment records covered" icon={Database} tone="pulse" />
         <MetricCard label="Release areas" value="4" detail="Features, fixes, security, polish" icon={Palette} tone="warning" />
       </section>
 
