@@ -4,15 +4,20 @@ import test from "node:test"
 
 const { buildImportPlan, normalizeName } = await import("../scripts/import-list-json.ts")
 const source = JSON.parse(await readFile(new URL("../list.json", import.meta.url), "utf8"))
+const importerSource = await readFile(new URL("../scripts/import-list-json.ts", import.meta.url), "utf8")
 
 test("list import normalizes source names and categories without losing rows", () => {
   const plan = buildImportPlan(source, [], [])
 
   assert.equal(plan.rows.length, 451)
-      assert.equal(plan.categories.length, 24)
+  assert.equal(plan.categories.length, 16)
   assert.equal(plan.sameAsCustodianAssignees, 451)
   assert.equal(plan.duplicateSerialGroups.length, 8)
   assert.equal(normalizeName("José A. Cruz"), "joseacruz")
+})
+
+test("new categories created by list import use the shared three-year lifespan", () => {
+  assert.match(importerSource, /lifespan_years:\s*3/)
 })
 
 test("list import maps the two OD source division labels to OD", () => {

@@ -32,6 +32,7 @@ const changelogGroups: ChangelogGroup[] = [
     changes: [
       { kind: "fix", title: "Restored PSS/PES assignee options", description: "The equipment form now loads all personnel records before applying the PSS/PES assignee rule, so eligible Outsourced, COS, and For Transfer staff appear in the selector." },
       { kind: "enhancement", title: "Unified monitor and headphone categories", description: "Portable Monitor and Monitor records now share Monitors, while Headphones and Earbuds share Headphones across Equipment, Budget, Summary, and Reports." },
+      { kind: "enhancement", title: "Simplified equipment categories and lifecycle rules", description: "Long labels now roll up into concise groups such as Printers & Scanners, Microphones, USB Hubs & Splitters, and Keyboards & Mice. Every category now follows the shared three-year lifespan rule." },
       { kind: "feature", title: "Imported the latest EUMB ICT inventory", description: "Added 451 equipment records from list.json, preserved duplicate serial rows for review, matched custodians to existing personnel, and left duplicate Custodian/Assignee values blank as intended." },
     ],
   },

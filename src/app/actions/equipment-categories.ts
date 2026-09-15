@@ -21,7 +21,7 @@ export async function addEquipmentCategory(input: EquipmentCategoryInput) {
 
   const supabase = await createClient()
   const name = canonicalEquipmentCategory(parsed.data.name)
-  const { error } = await supabase.from("equipment_categories").insert({ name })
+  const { error } = await supabase.from("equipment_categories").insert({ name, lifespan_years: 3 })
   if (error) {
     if (error.code === "23505") return { error: "That equipment category already exists." }
     return { error: error.message }

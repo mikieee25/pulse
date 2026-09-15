@@ -185,9 +185,9 @@ async function run() {
   if (!plan.importableRows.length) { console.log("No new rows to import."); return }
 
   const existingCategoryNames = new Set(current.categories.map((category) => category.name))
-  const newCategories = plan.categories.filter((name) => !existingCategoryNames.has(name)).map((name) => ({ name }))
+  const newCategories = plan.categories.filter((name) => !existingCategoryNames.has(name))
   if (newCategories.length) {
-    const { error } = await supabase.from("equipment_categories").upsert(newCategories, { onConflict: "name", ignoreDuplicates: true })
+    const { error } = await supabase.from("equipment_categories").upsert(newCategories.map((name) => ({ name, lifespan_years: 3 })), { onConflict: "name", ignoreDuplicates: true })
     if (error) throw new Error(`Could not create categories: ${error.message}`)
   }
   const { data: categoryRows, error: categoryError } = await supabase.from("equipment_categories").select("id,name").in("name", plan.categories)

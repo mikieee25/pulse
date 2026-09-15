@@ -26,8 +26,31 @@ export type EquipmentDisplayStatus = LifecycleStatus | "Broken"
 export function canonicalEquipmentCategory(category: string | null | undefined) {
   const value = category?.trim() || ""
   const normalized = value.toLowerCase()
+
   if (normalized.includes("monitor")) return "Monitors"
   if (normalized.includes("headphone") || normalized.includes("earbud")) return "Headphones"
+  if (normalized.includes("printer") || normalized.includes("scanner")) return "Printers & Scanners"
+  if (normalized.includes("speaker")) return "Speakers"
+  if (normalized.includes("mic") || normalized.includes("microphone")) return "Microphones"
+  if (normalized.includes("hub") || normalized.includes("splitter")) return "USB Hubs & Splitters"
+  if (normalized.includes("keyboard") || normalized.includes("mouse")) return "Keyboards & Mice"
+  if (normalized.includes("tablet pen")) return "Tablet Accessories"
+  if (normalized.includes("ssd")) return "Storage"
+  if (normalized.includes("powerbank")) return "Powerbanks"
+  if (normalized.includes("hotspot")) return "Wi-Fi Hotspots"
+  if (normalized.includes("teleprompter") || normalized.includes("presentation") || normalized.includes("display adapter")) {
+    return "Presentation Equipment"
+  }
+  if (normalized.includes("voice recorder")) return "Voice Recorders"
+  if (normalized.includes("telephone")) return "Telephones"
+  if (normalized.includes("gimbal")) return "GIMBAL"
+  if (normalized.includes("radio")) return "Radio Set"
+  if (normalized.includes("laptop")) return "Laptop"
+  if (normalized.includes("desktop")) return "Desktop"
+  if (normalized === "tablet") return "Tablet"
+  if (normalized.includes("drone")) return "Drone"
+  if (normalized.includes("camera")) return "Camera"
+
   return value
 }
 
