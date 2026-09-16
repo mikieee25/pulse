@@ -1,11 +1,13 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
+import { revalidatePath, revalidateTag } from "next/cache"
 import { z } from "zod"
 import { requireProfile } from "@/lib/auth"
 import { buildTemporaryUserAttributes, validateTemporaryPassword } from "@/lib/temporary-password"
 import { createAdminClient } from "@/utils/supabase/admin"
 import { createClient } from "@/utils/supabase/server"
+import { recordActivity } from "@/lib/admin-activity"
+import { PULSE_CACHE_TAGS } from "@/lib/cache-tags"
 
 const userInput = z.object({ email: z.email(), full_name: z.string().trim().min(1), role: z.enum(["Admin", "Viewer"]), division_scope: z.string().uuid().nullable() })
 const newUserInput = userInput.extend({ temporary_password: z.string() })
@@ -28,6 +30,7 @@ export async function createUser(input: z.infer<typeof newUserInput>) {
     const { error: rollbackError } = await admin.auth.admin.deleteUser(data.user.id)
     return { error: rollbackError ? `${profileError.message} Cleanup also failed; remove the Auth user manually.` : profileError.message }
   }
+  await recordActivity({ action: "created", entityType: "user", entityId: data.user.id, entityLabel: profile.full_name, divisionId: profile.division_scope })
   revalidatePath("/admin/users")
   return { success: true }
 }
@@ -40,7 +43,7 @@ export async function updateUser(id: string, input: Pick<z.infer<typeof userInpu
   if (!parsed.success) return { error: "Invalid user settings." }
   const supabase = await createClient()
   if (id === access.profile.id && parsed.data.role !== "Admin") return { error: "You cannot remove your own administrator access." }
-  const { data: target, error: targetError } = await supabase.from("app_users").select("id,role").eq("id", id).single()
+  const { data: target, error: targetError } = await supabase.from("app_users").select("id,role,full_name,email,division_scope").eq("id", id).single()
   if (targetError || !target) return { error: "User not found." }
   if (target.role === "Admin" && parsed.data.role !== "Admin") {
     const { count } = await supabase.from("app_users").select("id", { count: "exact", head: true }).eq("role", "Admin")
@@ -48,6 +51,7 @@ export async function updateUser(id: string, input: Pick<z.infer<typeof userInpu
   }
   const { error } = await supabase.from("app_users").update(parsed.data).eq("id", id)
   if (error) return { error: error.message }
+  await recordActivity({ action: "updated", entityType: "user", entityId: id, entityLabel: target.full_name, divisionId: parsed.data.division_scope })
   revalidatePath("/admin/users")
   return { success: true }
 }
@@ -73,6 +77,8 @@ export async function deleteUser(id: string) {
     await admin.from("app_users").insert(target)
     return { error: error.message }
   }
+
+  await recordActivity({ action: "deleted", entityType: "user", entityId: id, entityLabel: target.full_name, divisionId: target.division_scope })
   
   revalidatePath("/admin/users")
   return { success: true }
@@ -90,6 +96,8 @@ export async function saveCategoryCost(_previousState: CategoryCostState, formDa
   const supabase = await createClient()
   const { error } = await supabase.from("category_unit_costs").upsert({ category_id: categoryId.data, year: year.data, unit_cost: unitCost.data }, { onConflict: "category_id,year" })
   if (error) return { error: error.message, success: false }
+  await recordActivity({ action: "updated", entityType: "category_unit_cost", entityId: categoryId.data, entityLabel: `Category cost for ${year.data}` })
   revalidatePath("/budget")
+  revalidateTag(PULSE_CACHE_TAGS.costs, "max")
   return { error: "", success: true }
 }

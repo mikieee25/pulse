@@ -4,10 +4,13 @@ import { redirect } from "next/navigation"
 import { PageHeader } from "@/components/layout/page-header"
 import { SectionPanel } from "@/components/layout/section-panel"
 import { getCurrentProfile } from "@/lib/auth"
+import { getRecentAdminActivity } from "@/lib/admin-activity"
+import { ActivityPreview } from "@/components/admin/admin-activity"
 
 export default async function AdminPage() {
   const profile = await getCurrentProfile()
   if (profile?.role !== "Admin") redirect("/")
+  const activity = await getRecentAdminActivity(5)
 
   return (
     <div className="space-y-8 pb-8">
@@ -24,6 +27,7 @@ export default async function AdminPage() {
           </Link>
         </div>
       </SectionPanel>
+      <ActivityPreview data={activity.data} error={activity.error} />
     </div>
   )
 }

@@ -6,6 +6,7 @@ import { requireProfile } from "@/lib/auth"
 import { canonicalEquipmentCategory } from "@/lib/pulse"
 import { createClient } from "@/utils/supabase/server"
 import { PULSE_CACHE_TAGS } from "@/lib/cache-tags"
+import { recordActivity } from "@/lib/admin-activity"
 
 const equipmentInput = z.object({
   categoryName: z.string().min(1),
@@ -25,6 +26,10 @@ const conditionState = z.enum(["Good", "For Replacement", "Broken"])
 
 export type EquipmentInput = z.infer<typeof equipmentInput>
 type Supabase = Awaited<ReturnType<typeof createClient>>
+
+function equipmentLabel(input: Pick<EquipmentInput, "brand" | "model" | "serial_number">) {
+  return [input.brand, input.model, input.serial_number].filter(Boolean).join(" ") || "Equipment"
+}
 
 async function validateAssignment(supabase: Supabase, divisionId: string, personnelId: string | null, role: "Custodian" | "Assignee") {
   if (!personnelId) return null
@@ -70,6 +75,7 @@ export async function addEquipment(input: EquipmentInput) {
     p_remarks: parsed.data.remarks || null,
   })
   if (error || !equipmentId) return { error: error?.message || "Could not add equipment." }
+  await recordActivity({ action: "created", entityType: "equipment", entityId: equipmentId, entityLabel: equipmentLabel(parsed.data), divisionId: parsed.data.division_id })
   revalidateTag(PULSE_CACHE_TAGS.notifications, "max")
   revalidatePath("/equipment")
   return { success: true }
@@ -105,6 +111,8 @@ export async function updateEquipment(id: string, input: EquipmentInput) {
   })
   if (error) return { error: error.message }
 
+  await recordActivity({ action: "updated", entityType: "equipment", entityId: id, entityLabel: equipmentLabel(parsed.data), divisionId: parsed.data.division_id })
+
   revalidateTag(PULSE_CACHE_TAGS.notifications, "max")
   revalidatePath("/equipment")
   revalidatePath(`/equipment/${id}`)
@@ -116,7 +124,7 @@ export async function reassignEquipment(id: string, personnelId: string | null, 
   if (access.error) return access
   if (!equipmentId.safeParse(id).success || (personnelId !== null && !equipmentId.safeParse(personnelId).success)) return { error: "Invalid equipment assignment." }
   const supabase = await createClient()
-  const { data: equipment } = await supabase.from("equipment").select("division_id").eq("id", id).single()
+  const { data: equipment } = await supabase.from("equipment").select("division_id,brand,model,serial_number").eq("id", id).single()
   if (!equipment) return { error: "Equipment not found." }
   
   const assignmentError = await validateAssignment(supabase, equipment.division_id, personnelId, role)
@@ -124,6 +132,7 @@ export async function reassignEquipment(id: string, personnelId: string | null, 
   
   const { error } = await supabase.rpc("reassign_equipment", { p_equipment_id: id, p_personnel_id: personnelId, p_note: note || null, p_type: role })
   if (error) return { error: error.message }
+  await recordActivity({ action: personnelId ? "reassigned" : "assigned", entityType: "equipment", entityId: id, entityLabel: equipmentLabel(equipment), divisionId: equipment.division_id, metadata: { role, personnelId } })
   revalidateTag(PULSE_CACHE_TAGS.notifications, "max")
   revalidatePath("/equipment")
   revalidatePath(`/equipment/${id}`)
@@ -137,6 +146,7 @@ export async function retireEquipment(id: string) {
   const supabase = await createClient()
   const { error } = await supabase.rpc("retire_equipment", { p_equipment_id: id })
   if (error) return { error: error.message }
+  await recordActivity({ action: "retired", entityType: "equipment", entityId: id, entityLabel: "Equipment", metadata: {} })
   revalidateTag(PULSE_CACHE_TAGS.notifications, "max")
   revalidatePath("/equipment")
   revalidatePath(`/equipment/${id}`)
@@ -153,6 +163,7 @@ export async function updateEquipmentState(id: string, condition_state: string) 
   const { data, error } = await supabase.from("equipment").update({ condition_state: parsedState.data }).eq("id", id).select("id").maybeSingle()
   if (error) return { error: error.message }
   if (!data) return { error: "Equipment not found." }
+  await recordActivity({ action: "state_changed", entityType: "equipment", entityId: id, entityLabel: "Equipment", metadata: { condition_state: parsedState.data } })
   revalidateTag(PULSE_CACHE_TAGS.notifications, "max")
   revalidatePath("/equipment")
   revalidatePath(`/equipment/${id}`)

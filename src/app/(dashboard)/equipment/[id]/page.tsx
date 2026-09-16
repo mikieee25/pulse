@@ -12,7 +12,7 @@ import { Button } from "@/components/ui/button"
 import { canonicalEquipmentCategory, equipmentDisplayStatus } from "@/lib/pulse"
 import type { EquipmentInput } from "@/app/actions/equipment"
 import { getCurrentProfile } from "@/lib/auth"
-import { getCachedCategories } from "@/lib/cached-data"
+import { getCachedCategories, getCachedPersonnel } from "@/lib/cached-data"
 
 type DetailEquipment = { id: string; brand: string | null; model: string | null; serial_number: string | null; year_acquired: number | null; procurement_method: string | null; division_id: string; assigned_to: string | null; assignee_id: string | null; condition_state: string; status: "Active" | "For Replacement" | "Retired"; remarks: string | null; division: { full_name: string; code: string } | null; personnel: { full_name: string; position: string; plantilla_status: string } | null; assignee: { full_name: string; position: string; plantilla_status: string } | null; equipment_categories: { name: string; lifespan_years: number | null } | null }
 type HistoryEntry = { id: string; assigned_at: string; unassigned_at: string | null; note: string | null; personnel: { full_name: string } | null; assignment_type: string }
@@ -35,7 +35,7 @@ export default async function EquipmentDetailPage({ params }: { params: Promise<
   if (!equipment) notFound()
 
   const [{ data: personnel, error: personnelError }, { data: historyData, error: historyError }, { data: categories, error: categoriesError }] = await Promise.all([
-    supabase.from("personnel").select("id,full_name,position,plantilla_status,division_id").eq("division_id", equipment.division_id).order("full_name"),
+    getCachedPersonnel(profile?.role || "Viewer", equipment.division_id),
     supabase.from("assignment_history").select("id,assigned_at,unassigned_at,note,assignment_type,personnel(full_name)").eq("equipment_id", id).order("assigned_at", { ascending: false }),
     categoriesResult,
   ])
@@ -44,6 +44,7 @@ export default async function EquipmentDetailPage({ params }: { params: Promise<
     console.error("Equipment detail support query failed", { message: typeof queryError === "string" ? queryError : queryError?.message });
     return <div className="rounded-lg border border-alert/30 bg-alert/10 p-6 text-alert">Equipment assignment data is unavailable. Try refreshing.</div>;
   }
+  const personnelOptions = (personnel || []).map((person) => ({ ...person, plantilla_status: person.plantilla_status || undefined, position: person.position || undefined }))
   const history = (historyData || []) as unknown as HistoryEntry[]
   const categoryName = canonicalEquipmentCategory(equipment.equipment_categories?.name || "Laptop")
   const status = equipmentDisplayStatus(equipment.status, equipment.condition_state, equipment.equipment_categories?.lifespan_years, equipment.year_acquired)
@@ -60,7 +61,7 @@ export default async function EquipmentDetailPage({ params }: { params: Promise<
           <Link href="/equipment" className="inline-flex items-center justify-center gap-2 rounded-xl border border-line bg-canvas px-4 py-2.5 text-sm font-semibold text-paper transition hover:border-pulse/40 hover:text-pulse focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pulse/40">
             <ArrowLeft className="size-4" aria-hidden="true" />Back to equipment
           </Link>
-          {canManage && <AddEquipmentDialog category={categoryName} categories={categoryOptions.length ? categoryOptions : [categoryName]} divisions={division} personnel={personnel || []} initial={{ id: equipment.id, categoryName, brand: equipment.brand, model: equipment.model, year_acquired: equipment.year_acquired, serial_number: equipment.serial_number, procurement_method: equipment.procurement_method, division_id: equipment.division_id, assigned_to: equipment.assigned_to, assignee_id: equipment.assignee_id, condition_state: equipment.condition_state as EquipmentInput["condition_state"], remarks: equipment.remarks }}>
+          {canManage && <AddEquipmentDialog category={categoryName} categories={categoryOptions.length ? categoryOptions : [categoryName]} divisions={division} personnel={personnelOptions} initial={{ id: equipment.id, categoryName, brand: equipment.brand, model: equipment.model, year_acquired: equipment.year_acquired, serial_number: equipment.serial_number, procurement_method: equipment.procurement_method, division_id: equipment.division_id, assigned_to: equipment.assigned_to, assignee_id: equipment.assignee_id, condition_state: equipment.condition_state as EquipmentInput["condition_state"], remarks: equipment.remarks }}>
             <Button>Edit details</Button>
           </AddEquipmentDialog>}
         </>}
@@ -92,7 +93,7 @@ export default async function EquipmentDetailPage({ params }: { params: Promise<
       </div>
 
       {canManage && <SectionPanel title="Assignment actions" description="Update custodian, assignee, and equipment condition">
-        <div className="p-5"><EquipmentActions id={equipment.id} personnel={personnel || []} currentState={equipment.condition_state as EquipmentInput["condition_state"]} currentCustodianId={equipment.assigned_to} currentAssigneeId={equipment.assignee_id} /></div>
+            <div className="p-5"><EquipmentActions id={equipment.id} personnel={personnelOptions} currentState={equipment.condition_state as EquipmentInput["condition_state"]} currentCustodianId={equipment.assigned_to} currentAssigneeId={equipment.assignee_id} /></div>
       </SectionPanel>}
 
       <SectionPanel title="Assignment history" description="Recorded assignment events for this asset">

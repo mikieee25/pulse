@@ -1,7 +1,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { SummaryContent } from "./summary-content";
 import { needsReplacement } from "@/lib/pulse";
-import { getCachedCategories } from "@/lib/cached-data";
+import { getCachedCategories, getCachedCategoryCosts } from "@/lib/cached-data";
 
 type RawEquipment = {
   id: string;
@@ -34,7 +34,7 @@ export default async function SummaryPage(props: {
       division:divisions(code, full_name)
     `),
     getCachedCategories(),
-    supabase.from("category_unit_costs").select("category_id,year,unit_cost").order("year", { ascending: false }),
+    getCachedCategoryCosts(),
   ]);
 
   const queryError = equipmentError || categoriesError || costsError;

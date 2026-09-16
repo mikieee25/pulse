@@ -8,6 +8,8 @@ import { PULSE_CACHE_TAGS } from "@/lib/cache-tags"
 
 export type EquipmentCategoryRecord = { id: string; name: string; lifespan_years: number | null }
 export type DivisionRecord = { id: string; code: string; full_name: string }
+export type PersonnelOptionRecord = { id: string; full_name: string; plantilla_status: string | null; division_id: string; position: string | null }
+export type CategoryCostRecord = { category_id: string; year: number; unit_cost: number }
 type CachedResult<T> = { data: T[]; error: string | null }
 
 async function readCategories(): Promise<CachedResult<EquipmentCategoryRecord>> {
@@ -22,6 +24,25 @@ async function readDivisions(): Promise<CachedResult<DivisionRecord>> {
   if (!admin) return { data: [], error: "Admin user configuration is incomplete." }
   const { data, error } = await admin.from("divisions").select("id,code,full_name").order("code")
   return { data: (data || []) as DivisionRecord[], error: error?.message || null }
+}
+
+async function readPersonnel(role: AppRole, divisionScope: string | null): Promise<CachedResult<PersonnelOptionRecord>> {
+  const admin = createAdminClient()
+  if (!admin) return { data: [], error: "Admin user configuration is incomplete." }
+  if (role === "Viewer" && !divisionScope) return { data: [], error: null }
+  let query = admin.from("personnel").select("id,full_name,plantilla_status,division_id,position").order("full_name")
+  if (role === "Viewer" && divisionScope) query = query.eq("division_id", divisionScope)
+  const { data, error } = await query
+  return { data: (data || []) as PersonnelOptionRecord[], error: error?.message || null }
+}
+
+async function readCategoryCosts(year?: number): Promise<CachedResult<CategoryCostRecord>> {
+  const admin = createAdminClient()
+  if (!admin) return { data: [], error: "Admin user configuration is incomplete." }
+  let query = admin.from("category_unit_costs").select("category_id,year,unit_cost").order("year", { ascending: false })
+  if (year) query = query.eq("year", year)
+  const { data, error } = await query
+  return { data: (data || []) as CategoryCostRecord[], error: error?.message || null }
 }
 
 type NotificationSnapshot = {
@@ -54,10 +75,15 @@ async function readNotifications(role: AppRole, divisionScope: string | null): P
     personnel: NotificationAssignment["personnel"] | NotificationAssignment["personnel"][] | null
     equipment?: { division_id: string }
   }>
-  const assignmentHistory = rawHistory.map(({ equipment: _equipment, personnel, ...entry }) => ({
-    ...entry,
-    personnel: Array.isArray(personnel) ? personnel[0] || null : personnel,
-  }))
+  const assignmentHistory = rawHistory.map((entry) => {
+    const personnel = entry.personnel
+    return {
+      id: entry.id,
+      assigned_at: entry.assigned_at,
+      note: entry.note,
+      personnel: Array.isArray(personnel) ? personnel[0] || null : personnel,
+    }
+  })
   return {
     equipment: (equipment || []) as unknown as NotificationEquipment[],
     assignmentHistory,
@@ -73,6 +99,16 @@ export const getCachedCategories = unstable_cache(readCategories, ["pulse-catego
 export const getCachedDivisions = unstable_cache(readDivisions, ["pulse-divisions-v1"], {
   revalidate: 300,
   tags: [PULSE_CACHE_TAGS.divisions],
+})
+
+export const getCachedPersonnel = unstable_cache(readPersonnel, ["pulse-personnel-v1"], {
+  revalidate: 60,
+  tags: [PULSE_CACHE_TAGS.personnel],
+})
+
+export const getCachedCategoryCosts = unstable_cache(readCategoryCosts, ["pulse-costs-v1"], {
+  revalidate: 60,
+  tags: [PULSE_CACHE_TAGS.costs],
 })
 
 export const getCachedNotifications = unstable_cache(readNotifications, ["pulse-notifications-v1"], {

@@ -13,7 +13,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { SectionPanel } from "@/components/layout/section-panel";
 import { canonicalEquipmentCategory, equipmentDisplayStatus, inventoryCardStats } from "@/lib/pulse";
 import { getCurrentProfile } from "@/lib/auth";
-import { getCachedCategories, getCachedDivisions } from "@/lib/cached-data";
+import { getCachedCategories, getCachedDivisions, getCachedPersonnel } from "@/lib/cached-data";
 import { parseEquipmentFilters } from "@/lib/equipment-filters";
 
 export default async function EquipmentPage(props: {
@@ -21,10 +21,10 @@ export default async function EquipmentPage(props: {
 }) {
   const searchParams = await props.searchParams;
   const supabase = await createClient();
+  const profile = await getCurrentProfile();
   const category = canonicalEquipmentCategory(searchParams.category || 'Camera');
   const filters = parseEquipmentFilters(searchParams);
-  const [profile, categoriesResult, equipmentResult, divisionsResult, personnelResult] = await Promise.all([
-    getCurrentProfile(),
+  const [categoriesResult, equipmentResult, divisionsResult, personnelResult] = await Promise.all([
     getCachedCategories(),
     supabase
       .from('equipment')
@@ -43,13 +43,14 @@ export default async function EquipmentPage(props: {
       `)
       .eq('equipment_categories.name', category),
     getCachedDivisions(),
-    supabase.from('personnel').select('id,full_name,plantilla_status,division_id,position').order('full_name'),
+    getCachedPersonnel(profile?.role || "Viewer", profile?.division_scope || null),
   ]);
   const canManage = profile?.role === "Admin";
   const { data: categories, error: categoriesError } = categoriesResult;
   const { data: equipmentData, error } = equipmentResult;
   const { data: divisions, error: divisionsError } = divisionsResult;
   const { data: personnel, error: personnelError } = personnelResult;
+  const personnelOptions = (personnel || []).map((person) => ({ ...person, plantilla_status: person.plantilla_status || undefined, position: person.position || undefined }));
   if (error) console.error("Equipment query failed:", error);
 
   const equipment = (equipmentData || []) as unknown as EquipmentData[];
@@ -83,7 +84,7 @@ export default async function EquipmentPage(props: {
         description="Manage ICT equipment across the bureau."
         actions={<>
           <ExportButton data={exportRows} category={category} />
-          {canManage && <AddEquipmentDialog category={category} categories={visibleCategories.map((cat) => cat.name)} divisions={divisions || []} personnel={personnel || []}>
+          {canManage && <AddEquipmentDialog category={category} categories={visibleCategories.map((cat) => cat.name)} divisions={divisions || []} personnel={personnelOptions}>
             <Button>
               + Add {category}
             </Button>

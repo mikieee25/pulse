@@ -1,5 +1,5 @@
 import { createClient } from "@/utils/supabase/server";
-import { getCachedCategories, getCachedDivisions } from "@/lib/cached-data";
+import { getCachedCategories, getCachedCategoryCosts, getCachedDivisions } from "@/lib/cached-data";
 import { getCurrentProfile } from "@/lib/auth";
 import { needsReplacement } from "@/lib/pulse";
 import { ExportButton } from "@/components/equipment/export-button";
@@ -45,7 +45,7 @@ export default async function BudgetPage({
     profile,
     { data: equipmentData, error: equipmentError },
     categoriesResult,
-    { data: costs, error: costsError },
+    costsResult,
     divisionsResult,
   ] = await Promise.all([
     getCurrentProfile(),
@@ -55,14 +55,12 @@ export default async function BudgetPage({
         "status,condition_state,year_acquired,division:divisions(code),equipment_categories(id,name,lifespan_years)"
       ),
     getCachedCategories(),
-    supabase
-      .from("category_unit_costs")
-      .select("category_id,year,unit_cost")
-      .eq("year", year),
+    getCachedCategoryCosts(year),
     getCachedDivisions(),
   ]);
   const { data: categoriesData, error: categoriesError } = categoriesResult;
   const { data: divisionsData, error: divisionsError } = divisionsResult;
+  const { data: costs, error: costsError } = costsResult;
   const divisions = divisionsData.map(({ code }) => ({ code }));
 
   const queryError =

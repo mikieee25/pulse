@@ -6,6 +6,7 @@ import { requireProfile } from "@/lib/auth"
 import { effectivePlantillaStatus, PLANTILLA_STATUSES, suggestedInitials } from "@/lib/pulse"
 import { createClient } from "@/utils/supabase/server"
 import { PULSE_CACHE_TAGS } from "@/lib/cache-tags"
+import { recordActivity } from "@/lib/admin-activity"
 
 const personnelInput = z.object({
   full_name: z.string().trim().min(1),
@@ -24,9 +25,11 @@ export async function addPersonnel(input: PersonnelInput) {
   if (!parsed.success) return { error: "Please complete the personnel fields." }
   const data = { ...parsed.data, plantilla_status: effectivePlantillaStatus(parsed.data.position, parsed.data.plantilla_status) }
   const supabase = await createClient()
-  const { error } = await supabase.from("personnel").insert(data)
+  const { data: saved, error } = await supabase.from("personnel").insert(data).select("id").single()
   if (error) return { error: error.message }
+  await recordActivity({ action: "created", entityType: "personnel", entityId: saved.id, entityLabel: data.full_name, divisionId: data.division_id })
   revalidateTag(PULSE_CACHE_TAGS.notifications, "max")
+  revalidateTag(PULSE_CACHE_TAGS.personnel, "max")
   revalidatePath("/personnel")
   return { success: true }
 }
@@ -48,7 +51,9 @@ export async function updatePersonnel(id: string, input: PersonnelInput) {
   if ((custodianCount || assigneeCount) && assignmentChanged) return { error: "Unassign this person before changing their division, position, or plantilla status." }
   const { error } = await supabase.from("personnel").update(data).eq("id", id)
   if (error) return { error: error.message }
+  await recordActivity({ action: "updated", entityType: "personnel", entityId: id, entityLabel: data.full_name, divisionId: data.division_id })
   revalidateTag(PULSE_CACHE_TAGS.notifications, "max")
+  revalidateTag(PULSE_CACHE_TAGS.personnel, "max")
   revalidatePath("/personnel")
   return { success: true }
 }
@@ -68,7 +73,9 @@ export async function deletePersonnel(id: string) {
   if (historyCount) return { error: "This personnel record has assignment history and cannot be deleted." }
   const { error } = await supabase.from("personnel").delete().eq("id", id)
   if (error) return { error: error.message }
+  await recordActivity({ action: "deleted", entityType: "personnel", entityId: id, entityLabel: id })
   revalidateTag(PULSE_CACHE_TAGS.notifications, "max")
+  revalidateTag(PULSE_CACHE_TAGS.personnel, "max")
   revalidatePath("/personnel")
   return { success: true }
 }

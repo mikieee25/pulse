@@ -6,6 +6,7 @@ import { requireProfile } from "@/lib/auth"
 import { createClient } from "@/utils/supabase/server"
 import { canonicalEquipmentCategory } from "@/lib/pulse"
 import { PULSE_CACHE_TAGS } from "@/lib/cache-tags"
+import { recordActivity } from "@/lib/admin-activity"
 
 const categoryInput = z.object({
   name: z.string().trim().min(1, "Category name is required.").max(50, "Category name is too long."),
@@ -22,11 +23,13 @@ export async function addEquipmentCategory(input: EquipmentCategoryInput) {
 
   const supabase = await createClient()
   const name = canonicalEquipmentCategory(parsed.data.name)
-  const { error } = await supabase.from("equipment_categories").insert({ name, lifespan_years: 3 })
+  const { data: saved, error } = await supabase.from("equipment_categories").insert({ name, lifespan_years: 3 }).select("id").single()
   if (error) {
     if (error.code === "23505") return { error: "That equipment category already exists." }
     return { error: error.message }
   }
+
+  await recordActivity({ action: "created", entityType: "equipment_category", entityId: saved.id, entityLabel: name })
 
   revalidateTag(PULSE_CACHE_TAGS.categories, "max")
   revalidateTag(PULSE_CACHE_TAGS.notifications, "max")
