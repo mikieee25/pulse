@@ -25,3 +25,8 @@ test("effective personnel status groups special positions correctly", () => {
     "COS",
   ])
 })
+
+test("SRS II is never classified as Outsourced", () => {
+  assert.equal(effectivePlantillaStatus("SRS II", "Outsourced"), "Regular")
+  assert.equal(effectivePlantillaStatus("SRS II", "For Transfer"), "For Transfer")
+})

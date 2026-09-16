@@ -22,6 +22,7 @@ export function effectivePlantillaStatus(position: string | null | undefined, st
   const normalizedPosition = position?.trim().toUpperCase() || ""
   if (/^PES\b/.test(normalizedPosition)) return "COS"
   if (/^(?:PSS|DRIVER|DE|DATA ENCODER)\b/.test(normalizedPosition)) return "Outsourced"
+  if (/^SRS II\b/.test(normalizedPosition) && status === "Outsourced") return "Regular"
   return status || "Regular"
 }
 
