@@ -1,4 +1,6 @@
 import { createClient } from "@/utils/supabase/server";
+import { getCachedCategories, getCachedDivisions } from "@/lib/cached-data";
+import { getCurrentProfile } from "@/lib/auth";
 import { needsReplacement } from "@/lib/pulse";
 import { ExportButton } from "@/components/equipment/export-button";
 import { CategoryCostForm } from "@/components/budget/category-cost-form";
@@ -39,44 +41,38 @@ export default async function BudgetPage({
   const year = Number((await searchParams).year) || new Date().getFullYear();
   const supabase = await createClient();
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-
   const [
+    profile,
     { data: equipmentData, error: equipmentError },
-    { data: categoriesData, error: categoriesError },
+    categoriesResult,
     { data: costs, error: costsError },
-    { data: divisions, error: divisionsError },
-    { data: appUser },
+    divisionsResult,
   ] = await Promise.all([
+    getCurrentProfile(),
     supabase
       .from("equipment")
       .select(
         "status,condition_state,year_acquired,division:divisions(code),equipment_categories(id,name,lifespan_years)"
       ),
-    supabase
-      .from("equipment_categories")
-      .select("id,name,lifespan_years")
-      .order("name"),
+    getCachedCategories(),
     supabase
       .from("category_unit_costs")
       .select("category_id,year,unit_cost")
       .eq("year", year),
-    supabase.from("divisions").select("code").order("code"),
-    user
-      ? supabase.from("app_users").select("role").eq("id", user.id).single()
-      : Promise.resolve({ data: null as { role: string } | null }),
+    getCachedDivisions(),
   ]);
+  const { data: categoriesData, error: categoriesError } = categoriesResult;
+  const { data: divisionsData, error: divisionsError } = divisionsResult;
+  const divisions = divisionsData.map(({ code }) => ({ code }));
 
   const queryError =
     equipmentError || categoriesError || costsError || divisionsError;
   if (queryError) {
-    console.error("Budget query failed", { code: queryError.code, message: queryError.message });
+    console.error("Budget query failed", { message: typeof queryError === "string" ? queryError : queryError.message });
     return <div className="rounded-lg border border-alert/30 bg-alert/10 p-6 text-alert">Budget data is unavailable. Try refreshing.</div>;
   }
 
-  const isAdmin = appUser?.role === "Admin";
+  const isAdmin = profile?.role === "Admin";
   const equipment = (equipmentData || []) as unknown as Equipment[];
 
   const categories = (categoriesData || []) as Category[];

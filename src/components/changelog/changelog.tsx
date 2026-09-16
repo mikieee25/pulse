@@ -30,6 +30,9 @@ const changelogGroups: ChangelogGroup[] = [
     date: "September 16, 2026",
     release: "Reliability and workflow polish",
     changes: [
+      { kind: "fix", title: "Corrected personnel card counting", description: "The combined Outsourced count now includes COS, PSS, Driver, and DE/Data Encoder personnel, while those positions are excluded from the Regular count. Existing personnel classifications were normalized in the live directory." },
+      { kind: "enhancement", title: "Accelerated data fetching", description: "Reference data and notification snapshots now use short-lived server caching with targeted invalidation, while dashboard reads run in parallel and the topbar avoids loading the full inventory twice." },
+      { kind: "feature", title: "Imported the latest equipment model list", description: "Added 102 validated equipment records and five new categories from the current list.json source. Twenty-three rows with malformed or unresolved division data remain held for correction instead of being imported ambiguously." },
       { kind: "enhancement", title: "Persisted equipment filters", description: "Search, division, brand, lifecycle status, assignment, and page state now remain in the URL, so filtered inventory views survive refreshes and can be bookmarked or shared." },
       { kind: "fix", title: "Improved mutation feedback", description: "Equipment, personnel, division, category, and user actions now show pending states, preserve useful validation errors, and prevent duplicate submissions while saving." },
       { kind: "enhancement", title: "Refreshed lifecycle notifications", description: "Equipment changes now refresh affected alerts immediately, with links that open the relevant filtered inventory view and notification state scoped per account." },
@@ -123,7 +126,7 @@ export function Changelog() {
       <section aria-labelledby="changelog-overview-title" className="grid gap-4 sm:grid-cols-3">
         <h2 id="changelog-overview-title" className="sr-only">Changelog overview</h2>
         <MetricCard label="Tracked releases" value={changelogGroups.length} detail="From foundation to production" icon={History} />
-        <MetricCard label="Current inventory" value="887" detail="Equipment records covered" icon={Database} tone="pulse" />
+        <MetricCard label="Current inventory" value="989" detail="Equipment records covered" icon={Database} tone="pulse" />
         <MetricCard label="Release areas" value="4" detail="Features, fixes, security, polish" icon={Palette} tone="warning" />
       </section>
 

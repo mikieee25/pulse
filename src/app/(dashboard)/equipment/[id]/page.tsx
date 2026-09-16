@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button"
 import { canonicalEquipmentCategory, equipmentDisplayStatus } from "@/lib/pulse"
 import type { EquipmentInput } from "@/app/actions/equipment"
 import { getCurrentProfile } from "@/lib/auth"
+import { getCachedCategories } from "@/lib/cached-data"
 
 type DetailEquipment = { id: string; brand: string | null; model: string | null; serial_number: string | null; year_acquired: number | null; procurement_method: string | null; division_id: string; assigned_to: string | null; assignee_id: string | null; condition_state: string; status: "Active" | "For Replacement" | "Retired"; remarks: string | null; division: { full_name: string; code: string } | null; personnel: { full_name: string; position: string; plantilla_status: string } | null; assignee: { full_name: string; position: string; plantilla_status: string } | null; equipment_categories: { name: string; lifespan_years: number | null } | null }
 type HistoryEntry = { id: string; assigned_at: string; unassigned_at: string | null; note: string | null; personnel: { full_name: string } | null; assignment_type: string }
@@ -19,9 +20,13 @@ type HistoryEntry = { id: string; assigned_at: string; unassigned_at: string | n
 export default async function EquipmentDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params
   const supabase = await createClient()
-  const profile = await getCurrentProfile()
+  const [profile, equipmentResult, categoriesResult] = await Promise.all([
+    getCurrentProfile(),
+    supabase.from("equipment").select("*,division:divisions(full_name,code),personnel!equipment_assigned_to_fkey(full_name,position,plantilla_status),assignee:personnel!equipment_assignee_id_fkey(full_name,position,plantilla_status),equipment_categories(name,lifespan_years)").eq("id", id).single(),
+    getCachedCategories(),
+  ])
   const canManage = profile?.role === "Admin"
-  const { data, error: equipmentError } = await supabase.from("equipment").select("*,division:divisions(full_name,code),personnel!equipment_assigned_to_fkey(full_name,position,plantilla_status),assignee:personnel!equipment_assignee_id_fkey(full_name,position,plantilla_status),equipment_categories(name,lifespan_years)").eq("id", id).single()
+  const { data, error: equipmentError } = equipmentResult
   if (equipmentError && equipmentError.code !== "PGRST116") {
     console.error("Equipment detail query failed", { code: equipmentError.code, message: equipmentError.message });
     return <div className="rounded-lg border border-alert/30 bg-alert/10 p-6 text-alert">Equipment details are unavailable. Try refreshing.</div>;
@@ -32,11 +37,11 @@ export default async function EquipmentDetailPage({ params }: { params: Promise<
   const [{ data: personnel, error: personnelError }, { data: historyData, error: historyError }, { data: categories, error: categoriesError }] = await Promise.all([
     supabase.from("personnel").select("id,full_name,position,plantilla_status,division_id").eq("division_id", equipment.division_id).order("full_name"),
     supabase.from("assignment_history").select("id,assigned_at,unassigned_at,note,assignment_type,personnel(full_name)").eq("equipment_id", id).order("assigned_at", { ascending: false }),
-    supabase.from("equipment_categories").select("name").order("name"),
+    categoriesResult,
   ])
   if (personnelError || historyError || categoriesError) {
     const queryError = personnelError || historyError || categoriesError;
-    console.error("Equipment detail support query failed", { code: queryError?.code, message: queryError?.message });
+    console.error("Equipment detail support query failed", { message: typeof queryError === "string" ? queryError : queryError?.message });
     return <div className="rounded-lg border border-alert/30 bg-alert/10 p-6 text-alert">Equipment assignment data is unavailable. Try refreshing.</div>;
   }
   const history = (historyData || []) as unknown as HistoryEntry[]

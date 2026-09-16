@@ -8,6 +8,8 @@ import { MetricCard } from "@/components/layout/metric-card"
 import { PageHeader } from "@/components/layout/page-header"
 import { SectionPanel } from "@/components/layout/section-panel"
 import { getCurrentProfile } from "@/lib/auth"
+import { getCachedDivisions } from "@/lib/cached-data"
+import { effectivePlantillaStatus } from "@/lib/pulse"
 
 type PersonnelQueryRow = Record<string, unknown> & {
   equipment?: PersonnelData["equipment"]
@@ -16,23 +18,26 @@ type PersonnelQueryRow = Record<string, unknown> & {
 
 export default async function PersonnelPage() {
   const supabase = await createClient()
-  const profile = await getCurrentProfile()
+  const [profile, personnelResult, divisionsResult] = await Promise.all([
+    getCurrentProfile(),
+    supabase
+      .from('personnel')
+      .select(`
+        id,
+        full_name,
+        initials,
+        position,
+        plantilla_status,
+        division_id,
+        division:divisions(code, full_name),
+        equipment!equipment_assigned_to_fkey(id, brand, model),
+        assignee_equipment:equipment!equipment_assignee_id_fkey(id, brand, model)
+      `)
+      .order('full_name'),
+    getCachedDivisions(),
+  ])
   const canManage = profile?.role === "Admin"
-
-  const { data: personnelData, error } = await supabase
-    .from('personnel')
-    .select(`
-      id,
-      full_name,
-      initials,
-      position,
-      plantilla_status,
-      division_id,
-       division:divisions(code, full_name),
-       equipment!equipment_assigned_to_fkey(id, brand, model),
-       assignee_equipment:equipment!equipment_assignee_id_fkey(id, brand, model)
-    `)
-    .order('full_name')
+  const { data: personnelData, error } = personnelResult
   
   if (error) console.error("Personnel query failed", error)
 
@@ -40,14 +45,14 @@ export default async function PersonnelPage() {
      ...p,
      equipment: [...(p.equipment || []), ...(p.assignee_equipment || [])]
   })) as unknown as PersonnelData[]
-  const { data: divisions, error: divisionsError } = await supabase.from('divisions').select('id,code,full_name').order('code')
+  const { data: divisions, error: divisionsError } = divisionsResult
   if (error || divisionsError) {
     const queryError = error || divisionsError;
-    console.error("Personnel query failed", { code: queryError?.code, message: queryError?.message });
+    console.error("Personnel query failed", { message: typeof queryError === "string" ? queryError : queryError?.message });
     return <div className="rounded-lg border border-alert/30 bg-alert/10 p-6 text-alert">Personnel data is unavailable. Try refreshing.</div>;
   }
-  const regularCount = personnel.filter((person) => person.plantilla_status === "Regular").length
-  const outsourcedCount = personnel.filter((person) => ["Outsourced", "COS"].includes(person.plantilla_status ?? "")).length
+  const regularCount = personnel.filter((person) => effectivePlantillaStatus(person.position, person.plantilla_status) === "Regular").length
+  const outsourcedCount = personnel.filter((person) => ["Outsourced", "COS"].includes(effectivePlantillaStatus(person.position, person.plantilla_status))).length
   const assignedCount = personnel.filter((person) => (person.equipment?.length || 0) > 0).length
 
   return (
@@ -67,7 +72,7 @@ export default async function PersonnelPage() {
         <h2 id="personnel-overview-title" className="sr-only">Personnel overview</h2>
         <MetricCard label="Total personnel" value={personnel.length} detail="Registered staff" icon={UsersRound} />
         <MetricCard label="Regular staff" value={regularCount} detail="Eligible custodians" icon={UserCheck} tone="pulse" />
-        <MetricCard label="Outsourced / COS" value={outsourcedCount} detail="Contracted personnel" icon={BriefcaseBusiness} tone="warning" />
+        <MetricCard label="Outsourced" value={outsourcedCount} detail="Outsourced and COS personnel" icon={BriefcaseBusiness} tone="warning" />
         <MetricCard label="With equipment" value={assignedCount} detail="Active custodians" icon={ContactRound} tone="warning" />
       </section>
 

@@ -21,7 +21,7 @@ test("budget includes every database category, including manual replacement cate
 })
 
 test("replacement plan seeds columns from the complete category list", () => {
-  assert.match(dashboardSource, /from\("equipment_categories"\)/)
+  assert.match(dashboardSource, /getCachedCategories/)
   assert.match(dashboardSource, /allCategories = new Set\(categories\.map\(\(category\) => category\.name\)\)/)
 })
 

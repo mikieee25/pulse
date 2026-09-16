@@ -1,10 +1,11 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
+import { revalidatePath, revalidateTag } from "next/cache"
 import { z } from "zod"
 import { requireProfile } from "@/lib/auth"
 import { canonicalEquipmentCategory } from "@/lib/pulse"
 import { createClient } from "@/utils/supabase/server"
+import { PULSE_CACHE_TAGS } from "@/lib/cache-tags"
 
 const equipmentInput = z.object({
   categoryName: z.string().min(1),
@@ -69,6 +70,7 @@ export async function addEquipment(input: EquipmentInput) {
     p_remarks: parsed.data.remarks || null,
   })
   if (error || !equipmentId) return { error: error?.message || "Could not add equipment." }
+  revalidateTag(PULSE_CACHE_TAGS.notifications, "max")
   revalidatePath("/equipment")
   return { success: true }
 }
@@ -103,6 +105,7 @@ export async function updateEquipment(id: string, input: EquipmentInput) {
   })
   if (error) return { error: error.message }
 
+  revalidateTag(PULSE_CACHE_TAGS.notifications, "max")
   revalidatePath("/equipment")
   revalidatePath(`/equipment/${id}`)
   return { success: true }
@@ -121,6 +124,7 @@ export async function reassignEquipment(id: string, personnelId: string | null, 
   
   const { error } = await supabase.rpc("reassign_equipment", { p_equipment_id: id, p_personnel_id: personnelId, p_note: note || null, p_type: role })
   if (error) return { error: error.message }
+  revalidateTag(PULSE_CACHE_TAGS.notifications, "max")
   revalidatePath("/equipment")
   revalidatePath(`/equipment/${id}`)
   return { success: true }
@@ -133,6 +137,7 @@ export async function retireEquipment(id: string) {
   const supabase = await createClient()
   const { error } = await supabase.rpc("retire_equipment", { p_equipment_id: id })
   if (error) return { error: error.message }
+  revalidateTag(PULSE_CACHE_TAGS.notifications, "max")
   revalidatePath("/equipment")
   revalidatePath(`/equipment/${id}`)
   return { success: true }
@@ -148,6 +153,7 @@ export async function updateEquipmentState(id: string, condition_state: string) 
   const { data, error } = await supabase.from("equipment").update({ condition_state: parsedState.data }).eq("id", id).select("id").maybeSingle()
   if (error) return { error: error.message }
   if (!data) return { error: "Equipment not found." }
+  revalidateTag(PULSE_CACHE_TAGS.notifications, "max")
   revalidatePath("/equipment")
   revalidatePath(`/equipment/${id}`)
   return { success: true }

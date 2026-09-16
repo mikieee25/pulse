@@ -1,6 +1,7 @@
 import { createClient } from "@/utils/supabase/server";
 import { SummaryContent } from "./summary-content";
 import { needsReplacement } from "@/lib/pulse";
+import { getCachedCategories } from "@/lib/cached-data";
 
 type RawEquipment = {
   id: string;
@@ -32,13 +33,13 @@ export default async function SummaryPage(props: {
       equipment_categories(id, name, lifespan_years),
       division:divisions(code, full_name)
     `),
-    supabase.from("equipment_categories").select("id,name").order("name"),
+    getCachedCategories(),
     supabase.from("category_unit_costs").select("category_id,year,unit_cost").order("year", { ascending: false }),
   ]);
 
   const queryError = equipmentError || categoriesError || costsError;
   if (queryError) {
-    console.error("Summary query failed", { code: queryError.code, message: queryError.message });
+    console.error("Summary query failed", { message: typeof queryError === "string" ? queryError : queryError.message });
     return <div className="rounded-lg border border-alert/30 bg-alert/10 p-6 text-alert">Summary data is unavailable. Try refreshing.</div>;
   }
 

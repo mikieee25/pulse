@@ -12,6 +12,8 @@ type Division = { id: string; code: string }
 type ExistingEquipment = { id: string; remarks: string | null; serial_number: string | null }
 type ImportRow = {
   sourceRow: number
+  importKey: string
+  importOccurrence: number
   category: string
   description: string
   serial_number: string
@@ -51,6 +53,19 @@ export function normalizeName(value: unknown) {
     .replace(/[^a-z0-9]/g, "")
 }
 
+function normalizeImportValue(value: string) {
+  return value.trim().normalize("NFKC").toLowerCase()
+}
+
+function importIdentityKey(row: Pick<ImportRow, "category" | "description" | "serial_number" | "custodian" | "assignee" | "division">) {
+  return [row.category, row.description, row.serial_number, row.custodian, row.assignee, row.division].map(normalizeImportValue).join("\u001f")
+}
+
+export function importMarker(identityKey: string, occurrence = 0) {
+  const markerKey = crypto.createHash("sha256").update(`${identityKey}:${occurrence}`).digest("hex").slice(0, 12)
+  return `[Import:list.json:${markerKey}]`
+}
+
 function sourceText(row: SourceRow, key: string) {
   return String(row[key] ?? "").trim()
 }
@@ -74,7 +89,7 @@ function duplicateSerialGroups(rows: ImportRow[]) {
   return [...grouped.values()].filter((group) => group.length > 1)
 }
 
-export function buildImportPlan(source: unknown[], people: Person[], divisions: Division[], existingMarkers = new Set<string>()) {
+export function buildImportPlan(source: unknown[], people: Person[], divisions: Division[], existingMarkers = new Set<string>(), existingSerials = new Set<string>()) {
   const peopleByName = new Map(people.map((person) => [normalizeName(person.full_name), person]))
   const divisionsByCode = new Map(divisions.map((division) => [division.code.toUpperCase(), division]))
   const rows: ImportRow[] = []
@@ -82,6 +97,7 @@ export function buildImportPlan(source: unknown[], people: Person[], divisions: 
   const unresolvedCustodians = new Set<string>()
   const unresolvedAssignees = new Set<string>()
   const unresolvedDivisions = new Set<string>()
+  const identityOccurrences = new Map<string, number>()
 
   for (const [index, raw] of source.entries()) {
     if (!raw || typeof raw !== "object" || Array.isArray(raw)) continue
@@ -107,9 +123,15 @@ export function buildImportPlan(source: unknown[], people: Person[], divisions: 
     if (isSameAsCustodian) sameAsCustodianAssignees++
     if (assigneeName && !isSameAsCustodian && !assignee) { unresolvedAssignees.add(assigneeName); warnings.push("assignee not matched") }
     if (assigneeName && !isSameAsCustodian && assignee && !assigneeIsValid) warnings.push("assignee is not an eligible PSS/PES user in the same division")
+    const identityRow = { category, description, serial_number: serial, custodian: custodianName, assignee: assigneeName, division: sourceDivision }
+    const importKey = importIdentityKey(identityRow)
+    const importOccurrence = identityOccurrences.get(importKey) || 0
+    identityOccurrences.set(importKey, importOccurrence + 1)
 
     rows.push({
       sourceRow,
+      importKey,
+      importOccurrence,
       category,
       description,
       serial_number: serial,
@@ -121,15 +143,18 @@ export function buildImportPlan(source: unknown[], people: Person[], divisions: 
       assignee_id: assigneeIsValid && !isSameAsCustodian ? assignee!.id : null,
       status: "Active",
       condition_state: "Good",
-      remarks: [`[Import:list.json row ${sourceRow}]`, ...warnings].join(" "),
+      remarks: [importMarker(importKey, importOccurrence), ...warnings].join(" "),
     })
   }
 
   const categories = [...new Set(rows.map((row) => row.category).filter(Boolean))].sort()
-  const importableRows = rows.filter((row) => row.category && row.description && row.serial_number && row.division_id && !existingMarkers.has(`[Import:list.json row ${row.sourceRow}]`))
+  const validRows = rows.filter((row) => row.category && row.description && row.serial_number && row.division_id)
+  const importableRows = validRows.filter((row) => !existingMarkers.has(importMarker(row.importKey, row.importOccurrence)) && !existingSerials.has(normalizeName(row.serial_number)))
   return {
     rows,
+    validRows,
     importableRows,
+    invalidRows: rows.filter((row) => !validRows.includes(row)),
     categories,
     sameAsCustodianAssignees,
     duplicateSerialGroups: duplicateSerialGroups(rows),
@@ -162,15 +187,16 @@ async function run() {
 
   const supabase = createClient(url, key, { auth: { autoRefreshToken: false, persistSession: false } })
   const current = await fetchAll(supabase)
-  const existingMarkers = new Set(current.existing.flatMap((row) => { const match = row.remarks?.match(/\[Import:list\.json row \d+\]/); return match ? [match[0]] : [] }))
-  const plan = buildImportPlan(source, current.people, current.divisions, existingMarkers)
   const existingSerials = new Set(current.existing.map((row) => normalizeName(row.serial_number)).filter(Boolean))
+  const existingMarkers = new Set(current.existing.flatMap((row) => row.remarks?.match(/\[Import:list\.json(?::[a-f0-9]{12})(?: row \d+)?\]/g) || []))
+  const plan = buildImportPlan(source, current.people, current.divisions, existingMarkers, existingSerials)
   const sourceSerialOverlaps = plan.rows.filter((row) => existingSerials.has(normalizeName(row.serial_number))).length
   const summary = {
     sourceRows: plan.rows.length,
     categories: plan.categories.length,
     rowsReady: plan.importableRows.length,
-    alreadyImported: plan.rows.length - plan.importableRows.length,
+    alreadyImported: plan.validRows.length - plan.importableRows.length,
+    invalidRows: plan.invalidRows.length,
     sameAsCustodianAssignees: plan.sameAsCustodianAssignees,
     duplicateSerialGroups: plan.duplicateSerialGroups.length,
     duplicateSerialRows: plan.duplicateSerialGroups.reduce((count, group) => count + group.length, 0),
@@ -181,7 +207,7 @@ async function run() {
   }
   console.log(JSON.stringify(summary, null, 2))
   if (process.argv.includes("--dry-run")) return
-  if (plan.unresolvedDivisions.length) throw new Error(`Cannot import rows with unresolved divisions: ${plan.unresolvedDivisions.join(", ")}`)
+  if (plan.unresolvedDivisions.length && !process.argv.includes("--skip-invalid")) throw new Error(`Cannot import rows with unresolved divisions: ${plan.unresolvedDivisions.join(", ")}. Re-run with --skip-invalid to import only validated rows.`)
   if (!plan.importableRows.length) { console.log("No new rows to import."); return }
 
   const existingCategoryNames = new Set(current.categories.map((category) => category.name))

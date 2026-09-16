@@ -16,7 +16,7 @@ test("native PULSE tutorial documents the live application workflows", async () 
     "Custodian",
     "Assignee",
     "Personnel",
-    "Outsourced / COS",
+    "Outsourced",
     "Divisions",
     "Budget",
     "Summary",

@@ -456,15 +456,15 @@ export default function TutorialPage() {
               />
               <MetricCard
                 label="Regular staff"
-                value="133"
+                value="89"
                 detail="Eligible custodians"
                 icon={UsersRound}
                 tone="pulse"
               />
               <MetricCard
-                label="Outsourced / COS"
-                value="24"
-                detail="Contracted personnel"
+                label="Outsourced"
+                value="68"
+                detail="Outsourced and COS personnel"
                 icon={UsersRound}
                 tone="warning"
               />

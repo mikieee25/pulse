@@ -1,10 +1,11 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
+import { revalidatePath, revalidateTag } from "next/cache"
 import { z } from "zod"
 import { requireProfile } from "@/lib/auth"
-import { PLANTILLA_STATUSES, suggestedInitials } from "@/lib/pulse"
+import { effectivePlantillaStatus, PLANTILLA_STATUSES, suggestedInitials } from "@/lib/pulse"
 import { createClient } from "@/utils/supabase/server"
+import { PULSE_CACHE_TAGS } from "@/lib/cache-tags"
 
 const personnelInput = z.object({
   full_name: z.string().trim().min(1),
@@ -21,9 +22,11 @@ export async function addPersonnel(input: PersonnelInput) {
   if (access.error) return access
   const parsed = personnelInput.safeParse({ ...input, initials: input.initials || suggestedInitials(input.full_name) })
   if (!parsed.success) return { error: "Please complete the personnel fields." }
+  const data = { ...parsed.data, plantilla_status: effectivePlantillaStatus(parsed.data.position, parsed.data.plantilla_status) }
   const supabase = await createClient()
-  const { error } = await supabase.from("personnel").insert(parsed.data)
+  const { error } = await supabase.from("personnel").insert(data)
   if (error) return { error: error.message }
+  revalidateTag(PULSE_CACHE_TAGS.notifications, "max")
   revalidatePath("/personnel")
   return { success: true }
 }
@@ -34,16 +37,18 @@ export async function updatePersonnel(id: string, input: PersonnelInput) {
   if (!personnelId.safeParse(id).success) return { error: "Personnel not found." }
   const parsed = personnelInput.safeParse(input)
   if (!parsed.success) return { error: "Please complete the personnel fields." }
+  const data = { ...parsed.data, plantilla_status: effectivePlantillaStatus(parsed.data.position, parsed.data.plantilla_status) }
   const supabase = await createClient()
   const [{ data: existing }, { count: custodianCount }, { count: assigneeCount }] = await Promise.all([
     supabase.from("personnel").select("division_id,position,plantilla_status").eq("id", id).single(),
     supabase.from("equipment").select("id", { count: "exact", head: true }).eq("assigned_to", id),
     supabase.from("equipment").select("id", { count: "exact", head: true }).eq("assignee_id", id),
   ])
-  const assignmentChanged = existing && (existing.division_id !== parsed.data.division_id || existing.position !== parsed.data.position || existing.plantilla_status !== parsed.data.plantilla_status)
+  const assignmentChanged = existing && (existing.division_id !== data.division_id || existing.position !== data.position || existing.plantilla_status !== data.plantilla_status)
   if ((custodianCount || assigneeCount) && assignmentChanged) return { error: "Unassign this person before changing their division, position, or plantilla status." }
-  const { error } = await supabase.from("personnel").update(parsed.data).eq("id", id)
+  const { error } = await supabase.from("personnel").update(data).eq("id", id)
   if (error) return { error: error.message }
+  revalidateTag(PULSE_CACHE_TAGS.notifications, "max")
   revalidatePath("/personnel")
   return { success: true }
 }
@@ -63,6 +68,7 @@ export async function deletePersonnel(id: string) {
   if (historyCount) return { error: "This personnel record has assignment history and cannot be deleted." }
   const { error } = await supabase.from("personnel").delete().eq("id", id)
   if (error) return { error: error.message }
+  revalidateTag(PULSE_CACHE_TAGS.notifications, "max")
   revalidatePath("/personnel")
   return { success: true }
 }

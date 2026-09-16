@@ -13,6 +13,7 @@ import { PageHeader } from "@/components/layout/page-header";
 import { SectionPanel } from "@/components/layout/section-panel";
 import { canonicalEquipmentCategory, equipmentDisplayStatus, inventoryCardStats } from "@/lib/pulse";
 import { getCurrentProfile } from "@/lib/auth";
+import { getCachedCategories, getCachedDivisions } from "@/lib/cached-data";
 import { parseEquipmentFilters } from "@/lib/equipment-filters";
 
 export default async function EquipmentPage(props: {
@@ -20,38 +21,37 @@ export default async function EquipmentPage(props: {
 }) {
   const searchParams = await props.searchParams;
   const supabase = await createClient();
-  const profile = await getCurrentProfile();
-  const canManage = profile?.role === "Admin";
   const category = canonicalEquipmentCategory(searchParams.category || 'Camera');
   const filters = parseEquipmentFilters(searchParams);
-  
-  // Fetch categories for tabs
-  const { data: categories, error: categoriesError } = await supabase
-    .from('equipment_categories')
-    .select('*')
-    .order('name');
-    
-  // Fetch equipment for selected category
-  const { data: equipmentData, error } = await supabase
-    .from('equipment')
-    .select(`
-      id,
-      model,
-      brand,
-      serial_number,
-      year_acquired,
-      status,
-      condition_state,
-      division:divisions(code),
-      personnel!equipment_assigned_to_fkey(full_name),
-      assignee:personnel!equipment_assignee_id_fkey(full_name),
-      equipment_categories!inner(name,lifespan_years)
-    `)
-    .eq('equipment_categories.name', category);
-  
+  const [profile, categoriesResult, equipmentResult, divisionsResult, personnelResult] = await Promise.all([
+    getCurrentProfile(),
+    getCachedCategories(),
+    supabase
+      .from('equipment')
+      .select(`
+        id,
+        model,
+        brand,
+        serial_number,
+        year_acquired,
+        status,
+        condition_state,
+        division:divisions(code),
+        personnel!equipment_assigned_to_fkey(full_name),
+        assignee:personnel!equipment_assignee_id_fkey(full_name),
+        equipment_categories!inner(name,lifespan_years)
+      `)
+      .eq('equipment_categories.name', category),
+    getCachedDivisions(),
+    supabase.from('personnel').select('id,full_name,plantilla_status,division_id,position').order('full_name'),
+  ]);
+  const canManage = profile?.role === "Admin";
+  const { data: categories, error: categoriesError } = categoriesResult;
+  const { data: equipmentData, error } = equipmentResult;
+  const { data: divisions, error: divisionsError } = divisionsResult;
+  const { data: personnel, error: personnelError } = personnelResult;
   if (error) console.error("Equipment query failed:", error);
-    
-  // Need to cast because Supabase types might be inferred loosely here without typegen
+
   const equipment = (equipmentData || []) as unknown as EquipmentData[];
   const visibleCategories = Array.from(new Map((categories || []).map((item) => {
     const name = canonicalEquipmentCategory(item.name)
@@ -68,11 +68,9 @@ export default async function EquipmentPage(props: {
     Assignee: item.assignee?.full_name || "Unassigned",
     Status: equipmentDisplayStatus(item.status, item.condition_state, item.equipment_categories?.lifespan_years, item.year_acquired),
   }));
-  const { data: divisions, error: divisionsError } = await supabase.from('divisions').select('id,code,full_name').order('code');
-  const { data: personnel, error: personnelError } = await supabase.from('personnel').select('id,full_name,plantilla_status,division_id,position').order('full_name');
   if (categoriesError || error || divisionsError || personnelError) {
     const queryError = categoriesError || error || divisionsError || personnelError;
-    console.error("Equipment query failed", { code: queryError?.code, message: queryError?.message });
+    console.error("Equipment query failed", { message: typeof queryError === "string" ? queryError : queryError?.message });
     return <div className="rounded-lg border border-alert/30 bg-alert/10 p-6 text-alert">Equipment data is unavailable. Try refreshing.</div>;
   }
   const cardStats = inventoryCardStats(equipment.map((item) => ({ status: item.status, condition_state: item.condition_state, lifespan_years: item.equipment_categories?.lifespan_years, year_acquired: item.year_acquired })));

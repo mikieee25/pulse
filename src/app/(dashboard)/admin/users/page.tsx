@@ -4,15 +4,17 @@ import { createClient } from "@/utils/supabase/server"
 import { UserManagement, type Division, type User } from "@/components/admin/user-management"
 import { PageHeader } from "@/components/layout/page-header"
 import { getCurrentProfile } from "@/lib/auth"
+import { getCachedDivisions } from "@/lib/cached-data"
 
 export default async function AdminUsersPage() {
   const profile = await getCurrentProfile()
   if (profile?.role !== "Admin") redirect("/")
   const supabase = await createClient()
-  const [{ data: users }, { data: divisions }] = await Promise.all([
+  const [{ data: users }, divisionsResult] = await Promise.all([
     supabase.from("app_users").select("id,email,full_name,role,division_scope").order("full_name"),
-    supabase.from("divisions").select("id,code").order("code"),
+    getCachedDivisions(),
   ])
+  const { data: divisions } = divisionsResult
 
   return (
     <div className="space-y-8 pb-8">

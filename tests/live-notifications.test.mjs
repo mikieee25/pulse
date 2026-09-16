@@ -25,5 +25,6 @@ test("live notifications cover lifecycle and assignment signals", () => {
   assert.match(bell, /Mark all as read/)
   assert.match(bell, /localStorage/)
   assert.match(topbar, /NotificationBell/)
-  assert.match(topbar, /assignment_history/)
+  assert.match(topbar, /getCachedNotifications/)
+  assert.match(topbar, /assignmentHistory/)
 })

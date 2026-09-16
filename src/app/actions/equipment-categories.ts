@@ -1,10 +1,11 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
+import { revalidatePath, revalidateTag } from "next/cache"
 import { z } from "zod"
 import { requireProfile } from "@/lib/auth"
 import { createClient } from "@/utils/supabase/server"
 import { canonicalEquipmentCategory } from "@/lib/pulse"
+import { PULSE_CACHE_TAGS } from "@/lib/cache-tags"
 
 const categoryInput = z.object({
   name: z.string().trim().min(1, "Category name is required.").max(50, "Category name is too long."),
@@ -27,6 +28,8 @@ export async function addEquipmentCategory(input: EquipmentCategoryInput) {
     return { error: error.message }
   }
 
+  revalidateTag(PULSE_CACHE_TAGS.categories, "max")
+  revalidateTag(PULSE_CACHE_TAGS.notifications, "max")
   revalidatePath("/equipment")
   revalidatePath("/budget")
   revalidatePath("/summary")

@@ -12,21 +12,23 @@ import { getCurrentProfile } from "@/lib/auth"
 
 export default async function DivisionsPage() {
   const supabase = await createClient()
-  const profile = await getCurrentProfile()
-  const canManage = profile?.role === "Admin"
-
   // In a real app with proper typegen, we might get this natively or via a view.
   // We fetch divisions and a raw count of personnel to show in the table.
-  const { data: divisionsData, error: divisionsError } = await supabase
-    .from('divisions')
-    .select(`
-      id,
-      code,
-      full_name,
-       personnel (count),
-       equipment (id, status, condition_state, year_acquired, equipment_categories(name, lifespan_years))
-    `)
-    .order('code')
+  const [profile, divisionsResult] = await Promise.all([
+    getCurrentProfile(),
+    supabase
+      .from('divisions')
+      .select(`
+        id,
+        code,
+        full_name,
+        personnel (count),
+        equipment (id, status, condition_state, year_acquired, equipment_categories(name, lifespan_years))
+      `)
+      .order('code'),
+  ])
+  const canManage = profile?.role === "Admin"
+  const { data: divisionsData, error: divisionsError } = divisionsResult
 
   if (divisionsError) {
     console.error("Divisions query failed", { code: divisionsError.code, message: divisionsError.message });

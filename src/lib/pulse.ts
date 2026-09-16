@@ -17,6 +17,14 @@ export const DEFAULT_EQUIPMENT_CATEGORIES = [
 ] as const
 
 export type PlantillaStatus = (typeof PLANTILLA_STATUSES)[number]
+
+export function effectivePlantillaStatus(position: string | null | undefined, status: PlantillaStatus | null | undefined): PlantillaStatus {
+  const normalizedPosition = position?.trim().toUpperCase() || ""
+  if (/^PES\b/.test(normalizedPosition)) return "COS"
+  if (/^(?:PSS|DRIVER|DE|DATA ENCODER)\b/.test(normalizedPosition)) return "Outsourced"
+  return status || "Regular"
+}
+
 export type StoredEquipmentStatus = "Active" | "For Replacement" | "Retired"
 export type LifecycleStatus = StoredEquipmentStatus | "Expiring soon"
 export type EquipmentCondition = "Good" | "For Replacement" | "Broken"

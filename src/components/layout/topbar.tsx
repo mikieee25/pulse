@@ -5,19 +5,16 @@ import { getCurrentProfile } from "@/lib/auth";
 import { ThemeToggle } from "@/components/theme/theme-toggle";
 import { NotificationBell } from "@/components/notifications/notification-bell";
 import { ProfileSettings } from "./profile-settings";
-import { buildNotifications, type NotificationAssignment, type NotificationEquipment } from "@/lib/notifications";
-import { createClient } from "@/utils/supabase/server";
+import { buildNotifications } from "@/lib/notifications";
+import { getCachedNotifications } from "@/lib/cached-data";
 
 export async function Topbar() {
-  const [profile, supabase] = await Promise.all([getCurrentProfile(), createClient()]);
-  const [{ data: equipmentData, error: equipmentError }, { data: historyData, error: historyError }] = await Promise.all([
-    supabase.from("equipment").select("id,status,condition_state,year_acquired,assigned_to,assignee_id,equipment_categories(name,lifespan_years)"),
-    supabase.from("assignment_history").select("id,assigned_at,note,personnel(full_name)").order("assigned_at", { ascending: false }).limit(5),
-  ]);
-  const notificationUnavailable = Boolean(equipmentError || historyError);
+  const profile = await getCurrentProfile();
+  const notificationData = profile ? await getCachedNotifications(profile.role, profile.division_scope) : null;
+  const notificationUnavailable = Boolean(notificationData?.error);
   const notifications = notificationUnavailable
     ? []
-    : buildNotifications((equipmentData || []) as unknown as NotificationEquipment[], (historyData || []) as unknown as NotificationAssignment[]);
+    : buildNotifications(notificationData?.equipment || [], notificationData?.assignmentHistory || []);
 
   return (
     <header className="h-16 border-b border-line bg-canvas flex items-center px-6 lg:px-8 shrink-0">

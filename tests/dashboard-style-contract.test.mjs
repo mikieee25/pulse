@@ -116,8 +116,8 @@ test("personnel overview includes a data-driven outsourced staff card", async ()
   const page = await source("src/app/(dashboard)/personnel/page.tsx");
 
   assert.match(page, /outsourcedCount/);
-  assert.match(page, /\["Outsourced", "COS"\]\.includes\(person\.plantilla_status \?\? ""\)/);
-  assert.match(page, /label="Outsourced \/ COS"/);
+  assert.match(page, /effectivePlantillaStatus/);
+  assert.match(page, /label="Outsourced"/);
 });
 
 test("dashboard route states use the Budget panel treatment", async () => {
