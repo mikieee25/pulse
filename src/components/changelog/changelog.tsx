@@ -27,6 +27,17 @@ const kindStyles: Record<ChangeKind, { label: string; icon: LucideIcon; color: s
 
 const changelogGroups: ChangelogGroup[] = [
   {
+    date: "September 16, 2026",
+    release: "Reliability and workflow polish",
+    changes: [
+      { kind: "enhancement", title: "Persisted equipment filters", description: "Search, division, brand, lifecycle status, assignment, and page state now remain in the URL, so filtered inventory views survive refreshes and can be bookmarked or shared." },
+      { kind: "fix", title: "Improved mutation feedback", description: "Equipment, personnel, division, category, and user actions now show pending states, preserve useful validation errors, and prevent duplicate submissions while saving." },
+      { kind: "enhancement", title: "Refreshed lifecycle notifications", description: "Equipment changes now refresh affected alerts immediately, with links that open the relevant filtered inventory view and notification state scoped per account." },
+      { kind: "fix", title: "Standardized lifecycle calculations", description: "Lifecycle status now uses each category’s configured lifespan, while category aliases and labels are normalized consistently across inventory and reporting." },
+      { kind: "security", title: "Added a repeatable release quality gate", description: "Every release can now run linting, TypeScript checks, automated tests, domain verification, migration verification, and a production build as one command." },
+    ],
+  },
+  {
     date: "September 15, 2026",
     release: "Inventory assignment and category consistency",
     changes: [
@@ -106,7 +117,7 @@ export function Changelog() {
         eyebrow={<span className="inline-flex items-center gap-2"><History className="size-3.5" aria-hidden="true" />Product history</span>}
         title="PULSE Changelog"
         description="A plain-language record of the features, fixes, and operational improvements delivered to the Personnel & Unit Lifecycle System for Equipment."
-        actions={<span className="rounded-full border border-pulse/20 bg-pulse/10 px-3 py-2 text-xs font-medium text-pulse">Updated September 15, 2026</span>}
+        actions={<span className="rounded-full border border-pulse/20 bg-pulse/10 px-3 py-2 text-xs font-medium text-pulse">Updated September 16, 2026</span>}
       />
 
       <section aria-labelledby="changelog-overview-title" className="grid gap-4 sm:grid-cols-3">
