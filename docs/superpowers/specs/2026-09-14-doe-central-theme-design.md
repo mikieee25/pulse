@@ -22,18 +22,18 @@ Make PULSE a professional, light-first application with the DOE brand palette as
 
 The central theme file will preserve the supplied DOE values as named primitives:
 
-| Primitive | Hex |
-| --- | --- |
-| DOE blue | `#0000FE` |
-| DOE yellow | `#FFFF00` |
-| Blue light | `#397DFF` |
-| Blue balanced | `#1F5BF6` |
-| Blue bold | `#0341CB` |
-| Blue deep | `#0016A8` |
-| Yellow light | `#FFFE77` |
+| Primitive       | Hex       |
+| --------------- | --------- |
+| DOE blue        | `#0000FE` |
+| DOE yellow      | `#FFFF00` |
+| Blue light      | `#397DFF` |
+| Blue balanced   | `#1F5BF6` |
+| Blue bold       | `#0341CB` |
+| Blue deep       | `#0016A8` |
+| Yellow light    | `#FFFE77` |
 | Yellow balanced | `#FFEE4D` |
-| Yellow bold | `#FADB09` |
-| Yellow deep | `#E8B911` |
+| Yellow bold     | `#FADB09` |
+| Yellow deep     | `#E8B911` |
 
 Semantic tokens will map these primitives to application roles. The light theme will use white and very light blue-neutral surfaces, deep blue-neutral text, balanced/bold blue for actions, and a dark-text-on-yellow treatment for yellow controls. The dark theme will use deep blue-neutral surfaces with light/balanced blue actions and restrained yellow accents.
 

@@ -1,7 +1,10 @@
-import { createClient } from "@/utils/supabase/server";
-import { getCachedCategories, getCachedCategoryCosts, getCachedDivisions } from "@/lib/cached-data";
+import {
+  getCachedCategories,
+  getCachedCategoryCosts,
+  getCachedDivisions,
+} from "@/lib/cached-data";
 import { getCurrentProfile } from "@/lib/auth";
-import { needsReplacement } from "@/lib/pulse";
+import { getPlanningSnapshot } from "@/lib/inventory-queries";
 import { ExportButton } from "@/components/equipment/export-button";
 import { CategoryCostForm } from "@/components/budget/category-cost-form";
 import {
@@ -12,20 +15,9 @@ import {
   PackageCheck,
   ShieldCheck,
 } from "lucide-react";
+import { TablePageSizeSelect } from "@/components/layout/table-page-size-select";
 
-type Equipment = {
-  status: "Active" | "For Replacement" | "Retired";
-  condition_state: string;
-  year_acquired: number | null;
-  division: { code: string } | null;
-  equipment_categories: {
-    id: string;
-    name: string;
-    lifespan_years: number | null;
-  } | null;
-};
 type Category = { id: string; name: string; lifespan_years: number | null };
-type Cost = { category_id: string; year: number; unit_cost: number };
 
 const peso = new Intl.NumberFormat("en-PH", {
   style: "currency",
@@ -36,65 +28,56 @@ const peso = new Intl.NumberFormat("en-PH", {
 export default async function BudgetPage({
   searchParams,
 }: {
-  searchParams: Promise<{ year?: string }>;
+  searchParams: Promise<{ year?: string; pageSize?: string }>;
 }) {
-  const year = Number((await searchParams).year) || new Date().getFullYear();
-  const supabase = await createClient();
-
+  const params = await searchParams;
+  const year = Number(params.year) || new Date().getFullYear();
+  const requestedPageSize = Number(params.pageSize);
+  const pageSize = [10, 25, 50].includes(requestedPageSize)
+    ? requestedPageSize
+    : 25;
   const [
     profile,
-    { data: equipmentData, error: equipmentError },
+    planningResult,
     categoriesResult,
     costsResult,
     divisionsResult,
   ] = await Promise.all([
     getCurrentProfile(),
-    supabase
-      .from("equipment")
-      .select(
-        "status,condition_state,year_acquired,division:divisions(code),equipment_categories(id,name,lifespan_years)"
-      ),
+    getPlanningSnapshot(year, "replacement"),
     getCachedCategories(),
     getCachedCategoryCosts(year),
     getCachedDivisions(),
   ]);
   const { data: categoriesData, error: categoriesError } = categoriesResult;
   const { data: divisionsData, error: divisionsError } = divisionsResult;
+  const { data: planning, error: planningError } = planningResult;
   const { data: costs, error: costsError } = costsResult;
   const divisions = divisionsData.map(({ code }) => ({ code }));
 
   const queryError =
-    equipmentError || categoriesError || costsError || divisionsError;
+    planningError || categoriesError || costsError || divisionsError;
   if (queryError) {
-    console.error("Budget query failed", { message: typeof queryError === "string" ? queryError : queryError.message });
-    return <div className="rounded-lg border border-alert/30 bg-alert/10 p-6 text-alert">Budget data is unavailable. Try refreshing.</div>;
+    console.error("Budget query failed", { message: String(queryError) });
+    return (
+      <div className="rounded-lg border border-alert/30 bg-alert/10 p-6 text-alert">
+        Budget data is unavailable. Try refreshing.
+      </div>
+    );
   }
 
   const isAdmin = profile?.role === "Admin";
-  const equipment = (equipmentData || []) as unknown as Equipment[];
-
   const categories = (categoriesData || []) as Category[];
-
   const costByCategory = new Map(
-    ((costs || []) as Cost[]).map((cost) => [cost.category_id, cost.unit_cost])
+    (costs || []).map((row) => [row.category_id, row.unit_cost])
   );
 
   const replacementCounts = new Map<string, number>();
-  for (const item of equipment) {
-    const divisionCode = item.division?.code;
-    const categoryName = item.equipment_categories?.name;
-    if (!divisionCode || !categoryName) continue;
-    const replacement = needsReplacement(
-      item.status,
-      item.condition_state,
-      item.equipment_categories?.lifespan_years,
-      item.year_acquired,
-      new Date(year, 0, 1)
+  for (const item of planning || [])
+    replacementCounts.set(
+      `${item.division_code}|${item.category_name}`,
+      item.unit_count
     );
-    if (!replacement) continue;
-    const key = `${divisionCode}|${categoryName}`;
-    replacementCounts.set(key, (replacementCounts.get(key) || 0) + 1);
-  }
 
   // Pre-aggregate hierarchically: Division -> Categories
   const groupedData = (divisions || []).map((division) => {
@@ -172,7 +155,10 @@ export default async function BudgetPage({
 
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
             <form className="flex items-center gap-2 rounded-xl border border-line bg-canvas/80 p-1.5 shadow-sm">
-              <label htmlFor="budget-year" className="pl-2 text-xs font-medium text-slate">
+              <label
+                htmlFor="budget-year"
+                className="pl-2 text-xs font-medium text-slate"
+              >
                 FY
               </label>
               <input
@@ -194,12 +180,19 @@ export default async function BudgetPage({
         </div>
       </header>
 
-      <section aria-labelledby="budget-overview-title" className="grid gap-4 lg:grid-cols-[1.35fr_2fr]">
-        <h2 id="budget-overview-title" className="sr-only">Budget overview</h2>
+      <section
+        aria-labelledby="budget-overview-title"
+        className="grid gap-4 lg:grid-cols-[1.35fr_2fr]"
+      >
+        <h2 id="budget-overview-title" className="sr-only">
+          Budget overview
+        </h2>
         <article className="relative overflow-hidden rounded-2xl border border-pulse/25 bg-gradient-to-br from-pulse/15 via-canvas-deep to-canvas-deep p-6">
           <div className="flex items-start justify-between gap-4">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-pulse">Forecast requirement</p>
+              <p className="text-xs font-semibold uppercase tracking-[0.18em] text-pulse">
+                Forecast requirement
+              </p>
               <p className="mt-3 break-words font-sans text-3xl tabular-nums text-paper sm:text-4xl">
                 {peso.format(grandTotalCost)}
               </p>
@@ -216,16 +209,43 @@ export default async function BudgetPage({
 
         <div className="grid gap-4 sm:grid-cols-3">
           {[
-            { label: "Units for replacement", value: grandTotalUnits, detail: "ICT assets", icon: PackageCheck, tone: "text-paper bg-paper/5 border-line" },
-            { label: "Requesting divisions", value: requestingDivisions, detail: `of ${divisions?.length || 0} divisions`, icon: Building2, tone: "text-paper bg-paper/5 border-line" },
-            { label: "Rate coverage", value: `${coveragePercentage}%`, detail: `${pricedCategories} of ${categories.length} priced`, icon: ShieldCheck, tone: unpricedCount ? "text-warning bg-warning/5 border-warning/20" : "text-pulse bg-pulse/5 border-pulse/20" },
+            {
+              label: "Units for replacement",
+              value: grandTotalUnits,
+              detail: "ICT assets",
+              icon: PackageCheck,
+              tone: "text-paper bg-paper/5 border-line",
+            },
+            {
+              label: "Requesting divisions",
+              value: requestingDivisions,
+              detail: `of ${divisions?.length || 0} divisions`,
+              icon: Building2,
+              tone: "text-paper bg-paper/5 border-line",
+            },
+            {
+              label: "Rate coverage",
+              value: `${coveragePercentage}%`,
+              detail: `${pricedCategories} of ${categories.length} priced`,
+              icon: ShieldCheck,
+              tone: unpricedCount
+                ? "text-warning bg-warning/5 border-warning/20"
+                : "text-pulse bg-pulse/5 border-pulse/20",
+            },
           ].map(({ label, value, detail, icon: Icon, tone }) => (
-            <article key={label} className="rounded-2xl border border-line bg-canvas-deep p-5 transition-colors hover:border-paper/25">
-              <span className={`grid size-9 place-items-center rounded-lg border ${tone}`}>
+            <article
+              key={label}
+              className="rounded-2xl border border-line bg-canvas-deep p-5 transition-colors hover:border-paper/25"
+            >
+              <span
+                className={`grid size-9 place-items-center rounded-lg border ${tone}`}
+              >
                 <Icon className="size-4" aria-hidden="true" />
               </span>
               <p className="mt-5 text-xs font-medium text-slate">{label}</p>
-              <p className="mt-1 text-2xl font-semibold tabular-nums text-paper">{value}</p>
+              <p className="mt-1 text-2xl font-semibold tabular-nums text-paper">
+                {value}
+              </p>
               <p className="mt-1 text-xs text-slate">{detail}</p>
             </article>
           ))}
@@ -234,69 +254,149 @@ export default async function BudgetPage({
 
       {unpricedCount > 0 && (
         <div className="flex items-start gap-3 rounded-xl border border-warning/20 bg-warning/5 px-4 py-3 text-sm">
-          <CircleAlert className="mt-0.5 size-4 shrink-0 text-warning" aria-hidden="true" />
+          <CircleAlert
+            className="mt-0.5 size-4 shrink-0 text-warning"
+            aria-hidden="true"
+          />
           <p className="text-slate">
-            <span className="font-medium text-warning">{unpricedCount} {unpricedCount === 1 ? "category needs" : "categories need"} a rate.</span>{" "}
+            <span className="font-medium text-warning">
+              {unpricedCount}{" "}
+              {unpricedCount === 1 ? "category needs" : "categories need"} a
+              rate.
+            </span>{" "}
             Forecast totals exclude replacement units without a standard cost.
           </p>
         </div>
       )}
 
-      <div className={`grid items-start gap-6 ${isAdmin ? "xl:grid-cols-[minmax(0,1fr)_320px]" : ""}`}>
-        <section className="min-w-0 overflow-hidden rounded-2xl border border-line bg-canvas-deep shadow-xl shadow-black/5" aria-labelledby="replacement-breakdown-title">
+      <div
+        className={`grid items-start gap-6 ${isAdmin ? "xl:grid-cols-[minmax(0,1fr)_320px]" : ""}`}
+      >
+        <section
+          className="min-w-0 overflow-hidden rounded-2xl border border-line bg-canvas-deep shadow-xl shadow-black/5"
+          aria-labelledby="replacement-breakdown-title"
+        >
           <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-4">
             <div>
-              <h2 id="replacement-breakdown-title" className="font-sans text-xl text-paper">Replacement breakdown</h2>
-              <p className="mt-1 text-xs text-slate">Division totals with category-level costing</p>
+              <h2
+                id="replacement-breakdown-title"
+                className="font-sans text-xl text-paper"
+              >
+                Replacement breakdown
+              </h2>
+              <p className="mt-1 text-xs text-slate">
+                Division totals with category-level costing
+              </p>
             </div>
-            <span className="rounded-full border border-line bg-canvas px-3 py-1 text-xs text-slate">
-              {groupedData.length} divisions
-            </span>
+            <div className="flex items-center gap-3">
+              <form method="get">
+                <input type="hidden" name="year" value={year} />
+                <TablePageSizeSelect value={pageSize} name="pageSize" />
+              </form>
+              <span className="rounded-full border border-line bg-canvas px-3 py-1 text-xs text-slate">
+                {groupedData.length} divisions
+              </span>
+            </div>
           </div>
 
           {groupedData.length === 0 ? (
             <div className="grid min-h-56 place-items-center p-8 text-center">
               <div>
-                <PackageCheck className="mx-auto size-8 text-slate" aria-hidden="true" />
-                <p className="mt-3 text-sm font-medium text-paper">No budget records yet</p>
-                <p className="mt-1 text-xs text-slate">No divisions or lifespan-tracked categories were found.</p>
+                <PackageCheck
+                  className="mx-auto size-8 text-slate"
+                  aria-hidden="true"
+                />
+                <p className="mt-3 text-sm font-medium text-paper">
+                  No budget records yet
+                </p>
+                <p className="mt-1 text-xs text-slate">
+                  No divisions or lifespan-tracked categories were found.
+                </p>
               </div>
             </div>
           ) : (
             <div className="max-h-[720px] overflow-auto">
               <table className="w-full min-w-[680px] text-left text-xs">
-                <caption className="sr-only">FY {year} replacement budget by division and equipment category</caption>
+                <caption className="sr-only">
+                  FY {year} replacement budget by division and equipment
+                  category
+                </caption>
                 <thead className="sticky top-0 z-20 border-b border-line bg-canvas text-slate shadow-sm">
                   <tr>
-                    <th scope="col" className="px-5 py-3 font-medium">Category</th>
-                    <th scope="col" className="px-4 py-3 text-right font-medium">Units</th>
-                    <th scope="col" className="px-4 py-3 text-right font-medium">Unit cost</th>
-                    <th scope="col" className="px-5 py-3 text-right font-medium">Subtotal</th>
+                    <th scope="col" className="px-5 py-3 font-medium">
+                      Category
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-4 py-3 text-right font-medium"
+                    >
+                      Units
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-4 py-3 text-right font-medium"
+                    >
+                      Unit cost
+                    </th>
+                    <th
+                      scope="col"
+                      className="px-5 py-3 text-right font-medium"
+                    >
+                      Subtotal
+                    </th>
                   </tr>
                 </thead>
-                {groupedData.map((group) => (
+                {groupedData.slice(0, pageSize).map((group) => (
                   <tbody key={group.code}>
                     <tr className="border-y border-line bg-canvas/80">
-                      <th scope="rowgroup" colSpan={2} className="px-5 py-3 text-left font-semibold text-paper">
+                      <th
+                        scope="rowgroup"
+                        colSpan={2}
+                        className="px-5 py-3 text-left font-semibold text-paper"
+                      >
                         <span className="mr-2 inline-block size-1.5 rounded-full bg-pulse align-middle" />
                         {group.code}
                       </th>
-                      <td className="px-4 py-3 text-right font-medium text-slate">{group.divisionUnits} units</td>
-                      <td className="px-5 py-3 text-right font-semibold tabular-nums text-paper">{peso.format(group.divisionCost)}</td>
+                      <td className="px-4 py-3 text-right font-medium text-slate">
+                        {group.divisionUnits} units
+                      </td>
+                      <td className="px-5 py-3 text-right font-semibold tabular-nums text-paper">
+                        {peso.format(group.divisionCost)}
+                      </td>
                     </tr>
                     {group.items.map((item) => {
-                      const hasMissingRate = item.units > 0 && item.unitCost === 0;
+                      const hasMissingRate =
+                        item.units > 0 && item.unitCost === 0;
                       return (
-                        <tr key={`${group.code}-${item.categoryName}`} className={`border-b border-line/50 transition hover:bg-paper/[0.025] ${item.units === 0 ? "text-slate/45" : ""}`}>
+                        <tr
+                          key={`${group.code}-${item.categoryName}`}
+                          className={`border-b border-line/50 transition hover:bg-paper/[0.025] ${item.units === 0 ? "text-slate/45" : ""}`}
+                        >
                           <td className="px-5 py-3 pl-9 font-medium text-paper">
                             <div className="flex items-center gap-2">
                               <span>{item.categoryName}</span>
-                              {hasMissingRate && <span className="rounded-full border border-warning/20 bg-warning/10 px-2 py-0.5 text-[10px] font-medium text-warning">Missing rate</span>}
+                              {hasMissingRate && (
+                                <span className="rounded-full border border-warning/20 bg-warning/10 px-2 py-0.5 text-[10px] font-medium text-warning">
+                                  Missing rate
+                                </span>
+                              )}
                             </div>
                           </td>
-                          <td className="px-4 py-3 text-right font-semibold tabular-nums text-paper">{item.units}</td>
-                          <td className={`px-4 py-3 text-right tabular-nums ${hasMissingRate ? "text-warning" : "text-slate"}`}>{item.unitCost > 0 ? peso.format(item.unitCost) : "—"}</td>
-                          <td className={`px-5 py-3 text-right font-semibold tabular-nums ${item.subtotal > 0 ? "text-pulse" : "text-slate"}`}>{peso.format(item.subtotal)}</td>
+                          <td className="px-4 py-3 text-right font-semibold tabular-nums text-paper">
+                            {item.units}
+                          </td>
+                          <td
+                            className={`px-4 py-3 text-right tabular-nums ${hasMissingRate ? "text-warning" : "text-slate"}`}
+                          >
+                            {item.unitCost > 0
+                              ? peso.format(item.unitCost)
+                              : "—"}
+                          </td>
+                          <td
+                            className={`px-5 py-3 text-right font-semibold tabular-nums ${item.subtotal > 0 ? "text-pulse" : "text-slate"}`}
+                          >
+                            {peso.format(item.subtotal)}
+                          </td>
                         </tr>
                       );
                     })}
@@ -304,10 +404,21 @@ export default async function BudgetPage({
                 ))}
                 <tfoot className="sticky bottom-0 z-10 border-t-2 border-line bg-canvas shadow-[0_-8px_20px_rgba(0,0,0,0.2)]">
                   <tr>
-                    <th scope="row" className="px-5 py-4 text-sm font-semibold text-paper">Grand total</th>
-                    <td className="px-4 py-4 text-right font-semibold tabular-nums text-paper">{grandTotalUnits}</td>
-                    <td className="px-4 py-4 text-right text-slate">FY {year}</td>
-                    <td className="px-5 py-4 text-right text-base font-semibold tabular-nums text-pulse">{peso.format(grandTotalCost)}</td>
+                    <th
+                      scope="row"
+                      className="px-5 py-4 text-sm font-semibold text-paper"
+                    >
+                      Grand total
+                    </th>
+                    <td className="px-4 py-4 text-right font-semibold tabular-nums text-paper">
+                      {grandTotalUnits}
+                    </td>
+                    <td className="px-4 py-4 text-right text-slate">
+                      FY {year}
+                    </td>
+                    <td className="px-5 py-4 text-right text-base font-semibold tabular-nums text-pulse">
+                      {peso.format(grandTotalCost)}
+                    </td>
                   </tr>
                 </tfoot>
               </table>
@@ -316,12 +427,24 @@ export default async function BudgetPage({
         </section>
 
         {isAdmin && (
-          <aside className="rounded-2xl border border-line bg-canvas-deep p-5 xl:sticky xl:top-6" aria-labelledby="standard-rates-title">
+          <aside
+            className="rounded-2xl border border-line bg-canvas-deep p-5 xl:sticky xl:top-6"
+            aria-labelledby="standard-rates-title"
+          >
             <div className="flex items-start justify-between gap-3">
               <div>
-                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-pulse">Admin controls</p>
-                <h2 id="standard-rates-title" className="mt-1 font-sans text-xl text-paper">Standard rates</h2>
-                <p className="mt-1 text-xs leading-5 text-slate">Set one replacement cost per category for FY {year}.</p>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-pulse">
+                  Admin controls
+                </p>
+                <h2
+                  id="standard-rates-title"
+                  className="mt-1 font-sans text-xl text-paper"
+                >
+                  Standard rates
+                </h2>
+                <p className="mt-1 text-xs leading-5 text-slate">
+                  Set one replacement cost per category for FY {year}.
+                </p>
               </div>
               <span className="grid size-9 shrink-0 place-items-center rounded-lg border border-line bg-canvas text-slate">
                 <Banknote className="size-4" aria-hidden="true" />
@@ -332,7 +455,14 @@ export default async function BudgetPage({
               {categories.map((category) => {
                 const currentCost = costByCategory.get(category.id);
                 return (
-                  <CategoryCostForm key={category.id} categoryId={category.id} year={year} categoryName={category.name} lifespanYears={category.lifespan_years} unitCost={currentCost} />
+                  <CategoryCostForm
+                    key={category.id}
+                    categoryId={category.id}
+                    year={year}
+                    categoryName={category.name}
+                    lifespanYears={category.lifespan_years}
+                    unitCost={currentCost}
+                  />
                 );
               })}
             </div>

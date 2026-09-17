@@ -1,11 +1,11 @@
-"use client"
+"use client";
 
-import { useState } from "react"
-import { useForm } from "react-hook-form"
-import { zodResolver } from "@hookform/resolvers/zod"
-import * as z from "zod"
-import { Button } from "@/components/ui/button"
-import { addDivision } from "@/app/actions/divisions"
+import { useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import * as z from "zod";
+import { Button } from "@/components/ui/button";
+import { addDivision } from "@/app/actions/divisions";
 import {
   Dialog,
   DialogContent,
@@ -13,7 +13,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
-} from "@/components/ui/dialog"
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -21,43 +21,43 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 
 const formSchema = z.object({
   code: z.string().min(1, "Division code is required"),
   full_name: z.string().min(1, "Division name is required"),
-})
+});
 
 export function AddDivisionDialog({ children }: { children: React.ReactNode }) {
-  const [open, setOpen] = useState(false)
-  const [saving, setSaving] = useState(false)
-  const [error, setError] = useState("")
-  
+  const [open, setOpen] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       code: "",
       full_name: "",
     },
-  })
+  });
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    if (saving) return
-    setSaving(true)
-    setError("")
+    if (saving) return;
+    setSaving(true);
+    setError("");
     try {
-      const result = await addDivision(values)
+      const result = await addDivision(values);
       if (!result?.error) {
-        setOpen(false)
-        form.reset()
+        setOpen(false);
+        form.reset();
       } else {
-        setError(result.error)
+        setError(result.error);
       }
     } catch {
-      setError("Could not save division.")
+      setError("Could not save division.");
     } finally {
-      setSaving(false)
+      setSaving(false);
     }
   }
 
@@ -80,7 +80,11 @@ export function AddDivisionDialog({ children }: { children: React.ReactNode }) {
                 <FormItem>
                   <FormLabel>Division Code</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g. ITD" {...field} className="bg-canvas border-line uppercase" />
+                    <Input
+                      placeholder="e.g. ITD"
+                      {...field}
+                      className="bg-canvas border-line uppercase"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
@@ -93,15 +97,27 @@ export function AddDivisionDialog({ children }: { children: React.ReactNode }) {
                 <FormItem>
                   <FormLabel>Full Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g. Information Technology Division" {...field} className="bg-canvas border-line" />
+                    <Input
+                      placeholder="e.g. Information Technology Division"
+                      {...field}
+                      className="bg-canvas border-line"
+                    />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-            {error && <p role="alert" className="text-sm text-alert">{error}</p>}
+            {error && (
+              <p role="alert" className="text-sm text-alert">
+                {error}
+              </p>
+            )}
             <div className="flex justify-end pt-4">
-              <Button type="submit" disabled={saving} className="bg-pulse text-canvas-deep hover:bg-pulse/90">
+              <Button
+                type="submit"
+                disabled={saving}
+                className="bg-pulse text-canvas-deep hover:bg-pulse/90"
+              >
                 {saving ? "Saving…" : "Save Division"}
               </Button>
             </div>
@@ -109,5 +125,5 @@ export function AddDivisionDialog({ children }: { children: React.ReactNode }) {
         </Form>
       </DialogContent>
     </Dialog>
-  )
+  );
 }

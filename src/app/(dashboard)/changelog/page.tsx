@@ -1,5 +1,5 @@
-import Changelog from "@/components/changelog/changelog"
+import Changelog from "@/components/changelog/changelog";
 
 export default function ChangelogPage() {
-  return <Changelog />
+  return <Changelog />;
 }

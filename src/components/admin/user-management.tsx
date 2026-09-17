@@ -7,6 +7,7 @@ import { createUser, updateUser, deleteUser } from "@/app/actions/admin";
 import { SectionPanel } from "@/components/layout/section-panel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { TablePageSizeSelect } from "@/components/layout/table-page-size-select";
 
 export type User = {
   id: string;
@@ -29,6 +30,7 @@ export function UserManagement({
   const [creating, setCreating] = useState(false);
   const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
   const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
+  const [pageSize, setPageSize] = useState(25);
   const router = useRouter();
 
   async function addUser(event: FormEvent<HTMLFormElement>) {
@@ -50,7 +52,9 @@ export function UserManagement({
       if (result.error) {
         setErrorMsg(result.error);
       } else {
-        setSuccessMsg("User created. Give them the temporary password securely.");
+        setSuccessMsg(
+          "User created. Give them the temporary password securely."
+        );
         formElement.reset();
         router.refresh();
       }
@@ -169,7 +173,9 @@ export function UserManagement({
           <Button
             type="submit"
             size="lg"
-            disabled={creating || updatingUserId !== null || deletingUserId !== null}
+            disabled={
+              creating || updatingUserId !== null || deletingUserId !== null
+            }
             className="inline-flex items-center gap-2"
           >
             <UserPlus className="size-4" aria-hidden="true" />
@@ -199,6 +205,9 @@ export function UserManagement({
         title="Registered users"
         description="Update roles and division access for existing users."
       >
+        <div className="flex justify-end border-b border-line px-5 py-3">
+          <TablePageSizeSelect value={pageSize} onChange={setPageSize} />
+        </div>
         <div className="overflow-auto">
           <table className="w-full min-w-[760px] text-sm">
             <caption className="sr-only">Registered PULSE users</caption>
@@ -216,7 +225,7 @@ export function UserManagement({
               </tr>
             </thead>
             <tbody>
-              {users.map((user) => (
+              {users.slice(0, pageSize).map((user) => (
                 <tr
                   key={user.id}
                   className="border-b border-line/50 transition hover:bg-paper/[0.025]"
@@ -255,12 +264,26 @@ export function UserManagement({
                           </option>
                         ))}
                       </select>
-                      <Button type="submit" size="lg" disabled={creating || updatingUserId !== null || deletingUserId !== null}>{updatingUserId === user.id ? "Saving…" : "Save"}</Button>
+                      <Button
+                        type="submit"
+                        size="lg"
+                        disabled={
+                          creating ||
+                          updatingUserId !== null ||
+                          deletingUserId !== null
+                        }
+                      >
+                        {updatingUserId === user.id ? "Saving…" : "Save"}
+                      </Button>
                       <Button
                         type="button"
                         size="icon-lg"
                         variant="destructive"
-                        disabled={creating || updatingUserId !== null || deletingUserId !== null}
+                        disabled={
+                          creating ||
+                          updatingUserId !== null ||
+                          deletingUserId !== null
+                        }
                         onClick={() => removeUser(user.id)}
                         title="Remove user"
                       >

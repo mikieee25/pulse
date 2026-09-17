@@ -22,6 +22,7 @@
 ### Task 1: Shared domain helpers and migration correctness
 
 **Files:**
+
 - Create: `src/lib/pulse.ts`
 - Modify: `scripts/migrate.ts`
 - Modify: `supabase/seed.sql`
@@ -36,6 +37,7 @@
 ### Task 2: Database mutation and authentication foundations
 
 **Files:**
+
 - Create: `src/app/actions/auth.ts`
 - Create: `src/app/auth/login/route.ts`
 - Create: `src/app/auth/logout/route.ts`
@@ -52,6 +54,7 @@
 ### Task 3: Equipment and personnel workflows
 
 **Files:**
+
 - Create: `src/components/equipment/equipment-actions.tsx`
 - Modify: `src/app/(dashboard)/equipment/page.tsx`
 - Modify: `src/app/(dashboard)/equipment/[id]/page.tsx`
@@ -70,6 +73,7 @@
 ### Task 4: Dashboard, budget, reports, and admin routes
 
 **Files:**
+
 - Create: `src/app/(dashboard)/reports/page.tsx`
 - Create: `src/app/(dashboard)/admin/page.tsx`
 - Create: `src/app/(dashboard)/admin/users/page.tsx`

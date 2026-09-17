@@ -1,10 +1,12 @@
-import "server-only"
+import "server-only";
 
-import { createClient } from "@supabase/supabase-js"
+import { createClient } from "@supabase/supabase-js";
 
 export function createAdminClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const secret = process.env.SUPABASE_SERVICE_ROLE_KEY
-  if (!url || !secret) return null
-  return createClient(url, secret, { auth: { autoRefreshToken: false, persistSession: false } })
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const secret = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  if (!url || !secret) return null;
+  return createClient(url, secret, {
+    auth: { autoRefreshToken: false, persistSession: false },
+  });
 }

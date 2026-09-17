@@ -28,7 +28,9 @@ export function MetricCard({
   return (
     <article className="rounded-2xl border border-line bg-canvas-deep p-5 transition-colors hover:border-paper/25">
       {Icon && (
-        <span className={`grid size-9 place-items-center rounded-lg border ${toneClasses[tone]}`}>
+        <span
+          className={`grid size-9 place-items-center rounded-lg border ${toneClasses[tone]}`}
+        >
           <Icon className="size-4" aria-hidden="true" />
         </span>
       )}

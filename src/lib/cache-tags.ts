@@ -4,4 +4,6 @@ export const PULSE_CACHE_TAGS = {
   personnel: "pulse:personnel",
   costs: "pulse:costs",
   notifications: "pulse:notifications",
-} as const
+  inventory: "pulse:inventory",
+  planning: "pulse:planning",
+} as const;

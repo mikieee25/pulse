@@ -17,12 +17,19 @@ export function SectionPanel({
   className,
 }: SectionPanelProps) {
   return (
-    <section className={cn("overflow-hidden rounded-2xl border border-line bg-canvas-deep shadow-xl shadow-black/5", className)}>
+    <section
+      className={cn(
+        "overflow-hidden rounded-2xl border border-line bg-canvas-deep shadow-xl shadow-black/5",
+        className
+      )}
+    >
       {(title || description || actions) && (
         <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line px-5 py-4">
           <div>
             {title && <h2 className="font-sans text-xl text-paper">{title}</h2>}
-            {description && <p className="mt-1 text-xs text-slate">{description}</p>}
+            {description && (
+              <p className="mt-1 text-xs text-slate">{description}</p>
+            )}
           </div>
           {actions}
         </div>

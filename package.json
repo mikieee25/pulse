@@ -12,7 +12,9 @@
     "check": "npm run lint && npm run typecheck && npm test && npm run verify:pulse && npm run verify:migration && npm run build",
     "migrate": "tsx scripts/migrate.ts",
     "verify:migration": "tsx scripts/verify-migration.ts",
-    "verify:pulse": "tsx scripts/verify-pulse.ts"
+    "verify:pulse": "tsx scripts/verify-pulse.ts",
+    "verify:performance": "tsx scripts/verify-performance.ts",
+    "measure:production": "node scripts/measure-production.mjs"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",

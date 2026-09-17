@@ -1,33 +1,52 @@
-import { createServerClient } from "@supabase/ssr"
-import { NextResponse, type NextRequest } from "next/server"
-import { getPasswordChangeRedirect } from "@/lib/temporary-password"
+import { createServerClient } from "@supabase/ssr";
+import { NextResponse, type NextRequest } from "next/server";
+import { getPasswordChangeRedirect } from "@/lib/temporary-password";
 
 export async function proxy(request: NextRequest) {
-  let response = NextResponse.next({ request })
-  const pathname = request.nextUrl.pathname
+  let response = NextResponse.next({ request });
+  const pathname = request.nextUrl.pathname;
 
   // The login route handler must be able to create the Supabase session.
-  if (pathname.startsWith("/auth/")) return response
+  if (pathname.startsWith("/auth/")) return response;
 
-  const supabase = createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
-    cookies: {
-      getAll: () => request.cookies.getAll(),
-      setAll: (cookies) => {
-        cookies.forEach(({ name, value }) => request.cookies.set(name, value))
-        response = NextResponse.next({ request })
-        cookies.forEach(({ name, value, options }) => response.cookies.set(name, value, options))
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll: () => request.cookies.getAll(),
+        setAll: (cookies) => {
+          cookies.forEach(({ name, value }) =>
+            request.cookies.set(name, value)
+          );
+          response = NextResponse.next({ request });
+          cookies.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          );
+        },
       },
-    },
-  })
-  const { data: { user } } = await supabase.auth.getUser()
-  const isLogin = pathname === "/login"
-  if (!user && !isLogin) return NextResponse.redirect(new URL("/login", request.url))
+    }
+  );
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  const isLogin = pathname === "/login";
+  if (!user && !isLogin)
+    return NextResponse.redirect(new URL("/login", request.url));
   if (user) {
-    const forcedRedirect = getPasswordChangeRedirect(pathname, user.app_metadata?.must_change_password === true)
-    if (forcedRedirect) return NextResponse.redirect(new URL(forcedRedirect, request.url))
-    if (isLogin) return NextResponse.redirect(new URL("/", request.url))
+    const forcedRedirect = getPasswordChangeRedirect(
+      pathname,
+      user.app_metadata?.must_change_password === true
+    );
+    if (forcedRedirect)
+      return NextResponse.redirect(new URL(forcedRedirect, request.url));
+    if (isLogin) return NextResponse.redirect(new URL("/", request.url));
   }
-  return response
+  return response;
 }
 
-export const config = { matcher: ["/((?!_next/static|_next/image|favicon.ico|pulseicon.svg|pulselogo.svg|.*\\.(?:png|jpg|jpeg|webp|gif)).*)"] }
+export const config = {
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|pulseicon.svg|pulselogo.svg|.*\\.(?:png|jpg|jpeg|webp|gif)).*)",
+  ],
+};

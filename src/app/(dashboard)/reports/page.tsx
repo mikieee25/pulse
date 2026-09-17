@@ -1,37 +1,46 @@
-import { createClient } from "@/utils/supabase/server"
-import { ReportsClient, type ReportEquipment } from "./reports-client"
-import { getCachedCategoryCosts } from "@/lib/cached-data"
+import { ReportsClient, type ReportEquipment } from "./reports-client";
+import { getReportPage } from "@/lib/inventory-queries";
 
-export default async function ReportsPage() {
-  const supabase = await createClient()
-  const currentYear = new Date().getFullYear()
-  const [{ data, error }, { data: costs, error: costsError }] = await Promise.all([
-    supabase.from("equipment").select(`
-      id,
-      brand,
-      model,
-      year_acquired,
-      serial_number,
-      procurement_method,
-      status,
-      condition_state,
-      division:divisions(code),
-      personnel!equipment_assigned_to_fkey(full_name),
-      assignee:personnel!equipment_assignee_id_fkey(full_name),
-      equipment_categories(id,name,lifespan_years)
-    `).order("created_at", { ascending: false }),
-    getCachedCategoryCosts(),
-  ])
+export default async function ReportsPage({ searchParams }: { searchParams?: Promise<Record<string, string | undefined>> }) {
+  const params = (await searchParams) || {};
+  const { rows, error } = await getReportPage({
+        q: params.q || "",
+        division: params.division || "",
+        brand: params.brand || "",
+        status: (params.status as "" | "Active" | "Expiring soon" | "For Replacement" | "Broken" | "Retired") || "",
+        assignment: params.assignment === "unassigned" ? "unassigned" : "",
+        page: Number(params.page) || 1,
+        pageSize: Number(params.pageSize) || 25,
+        category: params.category || "",
+  });
 
-  const queryError = error || costsError
+  const queryError = error;
   if (queryError) {
-    console.error("Reports query failed", { message: typeof queryError === "string" ? queryError : queryError.message })
-    return <div className="rounded-lg border border-alert/30 bg-alert/10 p-6 text-alert">Report data is unavailable. Try refreshing.</div>
+    console.error("Reports query failed", {
+      message: String(queryError),
+    });
+    return (
+      <div className="rounded-lg border border-alert/30 bg-alert/10 p-6 text-alert">
+        Report data is unavailable. Try refreshing.
+      </div>
+    );
   }
 
-  const rateByCategory = new Map<string, number>()
-  for (const cost of costs || []) if (cost.year <= currentYear && !rateByCategory.has(cost.category_id)) rateByCategory.set(cost.category_id, cost.unit_cost)
-  const equipment = ((data || []) as unknown as Array<ReportEquipment & { equipment_categories: { id: string; name: string; lifespan_years: number | null } | null }>).map((item) => ({ ...item, rate: item.equipment_categories ? rateByCategory.get(item.equipment_categories.id) || 0 : 0 }))
-  
-  return <ReportsClient initialData={equipment} />
+  const equipment = rows.map((item) => ({
+    id: item.id,
+    brand: item.brand,
+    model: item.model,
+    year_acquired: item.year_acquired,
+    serial_number: item.serial_number,
+    procurement_method: null,
+    status: item.status,
+    condition_state: item.condition_state,
+    rate: 0,
+    division: item.division,
+    personnel: item.personnel,
+    assignee: item.assignee,
+    equipment_categories: item.equipment_categories,
+  })) as ReportEquipment[];
+
+  return <ReportsClient initialData={equipment} />;
 }

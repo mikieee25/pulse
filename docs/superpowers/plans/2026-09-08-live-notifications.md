@@ -23,33 +23,47 @@
 ### Task 1: Define the notification contract and failing tests
 
 **Files:**
+
 - Create: `tests/live-notifications.test.mjs`
 - Inspect: `src/components/layout/topbar.tsx`, `src/lib/pulse.ts`
 
 **Interfaces:**
+
 - Produces the contract for `NotificationItem`, `buildNotifications`, `NotificationBell`, and the server query fields used by later tasks.
 
 - [ ] **Step 1: Write the failing test**
 
 ```js
-import assert from "node:assert/strict"
-import { readFile } from "node:fs/promises"
-import test from "node:test"
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import test from "node:test";
 
-const helper = await readFile(new URL("../src/lib/notifications.ts", import.meta.url), "utf8").catch(() => "")
-const bell = await readFile(new URL("../src/components/notifications/notification-bell.tsx", import.meta.url), "utf8").catch(() => "")
-const topbar = await readFile(new URL("../src/components/layout/topbar.tsx", import.meta.url), "utf8")
+const helper = await readFile(
+  new URL("../src/lib/notifications.ts", import.meta.url),
+  "utf8"
+).catch(() => "");
+const bell = await readFile(
+  new URL(
+    "../src/components/notifications/notification-bell.tsx",
+    import.meta.url
+  ),
+  "utf8"
+).catch(() => "");
+const topbar = await readFile(
+  new URL("../src/components/layout/topbar.tsx", import.meta.url),
+  "utf8"
+);
 
 test("live notifications cover lifecycle and assignment signals", () => {
-  assert.match(helper, /buildNotifications/)
-  assert.match(helper, /For Replacement/)
-  assert.match(helper, /Expiring soon/)
-  assert.match(helper, /unassigned/i)
-  assert.match(bell, /Mark all as read/)
-  assert.match(bell, /localStorage/)
-  assert.match(topbar, /NotificationBell/)
-  assert.match(topbar, /assignment_history/)
-})
+  assert.match(helper, /buildNotifications/);
+  assert.match(helper, /For Replacement/);
+  assert.match(helper, /Expiring soon/);
+  assert.match(helper, /unassigned/i);
+  assert.match(bell, /Mark all as read/);
+  assert.match(bell, /localStorage/);
+  assert.match(topbar, /NotificationBell/);
+  assert.match(topbar, /assignment_history/);
+});
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
@@ -68,9 +82,11 @@ git commit -m "test: define live notification contract"
 ### Task 2: Implement the pure live-alert builder
 
 **Files:**
+
 - Create: `src/lib/notifications.ts`
 
 **Interfaces:**
+
 - Produces `NotificationItem` and `buildNotifications(input, now)`.
 - `NotificationItem` fields: `id`, `kind`, `title`, `description`, `href`, `tone`, and optional `timestamp`.
 - `buildNotifications` accepts equipment rows with `id`, `status`, `condition_state`, `year_acquired`, nullable `assigned_to`, nullable `assignee_id`, and nullable `equipment_categories.name`, plus assignment rows with `id`, `assigned_at`, `note`, and nullable `personnel.full_name`.
@@ -104,9 +120,11 @@ git commit -m "feat: derive live pulse notifications"
 ### Task 3: Add the client notification bell
 
 **Files:**
+
 - Create: `src/components/notifications/notification-bell.tsx`
 
 **Interfaces:**
+
 - Consumes: `notifications: NotificationItem[]`, `unavailable?: boolean`.
 - Produces: A bell button with unread badge, an accessible dropdown, alert links, an empty/unavailable state, and a “Mark all as read” button.
 
@@ -134,9 +152,11 @@ git commit -m "feat: add notification bell dropdown"
 ### Task 4: Connect the server topbar to Supabase
 
 **Files:**
+
 - Modify: `src/components/layout/topbar.tsx`
 
 **Interfaces:**
+
 - Consumes: `createClient`, `buildNotifications`, `NotificationBell`, and the current profile helper.
 - Produces: Authenticated live notification data without blocking profile/sign-out rendering.
 
@@ -179,6 +199,7 @@ git commit -m "feat: connect topbar notifications to live data"
 ### Task 5: Verify production and LAN behavior
 
 **Files:**
+
 - Test: `tests/live-notifications.test.mjs`
 
 - [ ] **Step 1: Build the application**
@@ -194,4 +215,3 @@ Restart only the PULSE process on port 3000, then open `http://192.168.68.58:300
 - [ ] **Step 3: Verify the bell manually**
 
 Sign in, open the bell, confirm live alert groups appear when applicable, activate “Mark all as read”, confirm the unread badge clears, refresh, and confirm the local read state remains.
-

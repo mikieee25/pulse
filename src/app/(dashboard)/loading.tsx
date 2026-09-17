@@ -8,7 +8,10 @@ export default function Loading() {
       </div>
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {["w-20", "w-16", "w-24", "w-28"].map((width) => (
-          <div key={width} className="animate-pulse rounded-2xl border border-line bg-canvas-deep p-5">
+          <div
+            key={width}
+            className="animate-pulse rounded-2xl border border-line bg-canvas-deep p-5"
+          >
             <div className="size-9 rounded-lg bg-paper/10" />
             <div className={`mt-5 h-3 ${width} rounded bg-slate/10`} />
             <div className="mt-2 h-8 w-20 rounded bg-paper/10" />
@@ -20,5 +23,5 @@ export default function Loading() {
         <div className="h-64 animate-pulse rounded-2xl border border-line bg-canvas-deep" />
       </div>
     </div>
-  )
+  );
 }

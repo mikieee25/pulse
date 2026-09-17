@@ -1,8 +1,12 @@
-import { Button } from "@/components/ui/button"
-import { BrandLockup } from "@/components/layout/brand-lockup"
+import { Button } from "@/components/ui/button";
+import { BrandLockup } from "@/components/layout/brand-lockup";
 
-export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string; message?: string }> }) {
-  const { error, message } = await searchParams
+export default async function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string; message?: string }>;
+}) {
+  const { error, message } = await searchParams;
   return (
     <div className="min-h-screen flex items-center justify-center bg-white p-4 dark:bg-canvas-deep">
       <div className="w-full max-w-lg space-y-8">
@@ -15,7 +19,12 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           <form className="space-y-6" action="/auth/login" method="POST">
             <div className="space-y-4">
               <div>
-                <label htmlFor="login-email" className="block text-sm font-medium text-slate mb-1">Email</label>
+                <label
+                  htmlFor="login-email"
+                  className="block text-sm font-medium text-slate mb-1"
+                >
+                  Email
+                </label>
                 <input
                   id="login-email"
                   type="email"
@@ -25,7 +34,12 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
                 />
               </div>
               <div>
-                <label htmlFor="login-password" className="block text-sm font-medium text-slate mb-1">Password</label>
+                <label
+                  htmlFor="login-password"
+                  className="block text-sm font-medium text-slate mb-1"
+                >
+                  Password
+                </label>
                 <input
                   id="login-password"
                   type="password"
@@ -36,8 +50,16 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
               </div>
             </div>
 
-            {error && <p className="text-sm text-alert" role="alert">{error}</p>}
-            {message && <p className="text-sm text-pulse" role="status">{message}</p>}
+            {error && (
+              <p className="text-sm text-alert" role="alert">
+                {error}
+              </p>
+            )}
+            {message && (
+              <p className="text-sm text-pulse" role="status">
+                {message}
+              </p>
+            )}
             <Button type="submit" className="w-full h-10 mt-2">
               Sign In
             </Button>

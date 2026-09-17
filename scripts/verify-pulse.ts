@@ -1,9 +1,21 @@
-import assert from "node:assert/strict"
-import { lifecycleStatus, suggestedInitials } from "../src/lib/pulse"
+import assert from "node:assert/strict";
+import { lifecycleStatus, suggestedInitials } from "../src/lib/pulse";
 
-assert.equal(lifecycleStatus("Active", 3, 2020, new Date("2026-09-07")), "For Replacement")
-assert.equal(lifecycleStatus("Active", 3, 2024, new Date("2026-09-07")), "Expiring soon")
-assert.equal(lifecycleStatus("Active", 3, 2018, new Date("2026-09-07")), "For Replacement")
-assert.equal(lifecycleStatus("Retired", 3, 2024, new Date("2026-09-07")), "Retired")
-assert.equal(suggestedInitials("Michael Angelo O. Guarin"), "MAOG")
-console.log("PULSE domain verification passed")
+assert.equal(
+  lifecycleStatus("Active", 3, 2020, new Date("2026-09-07")),
+  "For Replacement"
+);
+assert.equal(
+  lifecycleStatus("Active", 3, 2024, new Date("2026-09-07")),
+  "Expiring soon"
+);
+assert.equal(
+  lifecycleStatus("Active", 3, 2018, new Date("2026-09-07")),
+  "For Replacement"
+);
+assert.equal(
+  lifecycleStatus("Retired", 3, 2024, new Date("2026-09-07")),
+  "Retired"
+);
+assert.equal(suggestedInitials("Michael Angelo O. Guarin"), "MAOG");
+console.log("PULSE domain verification passed");

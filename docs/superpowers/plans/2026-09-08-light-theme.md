@@ -22,30 +22,41 @@
 ### Task 1: Add the failing theme contract
 
 **Files:**
+
 - Create: `tests/light-theme.test.mjs`
 - Inspect: `src/app/globals.css`, `src/app/layout.tsx`, `src/components/layout/topbar.tsx`
 
 **Interfaces:**
+
 - Produces the test contract required by Tasks 2 and 3: light semantic tokens, a persisted theme key, and an accessible theme button.
 
 - [ ] **Step 1: Write the failing test**
 
 ```js
-import assert from "node:assert/strict"
-import { readFile } from "node:fs/promises"
-import test from "node:test"
+import assert from "node:assert/strict";
+import { readFile } from "node:fs/promises";
+import test from "node:test";
 
-const css = await readFile(new URL("../src/app/globals.css", import.meta.url), "utf8")
-const layout = await readFile(new URL("../src/app/layout.tsx", import.meta.url), "utf8")
-const topbar = await readFile(new URL("../src/components/layout/topbar.tsx", import.meta.url), "utf8")
+const css = await readFile(
+  new URL("../src/app/globals.css", import.meta.url),
+  "utf8"
+);
+const layout = await readFile(
+  new URL("../src/app/layout.tsx", import.meta.url),
+  "utf8"
+);
+const topbar = await readFile(
+  new URL("../src/components/layout/topbar.tsx", import.meta.url),
+  "utf8"
+);
 
 test("dashboard exposes a persistent light theme", () => {
-  assert.match(css, /html\.light/)
-  assert.match(css, /--canvas:/)
-  assert.match(layout, /suppressHydrationWarning/)
-  assert.match(topbar, /ThemeToggle/)
-  assert.match(topbar, /Switch to light theme|Switch to dark theme/)
-})
+  assert.match(css, /html\.light/);
+  assert.match(css, /--canvas:/);
+  assert.match(layout, /suppressHydrationWarning/);
+  assert.match(topbar, /ThemeToggle/);
+  assert.match(topbar, /Switch to light theme|Switch to dark theme/);
+});
 ```
 
 - [ ] **Step 2: Run test to verify it fails**
@@ -64,10 +75,12 @@ git commit -m "test: define light theme contract"
 ### Task 2: Implement semantic light tokens and theme control
 
 **Files:**
+
 - Create: `src/components/theme/theme-toggle.tsx`
 - Modify: `src/app/globals.css`
 
 **Interfaces:**
+
 - Produces `ThemeToggle`, a client component with no props that toggles the document between `dark` and `light` and persists under `pulse-theme`.
 
 - [ ] **Step 1: Add light token overrides**
@@ -79,15 +92,15 @@ Add an `html.light` block that overrides the existing semantic variables with re
 Use this behavior in `ThemeToggle`:
 
 ```tsx
-"use client"
+"use client";
 
-const STORAGE_KEY = "pulse-theme"
+const STORAGE_KEY = "pulse-theme";
 
-type Theme = "dark" | "light"
+type Theme = "dark" | "light";
 
 function applyTheme(theme: Theme) {
-  document.documentElement.classList.toggle("dark", theme === "dark")
-  document.documentElement.classList.toggle("light", theme === "light")
+  document.documentElement.classList.toggle("dark", theme === "dark");
+  document.documentElement.classList.toggle("light", theme === "light");
 }
 ```
 
@@ -109,10 +122,12 @@ git commit -m "feat: add persistent light theme"
 ### Task 3: Integrate the toggle into the dashboard shell
 
 **Files:**
+
 - Modify: `src/app/layout.tsx`
 - Modify: `src/components/layout/topbar.tsx`
 
 **Interfaces:**
+
 - Consumes: `ThemeToggle` from `@/components/theme/theme-toggle`.
 - Produces: The authenticated shell displays the theme control without changing sign-out, profile, or navigation behavior.
 
@@ -148,6 +163,7 @@ git commit -m "feat: add theme toggle to dashboard shell"
 ### Task 4: Verify the light theme at runtime
 
 **Files:**
+
 - Test: `tests/light-theme.test.mjs`
 
 - [ ] **Step 1: Build the application**
@@ -163,4 +179,3 @@ Restart only the PULSE process on port 3000, then open `http://192.168.68.58:300
 - [ ] **Step 3: Verify the browser behavior**
 
 Sign in, activate the theme control, confirm the dashboard switches to light colors, refresh, and confirm light remains selected. Toggle back to dark and confirm the original styling returns.
-

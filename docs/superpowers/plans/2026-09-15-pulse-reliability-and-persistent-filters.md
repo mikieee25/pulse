@@ -24,10 +24,12 @@
 ### Task 1: Establish a reliable project quality gate
 
 **Files:**
+
 - Modify: `package.json:5`
 - Modify: `scripts/verify-pulse.ts:4`
 
 **Interfaces:**
+
 - Consumes: existing ESLint, TypeScript, Node tests, verification scripts, and Next.js build commands.
 - Produces: `npm test`, `npm run typecheck`, and `npm run check` commands used by every later task.
 
@@ -71,6 +73,7 @@ git commit -m "test: add reliable project quality gate"
 ### Task 2: Make database lifespan values authoritative
 
 **Files:**
+
 - Modify: `src/lib/pulse.ts:57`
 - Modify: `src/lib/notifications.ts:16`
 - Modify: `src/components/equipment/columns.tsx:9`
@@ -88,6 +91,7 @@ git commit -m "test: add reliable project quality gate"
 - Test: `tests/live-notifications.test.mjs`
 
 **Interfaces:**
+
 - Consumes: `equipment_categories.lifespan_years: number | null` from Supabase relations.
 - Produces: `lifecycleStatus(status, lifespanYears, yearAcquired, today?)`, `equipmentDisplayStatus(status, condition, lifespanYears, yearAcquired, today?)`, `needsReplacement(status, condition, lifespanYears, yearAcquired, today?)`, and `monthsUntilExpiry(lifespanYears, yearAcquired, today?)`.
 
@@ -96,11 +100,26 @@ git commit -m "test: add reliable project quality gate"
 Cover automatic expiry, upcoming expiry, manual lifecycle, condition override, and retirement:
 
 ```js
-assert.equal(equipmentDisplayStatus("Active", "Good", 3, 2020, today), "For Replacement")
-assert.equal(equipmentDisplayStatus("Active", "Good", 3, 2024, today), "Expiring soon")
-assert.equal(equipmentDisplayStatus("Active", "Good", null, 2018, today), "Active")
-assert.equal(equipmentDisplayStatus("Active", "Broken", null, 2026, today), "Broken")
-assert.equal(equipmentDisplayStatus("Retired", "Broken", 3, 2020, today), "Retired")
+assert.equal(
+  equipmentDisplayStatus("Active", "Good", 3, 2020, today),
+  "For Replacement"
+);
+assert.equal(
+  equipmentDisplayStatus("Active", "Good", 3, 2024, today),
+  "Expiring soon"
+);
+assert.equal(
+  equipmentDisplayStatus("Active", "Good", null, 2018, today),
+  "Active"
+);
+assert.equal(
+  equipmentDisplayStatus("Active", "Broken", null, 2026, today),
+  "Broken"
+);
+assert.equal(
+  equipmentDisplayStatus("Retired", "Broken", 3, 2020, today),
+  "Retired"
+);
 ```
 
 Update `InventoryCardRecord` fixtures from `category` to `lifespan_years`.
@@ -121,26 +140,30 @@ Implement the lifespan contract in `src/lib/pulse.ts`:
 
 ```ts
 export type InventoryCardRecord = {
-  status: StoredEquipmentStatus
-  condition_state: string | null | undefined
-  lifespan_years: number | null | undefined
-  year_acquired: number | null | undefined
-}
+  status: StoredEquipmentStatus;
+  condition_state: string | null | undefined;
+  lifespan_years: number | null | undefined;
+  year_acquired: number | null | undefined;
+};
 
 export function lifecycleStatus(
   status: StoredEquipmentStatus,
   lifespanYears: number | null | undefined,
   yearAcquired: number | null | undefined,
-  today = new Date(),
+  today = new Date()
 ): LifecycleStatus {
-  if (status === "Retired") return status
-  if (!lifespanYears || !yearAcquired) return status
+  if (status === "Retired") return status;
+  if (!lifespanYears || !yearAcquired) return status;
 
-  const expiry = new Date(yearAcquired + lifespanYears, 0, 1)
-  const oneYearFromNow = new Date(today.getFullYear() + 1, today.getMonth(), today.getDate())
-  if (expiry <= today) return "For Replacement"
-  if (expiry <= oneYearFromNow) return "Expiring soon"
-  return "Active"
+  const expiry = new Date(yearAcquired + lifespanYears, 0, 1);
+  const oneYearFromNow = new Date(
+    today.getFullYear() + 1,
+    today.getMonth(),
+    today.getDate()
+  );
+  if (expiry <= today) return "For Replacement";
+  if (expiry <= oneYearFromNow) return "Expiring soon";
+  return "Active";
 }
 ```
 
@@ -151,7 +174,7 @@ Apply the same parameter replacement to `equipmentDisplayStatus`, `needsReplacem
 Change every equipment category relation from `equipment_categories(name)` or `equipment_categories(id,name)` to include `lifespan_years`. Update local row types and pass:
 
 ```ts
-item.equipment_categories?.lifespan_years
+item.equipment_categories?.lifespan_years;
 ```
 
 Do not derive lifespan from `canonicalEquipmentCategory()`.
@@ -182,12 +205,14 @@ git commit -m "fix: use category lifespan for lifecycle status"
 ### Task 3: Harden category normalization and naming
 
 **Files:**
+
 - Modify: `src/lib/pulse.ts:10`
 - Modify: `src/components/equipment/add-equipment-dialog.tsx:8`
 - Modify: `tests/equipment-category-coverage.test.mjs`
 - Modify: `tests/list-import.test.mjs`
 
 **Interfaces:**
+
 - Consumes: arbitrary administrator/import category labels.
 - Produces: `DEFAULT_EQUIPMENT_CATEGORIES` and `canonicalEquipmentCategory(category)` with whole-term alias matching.
 
@@ -196,10 +221,13 @@ git commit -m "fix: use category lifespan for lifecycle status"
 Add cases proving valid aliases still map and partial words remain untouched:
 
 ```js
-assert.equal(canonicalEquipmentCategory("Wireless microphone"), "Microphones")
-assert.equal(canonicalEquipmentCategory("Dynamic UPS"), "Dynamic UPS")
-assert.equal(canonicalEquipmentCategory("Printer / Scanner"), "Printers & Scanners")
-assert.equal(canonicalEquipmentCategory("Tablet Pen"), "Tablet Accessories")
+assert.equal(canonicalEquipmentCategory("Wireless microphone"), "Microphones");
+assert.equal(canonicalEquipmentCategory("Dynamic UPS"), "Dynamic UPS");
+assert.equal(
+  canonicalEquipmentCategory("Printer / Scanner"),
+  "Printers & Scanners"
+);
+assert.equal(canonicalEquipmentCategory("Tablet Pen"), "Tablet Accessories");
 ```
 
 Add a source-contract assertion that the fallback constant is named `DEFAULT_EQUIPMENT_CATEGORIES`.
@@ -224,7 +252,7 @@ const CATEGORY_ALIASES: ReadonlyArray<[RegExp, string]> = [
   [/\b(?:headphones?|earbuds?)\b/i, "Headphones"],
   [/\b(?:printers?|scanners?)\b/i, "Printers & Scanners"],
   [/\b(?:microphones?|mics?)\b/i, "Microphones"],
-]
+];
 ```
 
 Carry the remaining existing mappings into the same table with exact word or phrase boundaries. Preserve unknown trimmed labels unchanged.
@@ -254,10 +282,12 @@ git commit -m "fix: harden equipment category normalization"
 ### Task 4: Simplify equipment assignment validation and preserve query errors
 
 **Files:**
+
 - Modify: `src/app/actions/equipment.ts:27`
 - Create: `tests/equipment-actions-contract.test.mjs`
 
 **Interfaces:**
+
 - Consumes: one Supabase client, equipment division ID, personnel ID, and role.
 - Produces: `validateAssignment(supabase, divisionId, personnelId, role): Promise<string | null>` and `findCategoryId(supabase, categoryName): Promise<{ id: string | null; error: string | null }>`.
 
@@ -266,9 +296,12 @@ git commit -m "fix: harden equipment category normalization"
 Create `tests/equipment-actions-contract.test.mjs` to read the server-action source and assert:
 
 ```js
-assert.doesNotMatch(source, /categoryName:\s*"Laptop"/)
-assert.match(source, /validateAssignment\(supabase, equipment\.division_id, personnelId, role\)/)
-assert.match(source, /Could not load equipment categories/)
+assert.doesNotMatch(source, /categoryName:\s*"Laptop"/);
+assert.match(
+  source,
+  /validateAssignment\(supabase, equipment\.division_id, personnelId, role\)/
+);
+assert.match(source, /Could not load equipment categories/);
 ```
 
 - [ ] **Step 2: Run the new test to verify it fails**
@@ -290,19 +323,26 @@ async function validateAssignment(
   supabase: Awaited<ReturnType<typeof createClient>>,
   divisionId: string,
   personnelId: string | null,
-  role: "Custodian" | "Assignee",
+  role: "Custodian" | "Assignee"
 ) {
-  if (!personnelId) return null
+  if (!personnelId) return null;
   const { data: person, error } = await supabase
     .from("personnel")
     .select("plantilla_status,division_id,position")
     .eq("id", personnelId)
-    .single()
-  if (error || !person) return `Selected ${role} was not found.`
-  if (person.division_id !== divisionId) return `${role} must be within the same division.`
-  if (role === "Custodian" && (person.plantilla_status !== "Regular" || ["PSS", "PES"].includes(person.position))) return "Custodian must be Regular personnel and NOT a PSS/PES user."
-  if (role === "Assignee" && !["PSS", "PES"].includes(person.position)) return "Assignee must be a PSS or PES user."
-  return null
+    .single();
+  if (error || !person) return `Selected ${role} was not found.`;
+  if (person.division_id !== divisionId)
+    return `${role} must be within the same division.`;
+  if (
+    role === "Custodian" &&
+    (person.plantilla_status !== "Regular" ||
+      ["PSS", "PES"].includes(person.position))
+  )
+    return "Custodian must be Regular personnel and NOT a PSS/PES user.";
+  if (role === "Assignee" && !["PSS", "PES"].includes(person.position))
+    return "Assignee must be a PSS or PES user.";
+  return null;
 }
 ```
 
@@ -313,14 +353,17 @@ Create the Supabase client once in each server action and pass it to the helper.
 Change the lookup to preserve failures:
 
 ```ts
-async function findCategoryId(supabase: Awaited<ReturnType<typeof createClient>>, categoryName: string) {
+async function findCategoryId(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  categoryName: string
+) {
   const { data, error } = await supabase
     .from("equipment_categories")
     .select("id")
     .eq("name", canonicalEquipmentCategory(categoryName))
-    .maybeSingle()
-  if (error) return { id: null, error: "Could not load equipment categories." }
-  return { id: data?.id ?? null, error: null }
+    .maybeSingle();
+  if (error) return { id: null, error: "Could not load equipment categories." };
+  return { id: data?.id ?? null, error: null };
 }
 ```
 
@@ -348,10 +391,12 @@ git commit -m "fix: simplify equipment assignment validation"
 ### Task 5: Make aggregate notifications change-aware and actionable
 
 **Files:**
+
 - Modify: `src/lib/notifications.ts:33`
 - Modify: `tests/live-notifications.test.mjs`
 
 **Interfaces:**
+
 - Consumes: the existing equipment array with stable UUIDs.
 - Produces: `notificationId(kind, equipmentIds)` and filtered Equipment links.
 
@@ -360,13 +405,23 @@ git commit -m "fix: simplify equipment assignment validation"
 Add assertions that the same set is stable, a changed set creates another ID, and links contain filters:
 
 ```js
-const first = buildNotifications(equipment, [], now)
-const second = buildNotifications([...equipment, replacementEquipment], [], now)
+const first = buildNotifications(equipment, [], now);
+const second = buildNotifications(
+  [...equipment, replacementEquipment],
+  [],
+  now
+);
 
-assert.equal(first[0].id, buildNotifications(equipment, [], now)[0].id)
-assert.notEqual(first[0].id, second[0].id)
-assert.equal(first.find((item) => item.kind === "replacement")?.href, "/equipment?status=For+Replacement")
-assert.equal(first.find((item) => item.kind === "unassigned")?.href, "/equipment?assignment=unassigned")
+assert.equal(first[0].id, buildNotifications(equipment, [], now)[0].id);
+assert.notEqual(first[0].id, second[0].id);
+assert.equal(
+  first.find((item) => item.kind === "replacement")?.href,
+  "/equipment?status=For+Replacement"
+);
+assert.equal(
+  first.find((item) => item.kind === "unassigned")?.href,
+  "/equipment?assignment=unassigned"
+);
 ```
 
 Task 6 parses the spec's `assignment=unassigned` URL parameter.
@@ -387,7 +442,7 @@ Add a pure helper without a new dependency:
 
 ```ts
 function notificationId(kind: NotificationKind, equipmentIds: string[]) {
-  return `${kind}:${[...equipmentIds].sort().join(",")}`
+  return `${kind}:${[...equipmentIds].sort().join(",")}`;
 }
 ```
 
@@ -414,10 +469,12 @@ git commit -m "fix: refresh changed equipment notifications"
 ### Task 6: Add pure Equipment URL filter state
 
 **Files:**
+
 - Create: `src/lib/equipment-filters.ts`
 - Create: `tests/equipment-filters.test.mjs`
 
 **Interfaces:**
+
 - Consumes: `URLSearchParams` or a Next.js page search-parameter record.
 - Produces: `EquipmentFilters`, `parseEquipmentFilters(input)`, and `equipmentFiltersQuery(filters, category?)`.
 
@@ -433,12 +490,23 @@ assert.deepEqual(parseEquipmentFilters(new URLSearchParams()), {
   status: "",
   assignment: "",
   page: 1,
-})
+});
 
-const filters = parseEquipmentFilters(new URLSearchParams("q=dell&status=Broken&page=2&assignment=unassigned"))
-assert.equal(equipmentFiltersQuery(filters, "Laptop"), "category=Laptop&q=dell&status=Broken&assignment=unassigned&page=2")
-assert.equal(parseEquipmentFilters(new URLSearchParams("page=-1&status=Unknown")).page, 1)
-assert.equal(parseEquipmentFilters(new URLSearchParams("page=-1&status=Unknown")).status, "")
+const filters = parseEquipmentFilters(
+  new URLSearchParams("q=dell&status=Broken&page=2&assignment=unassigned")
+);
+assert.equal(
+  equipmentFiltersQuery(filters, "Laptop"),
+  "category=Laptop&q=dell&status=Broken&assignment=unassigned&page=2"
+);
+assert.equal(
+  parseEquipmentFilters(new URLSearchParams("page=-1&status=Unknown")).page,
+  1
+);
+assert.equal(
+  parseEquipmentFilters(new URLSearchParams("page=-1&status=Unknown")).status,
+  ""
+);
 ```
 
 - [ ] **Step 2: Run the new test to verify it fails**
@@ -456,18 +524,25 @@ Expected: FAIL because the module does not exist.
 Define exact allowed values:
 
 ```ts
-export const EQUIPMENT_FILTER_STATUSES = ["Active", "Expiring soon", "For Replacement", "Broken", "Retired"] as const
-export type EquipmentFilterStatus = "" | (typeof EQUIPMENT_FILTER_STATUSES)[number]
-export type EquipmentAssignmentFilter = "" | "unassigned"
+export const EQUIPMENT_FILTER_STATUSES = [
+  "Active",
+  "Expiring soon",
+  "For Replacement",
+  "Broken",
+  "Retired",
+] as const;
+export type EquipmentFilterStatus =
+  "" | (typeof EQUIPMENT_FILTER_STATUSES)[number];
+export type EquipmentAssignmentFilter = "" | "unassigned";
 
 export type EquipmentFilters = {
-  q: string
-  division: string
-  brand: string
-  status: EquipmentFilterStatus
-  assignment: EquipmentAssignmentFilter
-  page: number
-}
+  q: string;
+  division: string;
+  brand: string;
+  status: EquipmentFilterStatus;
+  assignment: EquipmentAssignmentFilter;
+  page: number;
+};
 ```
 
 Trim text values, whitelist enum values, coerce `page` to a positive integer, and serialize parameters in this order: `category`, `q`, `division`, `brand`, `status`, `assignment`, `page`. Omit page `1` and empty values.
@@ -493,12 +568,14 @@ git commit -m "feat: define equipment URL filter state"
 ### Task 7: Persist Equipment search, filters, and pagination
 
 **Files:**
+
 - Modify: `src/app/(dashboard)/equipment/page.tsx:17`
 - Modify: `src/components/equipment/equipment-table.tsx:8`
 - Modify: `tests/equipment-category-coverage.test.mjs`
 - Modify: `tests/dashboard-style-contract.test.mjs`
 
 **Interfaces:**
+
 - Consumes: `EquipmentFilters`, `parseEquipmentFilters`, and `equipmentFiltersQuery` from Task 6.
 - Produces: a shareable Equipment URL and one search covering asset and assignment fields.
 
@@ -507,11 +584,11 @@ git commit -m "feat: define equipment URL filter state"
 Assert the Equipment page passes parsed filters and the table exposes unified search, clear filters, filtered count, and native history synchronization:
 
 ```js
-assert.match(pageSource, /parseEquipmentFilters/)
-assert.match(tableSource, /Search serial, model, brand, custodian/)
-assert.match(tableSource, /Clear filters/)
-assert.match(tableSource, /window\.history\.replaceState/)
-assert.match(tableSource, /Showing .* matching/)
+assert.match(pageSource, /parseEquipmentFilters/);
+assert.match(tableSource, /Search serial, model, brand, custodian/);
+assert.match(tableSource, /Clear filters/);
+assert.match(tableSource, /window\.history\.replaceState/);
+assert.match(tableSource, /Showing .* matching/);
 ```
 
 - [ ] **Step 2: Run the UI contracts to verify they fail**
@@ -530,14 +607,14 @@ Extend the page type and pass filters to the table:
 
 ```ts
 searchParams: Promise<{
-  category?: string
-  q?: string
-  division?: string
-  brand?: string
-  status?: string
-  assignment?: string
-  page?: string
-}>
+  category?: string;
+  q?: string;
+  division?: string;
+  brand?: string;
+  status?: string;
+  assignment?: string;
+  page?: string;
+}>;
 ```
 
 Call `parseEquipmentFilters(new URLSearchParams(...))` after awaiting `searchParams`. Keep the category-only Supabase query and pass `initialFilters={filters}` to `EquipmentTable`.
@@ -555,7 +632,10 @@ Add `globalFilter` and a custom `globalFilterFn` that lowercases and searches:
   item.personnel?.full_name,
   item.assignee?.full_name,
   item.equipment_categories?.name,
-].filter(Boolean).join(" ").toLowerCase()
+]
+  .filter(Boolean)
+  .join(" ")
+  .toLowerCase();
 ```
 
 Add the `assignment=unassigned` filter using `!item.personnel && !item.assignee`. Initialize TanStack column filters and pagination from `initialFilters`.
@@ -565,7 +645,11 @@ Add the `assignment=unassigned` filter using `!item.personnel && !item.assignee`
 On search/filter/page changes, call `equipmentFiltersQuery()` while preserving `category`, then update without a server request:
 
 ```ts
-window.history.replaceState(null, "", query ? `/equipment?${query}` : "/equipment")
+window.history.replaceState(
+  null,
+  "",
+  query ? `/equipment?${query}` : "/equipment"
+);
 ```
 
 Reset the page index to zero before writing the URL whenever `q`, division, brand, status, or assignment changes. Keep `page` one-based in the URL and zero-based inside TanStack Table.
@@ -575,7 +659,9 @@ Reset the page index to zero before writing the URL whenever `q`, division, bran
 Replace “Search custodian” with the unified search. Add the assignment filter, conditional Clear filters button, and text in this exact shape:
 
 ```tsx
-<span role="status">Showing {firstRecord}–{lastRecord} of {filteredCount} matching records</span>
+<span role="status">
+  Showing {firstRecord}–{lastRecord} of {filteredCount} matching records
+</span>
 ```
 
 Add accessible labels to every input/select. Disable pagination controls at their bounds.
@@ -619,6 +705,7 @@ git commit -m "feat: persist equipment filters in the URL"
 ### Task 8: Prevent duplicate mutations in entity dialogs and equipment actions
 
 **Files:**
+
 - Modify: `src/components/equipment/add-equipment-dialog.tsx:13`
 - Modify: `src/components/equipment/equipment-actions.tsx:11`
 - Modify: `src/components/personnel/add-personnel-dialog.tsx:13`
@@ -627,6 +714,7 @@ git commit -m "feat: persist equipment filters in the URL"
 - Modify: `tests/dashboard-style-contract.test.mjs`
 
 **Interfaces:**
+
 - Consumes: existing server actions and action result objects.
 - Produces: disabled pending controls, operation-specific labels, and accessible status/error feedback.
 
@@ -635,11 +723,11 @@ git commit -m "feat: persist equipment filters in the URL"
 Read each component source and assert it contains a pending guard, disabled mutation control, and accessible feedback. Require the Equipment dialog to reset its add form after success.
 
 ```js
-assert.match(equipmentDialog, /disabled=\{saving\}/)
-assert.match(equipmentDialog, /Saving…/)
-assert.match(equipmentDialog, /role="alert"/)
-assert.match(equipmentActions, /disabled=\{pendingAction !== null\}/)
-assert.match(personnelDialog, /disabled=\{saving\}/)
+assert.match(equipmentDialog, /disabled=\{saving\}/);
+assert.match(equipmentDialog, /Saving…/);
+assert.match(equipmentDialog, /role="alert"/);
+assert.match(equipmentActions, /disabled=\{pendingAction !== null\}/);
+assert.match(personnelDialog, /disabled=\{saving\}/);
 ```
 
 - [ ] **Step 2: Run the contract test to verify it fails**
@@ -657,19 +745,19 @@ Expected: FAIL because most mutation controls currently remain active during req
 For Equipment, Personnel, and Division dialogs:
 
 ```ts
-const [saving, setSaving] = useState(false)
+const [saving, setSaving] = useState(false);
 
 async function submit(event: FormEvent<HTMLFormElement>) {
-  event.preventDefault()
-  if (saving) return
-  setSaving(true)
-  setError("")
+  event.preventDefault();
+  if (saving) return;
+  setSaving(true);
+  setError("");
   try {
-    const result = await action()
-    if (result.error) setError(result.error)
-    else setOpen(false)
+    const result = await action();
+    if (result.error) setError(result.error);
+    else setOpen(false);
   } finally {
-    setSaving(false)
+    setSaving(false);
   }
 }
 ```
@@ -683,8 +771,10 @@ In `AddEquipmentDialog`, extract the existing add defaults into `newEquipmentFor
 Use:
 
 ```ts
-type PendingEquipmentAction = "custodian" | "assignee" | "archive" | "state" | null
-const [pendingAction, setPendingAction] = useState<PendingEquipmentAction>(null)
+type PendingEquipmentAction =
+  "custodian" | "assignee" | "archive" | "state" | null;
+const [pendingAction, setPendingAction] =
+  useState<PendingEquipmentAction>(null);
 ```
 
 Ignore new actions while one is pending, disable all mutation buttons/selects, restore optimistic state on failure, and use `role="alert"` only for errors and `role="status"` for success.
@@ -714,12 +804,14 @@ git commit -m "fix: prevent duplicate dashboard mutations"
 ### Task 9: Return budget cost errors inline
 
 **Files:**
+
 - Modify: `src/app/actions/admin.ts:81`
 - Create: `src/components/budget/category-cost-form.tsx`
 - Modify: `src/app/(dashboard)/budget/page.tsx:330`
 - Modify: `tests/budget-page-ui.test.mjs`
 
 **Interfaces:**
+
 - Consumes: `saveCategoryCost(previousState, formData)` Server Action.
 - Produces: `CategoryCostState = { error: string; success: boolean }` and `CategoryCostForm`.
 
@@ -742,31 +834,43 @@ Expected: FAIL because `saveCategoryCost` currently throws and the form is rende
 Replace `updateCategoryCost` plus the throwing wrapper with:
 
 ```ts
-export type CategoryCostState = { error: string; success: boolean }
+export type CategoryCostState = { error: string; success: boolean };
 
 export async function saveCategoryCost(
   _previousState: CategoryCostState,
-  formData: FormData,
+  formData: FormData
 ): Promise<CategoryCostState> {
-  const access = await requireProfile("Admin")
-  if (access.error) return { error: access.error, success: false }
+  const access = await requireProfile("Admin");
+  if (access.error) return { error: access.error, success: false };
 
-  const categoryId = z.string().uuid().safeParse(formData.get("category_id"))
-  const year = z.coerce.number().int().min(2000).max(2100).safeParse(formData.get("year"))
-  const unitCost = z.coerce.number().nonnegative().safeParse(formData.get("unit_cost"))
+  const categoryId = z.string().uuid().safeParse(formData.get("category_id"));
+  const year = z.coerce
+    .number()
+    .int()
+    .min(2000)
+    .max(2100)
+    .safeParse(formData.get("year"));
+  const unitCost = z.coerce
+    .number()
+    .nonnegative()
+    .safeParse(formData.get("unit_cost"));
   if (!categoryId.success || !year.success || !unitCost.success) {
-    return { error: "Invalid cost values.", success: false }
+    return { error: "Invalid cost values.", success: false };
   }
 
-  const supabase = await createClient()
+  const supabase = await createClient();
   const { error } = await supabase.from("category_unit_costs").upsert(
-    { category_id: categoryId.data, year: year.data, unit_cost: unitCost.data },
-    { onConflict: "category_id,year" },
-  )
-  if (error) return { error: error.message, success: false }
+    {
+      category_id: categoryId.data,
+      year: year.data,
+      unit_cost: unitCost.data,
+    },
+    { onConflict: "category_id,year" }
+  );
+  if (error) return { error: error.message, success: false };
 
-  revalidatePath("/budget")
-  return { error: "", success: true }
+  revalidatePath("/budget");
+  return { error: "", success: true };
 }
 ```
 
@@ -802,9 +906,11 @@ git commit -m "fix: show budget cost errors inline"
 ### Task 10: Final regression and manual acceptance pass
 
 **Files:**
+
 - Modify only if a check exposes a regression in files already listed above.
 
 **Interfaces:**
+
 - Consumes: all deliverables from Tasks 1–9.
 - Produces: one verified, review-ready implementation.
 

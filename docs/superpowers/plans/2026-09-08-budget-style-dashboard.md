@@ -24,6 +24,7 @@
 ### Task 1: Add shared Budget-style presentation primitives
 
 **Files:**
+
 - Create: `src/components/layout/page-header.tsx`
 - Create: `src/components/layout/metric-card.tsx`
 - Create: `src/components/layout/section-panel.tsx`
@@ -31,6 +32,7 @@
 - Create: `tests/dashboard-style-contract.test.mjs`
 
 **Interfaces:**
+
 - `PageHeader` accepts `eyebrow?: React.ReactNode`, `title: React.ReactNode`, `description?: React.ReactNode`, `actions?: React.ReactNode`, and `children?: React.ReactNode`.
 - `MetricCard` accepts `label`, `value`, optional `detail`, optional lucide-compatible `icon`, and `tone` values `neutral | pulse | warning | alert`.
 - `SectionPanel` accepts optional `title`, `description`, `actions`, and `className`, plus arbitrary children.
@@ -63,6 +65,7 @@ Run: `git add src/components/layout/page-header.tsx src/components/layout/metric
 ### Task 2: Refresh the authenticated shell and route states
 
 **Files:**
+
 - Modify: `src/app/(dashboard)/layout.tsx`
 - Modify: `src/app/(dashboard)/loading.tsx`
 - Modify: `src/app/(dashboard)/error.tsx`
@@ -70,6 +73,7 @@ Run: `git add src/components/layout/page-header.tsx src/components/layout/metric
 - Modify: `src/components/layout/topbar.tsx`
 
 **Interfaces:**
+
 - Keep the existing `Sidebar`, `Topbar`, dashboard navigation URLs, responsive mobile navigation, and sign-out form action.
 - Keep `error.tsx` as a client error boundary and preserve its retry behavior.
 
@@ -100,6 +104,7 @@ Run: `git add 'src/app/(dashboard)/layout.tsx' 'src/app/(dashboard)/loading.tsx'
 ### Task 3: Refresh Dashboard and inventory-management routes
 
 **Files:**
+
 - Modify: `src/app/(dashboard)/page.tsx`
 - Modify: `src/app/(dashboard)/equipment/page.tsx`
 - Modify: `src/app/(dashboard)/equipment/[id]/page.tsx`
@@ -110,6 +115,7 @@ Run: `git add 'src/app/(dashboard)/layout.tsx' 'src/app/(dashboard)/loading.tsx'
 - Modify: `src/components/divisions/divisions-table.tsx`
 
 **Interfaces:**
+
 - Preserve current query shapes and typed data passed to each table/dialog.
 - Preserve equipment category query parameter, personnel edit/delete behavior, division actions, and equipment detail assignment/update actions.
 
@@ -140,12 +146,14 @@ Run: `git add 'src/app/(dashboard)/page.tsx' 'src/app/(dashboard)/equipment/page
 ### Task 4: Refresh Summary and Reports
 
 **Files:**
+
 - Modify: `src/app/(dashboard)/summary/page.tsx`
 - Modify: `src/app/(dashboard)/summary/summary-content.tsx`
 - Modify: `src/app/(dashboard)/reports/page.tsx`
 - Modify: `src/app/(dashboard)/reports/reports-client.tsx`
 
 **Interfaces:**
+
 - Preserve Summary `year` and `view` query parameters and client-side navigation.
 - Preserve Reports filtering, pagination, report tabs, status calculations, and export data.
 
@@ -176,11 +184,13 @@ Run: `git add 'src/app/(dashboard)/summary/page.tsx' 'src/app/(dashboard)/summar
 ### Task 5: Refresh Admin routes
 
 **Files:**
+
 - Modify: `src/app/(dashboard)/admin/page.tsx`
 - Modify: `src/app/(dashboard)/admin/users/page.tsx`
 - Modify: `src/components/admin/user-management.tsx`
 
 **Interfaces:**
+
 - Preserve admin-only redirects, invite action payloads, role options, division scope options, and save behavior.
 
 - [ ] **Step 1: Extend the style contract test for Admin routes**
@@ -210,6 +220,7 @@ Run: `git add 'src/app/(dashboard)/admin/page.tsx' 'src/app/(dashboard)/admin/us
 ### Task 6: Final validation and visual handoff
 
 **Files:**
+
 - Modify only files identified by validation output; do not reformat unrelated dirty-worktree files.
 
 - [ ] **Step 1: Run all repository tests**

@@ -85,13 +85,16 @@ Use the path printed by the CLI as the migration file for the remaining steps. C
 Add assertions to `tests/admin-activity-security.test.mjs` that read the generated migration and require these strings/conditions:
 
 ```js
-assert.match(source, /create table activity_log/i)
-assert.match(source, /create table user_presence/i)
-assert.match(source, /enable row level security/i)
-assert.match(source, /current_user_role\(\).*Admin/is)
-assert.match(source, /grant select on activity_log to authenticated/i)
-assert.match(source, /grant select on user_presence to authenticated/i)
-assert.doesNotMatch(source, /grant (all|insert|update|delete).*activity_log to authenticated/i)
+assert.match(source, /create table activity_log/i);
+assert.match(source, /create table user_presence/i);
+assert.match(source, /enable row level security/i);
+assert.match(source, /current_user_role\(\).*Admin/is);
+assert.match(source, /grant select on activity_log to authenticated/i);
+assert.match(source, /grant select on user_presence to authenticated/i);
+assert.doesNotMatch(
+  source,
+  /grant (all|insert|update|delete).*activity_log to authenticated/i
+);
 ```
 
 Run:
@@ -146,54 +149,74 @@ git commit -m "feat: add admin activity and presence schema"
 **Interfaces:**
 
 ```ts
-import type { AppRole } from "@/lib/auth"
+import type { AppRole } from "@/lib/auth";
 
-export type ActivityAction = "created" | "updated" | "deleted" | "assigned" | "reassigned" | "retired" | "state_changed"
-export type ActivityEntity = "equipment" | "personnel" | "division" | "equipment_category" | "category_unit_cost" | "user"
+export type ActivityAction =
+  | "created"
+  | "updated"
+  | "deleted"
+  | "assigned"
+  | "reassigned"
+  | "retired"
+  | "state_changed";
+export type ActivityEntity =
+  | "equipment"
+  | "personnel"
+  | "division"
+  | "equipment_category"
+  | "category_unit_cost"
+  | "user";
 export type ActivityInput = {
-  action: ActivityAction
-  entityType: ActivityEntity
-  entityId?: string | null
-  entityLabel: string
-  divisionId?: string | null
-  divisionName?: string | null
-  metadata?: Record<string, unknown>
-}
+  action: ActivityAction;
+  entityType: ActivityEntity;
+  entityId?: string | null;
+  entityLabel: string;
+  divisionId?: string | null;
+  divisionName?: string | null;
+  metadata?: Record<string, unknown>;
+};
 export type ActivityRecord = ActivityInput & {
-  id: string
-  actorUserId: string
-  actorName: string
-  actorEmail: string
-  createdAt: string
-}
+  id: string;
+  actorUserId: string;
+  actorName: string;
+  actorEmail: string;
+  createdAt: string;
+};
 export type ActivityFilters = {
-  actorUserId?: string
-  action?: ActivityAction
-  entityType?: ActivityEntity
-  divisionId?: string
-  from?: string
-  to?: string
-  page?: number
-  pageSize?: number
-}
-export type ActivityRecordResult = { data: ActivityRecord[]; error: string | null }
-export type ActivityPageResult = ActivityRecordResult & { hasMore: boolean }
+  actorUserId?: string;
+  action?: ActivityAction;
+  entityType?: ActivityEntity;
+  divisionId?: string;
+  from?: string;
+  to?: string;
+  page?: number;
+  pageSize?: number;
+};
+export type ActivityRecordResult = {
+  data: ActivityRecord[];
+  error: string | null;
+};
+export type ActivityPageResult = ActivityRecordResult & { hasMore: boolean };
 export type UserStatus = {
-  id: string
-  email: string
-  fullName: string
-  role: AppRole
-  divisionName: string | null
-  lastSeenAt: string | null
-  lastSignInAt: string | null
-}
-export type UserStatusResult = { data: UserStatus[]; error: string | null }
-export function formatActivityMessage(activity: ActivityRecord): string
-export function isActiveNow(lastSeenAt: string | null, now?: Date): boolean
-export async function recordActivity(input: ActivityInput): Promise<void>
-export async function getRecentAdminActivity(limit: number): Promise<ActivityRecordResult>
-export async function getAdminActivityPage(filters: ActivityFilters): Promise<ActivityPageResult>
-export async function getAdminUserStatus(): Promise<UserStatusResult>
+  id: string;
+  email: string;
+  fullName: string;
+  role: AppRole;
+  divisionName: string | null;
+  lastSeenAt: string | null;
+  lastSignInAt: string | null;
+};
+export type UserStatusResult = { data: UserStatus[]; error: string | null };
+export function formatActivityMessage(activity: ActivityRecord): string;
+export function isActiveNow(lastSeenAt: string | null, now?: Date): boolean;
+export async function recordActivity(input: ActivityInput): Promise<void>;
+export async function getRecentAdminActivity(
+  limit: number
+): Promise<ActivityRecordResult>;
+export async function getAdminActivityPage(
+  filters: ActivityFilters
+): Promise<ActivityPageResult>;
+export async function getAdminUserStatus(): Promise<UserStatusResult>;
 ```
 
 - [ ] **Step 1: Write pure failing tests**
@@ -203,9 +226,15 @@ export async function getAdminUserStatus(): Promise<UserStatusResult>
 `tests/presence.test.mjs` must verify:
 
 ```js
-assert.equal(isActiveNow("2026-09-16T10:00:00.000Z", new Date("2026-09-16T10:05:00.000Z")), true)
-assert.equal(isActiveNow("2026-09-16T09:59:59.999Z", new Date("2026-09-16T10:05:00.000Z")), false)
-assert.equal(isActiveNow(null, new Date("2026-09-16T10:05:00.000Z")), false)
+assert.equal(
+  isActiveNow("2026-09-16T10:00:00.000Z", new Date("2026-09-16T10:05:00.000Z")),
+  true
+);
+assert.equal(
+  isActiveNow("2026-09-16T09:59:59.999Z", new Date("2026-09-16T10:05:00.000Z")),
+  false
+);
+assert.equal(isActiveNow(null, new Date("2026-09-16T10:05:00.000Z")), false);
 ```
 
 Run both tests and expect failure because the helpers do not exist.
@@ -265,11 +294,17 @@ Read each action source in `tests/admin-activity-integration-contract.test.mjs`.
 The contract must cover these exact functions:
 
 ```js
-["addEquipment", "updateEquipment", "reassignEquipment", "retireEquipment", "updateEquipmentState"]
-["addPersonnel", "updatePersonnel", "deletePersonnel"]
-["addDivision", "updateDivision"]
-["addEquipmentCategory"]
-["createUser", "updateUser", "deleteUser", "saveCategoryCost"]
+[
+  "addEquipment",
+  "updateEquipment",
+  "reassignEquipment",
+  "retireEquipment",
+  "updateEquipmentState",
+][("addPersonnel", "updatePersonnel", "deletePersonnel")][
+  ("addDivision", "updateDivision")
+]["addEquipmentCategory"][
+  ("createUser", "updateUser", "deleteUser", "saveCategoryCost")
+];
 ```
 
 Run the test and expect failure.
@@ -285,16 +320,16 @@ For user creation/update/delete, never include temporary passwords or auth token
 Use this pattern in each action, with the exact action-specific values and the ID returned by the mutation:
 
 ```ts
-if (error) return { error: error.message }
+if (error) return { error: error.message };
 await recordActivity({
   action: "created",
   entityType: "personnel",
   entityId: saved.id,
   entityLabel: parsed.data.full_name,
   divisionId: parsed.data.division_id,
-})
-revalidatePath("/personnel")
-return { success: true }
+});
+revalidatePath("/personnel");
+return { success: true };
 ```
 
 For insert APIs that do not currently return IDs, add `.select("id,...").single()` or use the RPC-returned ID so the activity row can identify the affected record. Preserve current error messages, cache invalidation, and return shapes.
@@ -328,7 +363,9 @@ git commit -m "feat: record successful admin mutations"
 **Interfaces:**
 
 ```ts
-export async function touchPresence(): Promise<{ success: true } | { error: string }>
+export async function touchPresence(): Promise<
+  { success: true } | { error: string }
+>;
 ```
 
 - [ ] **Step 1: Write the failing heartbeat contract**
@@ -336,11 +373,11 @@ export async function touchPresence(): Promise<{ success: true } | { error: stri
 Extend `tests/presence.test.mjs` to require:
 
 ```js
-assert.match(actionSource, /requireProfile\(\)/)
-assert.match(actionSource, /user_presence/)
-assert.match(componentSource, /visibilitychange/)
-assert.match(componentSource, /setInterval/)
-assert.match(componentSource, /60000/)
+assert.match(actionSource, /requireProfile\(\)/);
+assert.match(actionSource, /user_presence/);
+assert.match(componentSource, /visibilitychange/);
+assert.match(componentSource, /setInterval/);
+assert.match(componentSource, /60000/);
 ```
 
 Run and expect failure.

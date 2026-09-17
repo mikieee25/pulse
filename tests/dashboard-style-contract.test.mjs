@@ -59,7 +59,9 @@ test("dashboard exposes the PULSE changelog route on desktop and mobile", async 
   const sidebar = await source("src/components/layout/sidebar.tsx");
   const layout = await source("src/app/(dashboard)/layout.tsx");
   const changelog = await source("src/app/(dashboard)/changelog/page.tsx");
-  const changelogComponent = await source("src/components/changelog/changelog.tsx");
+  const changelogComponent = await source(
+    "src/components/changelog/changelog.tsx"
+  );
 
   assert.match(sidebar, /\/changelog/);
   assert.match(layout, /\["\/changelog", "Changelog"\]/);
@@ -78,8 +80,10 @@ test("changelog records the DOE central theme and three-logo lockup", async () =
 test("equipment list exposes the assignee beside the custodian", async () => {
   const page = await source("src/app/(dashboard)/equipment/page.tsx");
   const columns = await source("src/components/equipment/columns.tsx");
+  const queries = await source("src/lib/inventory-queries.ts");
 
-  assert.match(page, /assignee:personnel!equipment_assignee_id_fkey\(full_name\)/);
+  assert.match(queries, /pulse_search_equipment/);
+  assert.match(queries, /assignee_name/);
   assert.match(page, /Assignee: item\.assignee/);
   assert.match(columns, /id: "custodian"[\s\S]*id: "assignee"/);
   assert.match(columns, /header: "Assignee"/);
@@ -88,20 +92,34 @@ test("equipment list exposes the assignee beside the custodian", async () => {
 test("equipment filters persist in the URL and search across asset fields", async () => {
   const page = await source("src/app/(dashboard)/equipment/page.tsx");
   const table = await source("src/components/equipment/equipment-table.tsx");
+  const filterBar = await source(
+    "src/components/equipment/equipment-filter-bar.tsx"
+  );
 
   assert.match(page, /parseEquipmentFilters/);
-  assert.match(table, /Search serial, model, brand, custodian/);
-  assert.match(table, /Clear filters/);
-  assert.match(table, /window\.history\.replaceState/);
+  assert.match(filterBar, /Search serial, model, brand, custodian/);
+  assert.match(filterBar, /Clear filters|aria-label=\"Clear filters\"/);
+  assert.match(filterBar, /method="get"/);
+  assert.match(table, /equipmentFiltersQuery/);
   assert.match(table, /Showing .* matching/);
 });
 
 test("mutation controls expose pending guards and accessible feedback", async () => {
-  const equipmentDialog = await source("src/components/equipment/add-equipment-dialog.tsx");
-  const equipmentActions = await source("src/components/equipment/equipment-actions.tsx");
-  const personnelDialog = await source("src/components/personnel/add-personnel-dialog.tsx");
-  const divisionDialog = await source("src/components/divisions/add-division-dialog.tsx");
-  const userManagement = await source("src/components/admin/user-management.tsx");
+  const equipmentDialog = await source(
+    "src/components/equipment/add-equipment-dialog.tsx"
+  );
+  const equipmentActions = await source(
+    "src/components/equipment/equipment-actions.tsx"
+  );
+  const personnelDialog = await source(
+    "src/components/personnel/add-personnel-dialog.tsx"
+  );
+  const divisionDialog = await source(
+    "src/components/divisions/add-division-dialog.tsx"
+  );
+  const userManagement = await source(
+    "src/components/admin/user-management.tsx"
+  );
 
   assert.match(equipmentDialog, /disabled=\{saving\}/);
   assert.match(equipmentDialog, /Saving…/);
@@ -116,7 +134,8 @@ test("personnel overview includes a data-driven outsourced staff card", async ()
   const page = await source("src/app/(dashboard)/personnel/page.tsx");
 
   assert.match(page, /outsourcedCount/);
-  assert.match(page, /effectivePlantillaStatus/);
+  assert.match(page, /getPersonnelSummary/);
+  assert.match(page, /getPersonnelPage/);
   assert.match(page, /label="Outsourced"/);
 });
 
