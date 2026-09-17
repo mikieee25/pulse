@@ -18,11 +18,18 @@ export const getCurrentProfile = cache(async function getCurrentProfile() {
     data: { user },
   } = await supabase.auth.getUser();
   if (!user) return null;
-  const { data: profile } = await supabase
+  const { data: profile, error } = await supabase
     .from("app_users")
     .select("id,email,full_name,role,division_scope")
     .eq("id", user.id)
     .maybeSingle();
+  if (error) {
+    console.error("PULSE profile lookup failed", {
+      code: error.code,
+      message: error.message,
+    });
+    return null;
+  }
   return profile as AppProfile | null;
 });
 

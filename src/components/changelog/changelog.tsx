@@ -63,6 +63,12 @@ const changelogGroups: ChangelogGroup[] = [
     release: "Performance and table UX",
     changes: [
       {
+        kind: "enhancement",
+        title: "Production hardening for faster, safer reads",
+        description:
+          "Added configurable LAN origins, security headers, no-index metadata, streamed shell loading, bounded admin activity reads, paginated Auth status loading, structured profile diagnostics, and indexed Equipment/Personnel search paths.",
+      },
+      {
         kind: "feature",
         title: "Added Return to Store tracking and Admin deletion",
         description:

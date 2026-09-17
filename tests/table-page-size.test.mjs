@@ -30,6 +30,13 @@ test("shared table page-size control exposes the supported choices", () => {
   assert.match(pageSizeSource, /aria-label/);
 });
 
+test("server-backed page-size changes use client navigation instead of form submission", () => {
+  assert.match(pageSizeSource, /useRouter/);
+  assert.match(pageSizeSource, /router\.replace/);
+  assert.match(pageSizeSource, /next\.delete\("page"\)/);
+  assert.doesNotMatch(pageSizeSource, /requestSubmit/);
+});
+
 test("every application data table uses the shared page-size control", () => {
   for (const source of tableSources)
     assert.match(source, /TablePageSizeSelect/);

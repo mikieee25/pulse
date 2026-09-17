@@ -3,10 +3,6 @@ import "server-only";
 import { unstable_cache } from "next/cache";
 import { createAdminClient } from "@/utils/supabase/admin";
 import type { AppRole } from "@/lib/auth";
-import type {
-  NotificationAssignment,
-  NotificationEquipment,
-} from "@/lib/notifications";
 import { PULSE_CACHE_TAGS } from "@/lib/cache-tags";
 
 export type EquipmentCategoryRecord = {
@@ -28,6 +24,10 @@ export type CategoryCostRecord = {
   unit_cost: number;
 };
 type CachedResult<T> = { data: T[]; error: string | null };
+
+// These reference reads are authorization-scoped and already receive their
+// role/scope arguments in the cache key. Keep the stable Next 16-compatible
+// boundary here until Cache Components can be enabled and verified end to end.
 
 async function readCategories(): Promise<
   CachedResult<EquipmentCategoryRecord>
@@ -98,83 +98,6 @@ async function readCategoryCosts(
   };
 }
 
-type NotificationSnapshot = {
-  equipment: NotificationEquipment[];
-  assignmentHistory: NotificationAssignment[];
-  error: string | null;
-};
-
-async function readNotifications(
-  role: AppRole,
-  divisionScope: string | null
-): Promise<NotificationSnapshot> {
-  const admin = createAdminClient();
-  if (!admin)
-    return {
-      equipment: [],
-      assignmentHistory: [],
-      error: "Admin user configuration is incomplete.",
-    };
-  if (role === "Viewer" && !divisionScope)
-    return { equipment: [], assignmentHistory: [], error: null };
-
-  let equipmentQuery = admin
-    .from("equipment")
-    .select(
-      "id,status,condition_state,year_acquired,assigned_to,assignee_id,division_id,equipment_categories(name,lifespan_years)"
-    );
-  if (role === "Viewer" && divisionScope)
-    equipmentQuery = equipmentQuery.eq("division_id", divisionScope);
-
-  let historyQuery;
-  if (role === "Viewer" && divisionScope) {
-    historyQuery = admin
-      .from("assignment_history")
-      .select(
-        "id,assigned_at,note,personnel(full_name),equipment!inner(division_id)"
-      )
-      .eq("equipment.division_id", divisionScope)
-      .order("assigned_at", { ascending: false })
-      .limit(5);
-  } else {
-    historyQuery = admin
-      .from("assignment_history")
-      .select("id,assigned_at,note,personnel(full_name)")
-      .order("assigned_at", { ascending: false })
-      .limit(5);
-  }
-
-  const [
-    { data: equipment, error: equipmentError },
-    { data: history, error: historyError },
-  ] = await Promise.all([equipmentQuery, historyQuery]);
-  const error = equipmentError || historyError;
-  const rawHistory = (history || []) as unknown as Array<{
-    id: string;
-    assigned_at: string;
-    note: string | null;
-    personnel:
-      | NotificationAssignment["personnel"]
-      | NotificationAssignment["personnel"][]
-      | null;
-    equipment?: { division_id: string };
-  }>;
-  const assignmentHistory = rawHistory.map((entry) => {
-    const personnel = entry.personnel;
-    return {
-      id: entry.id,
-      assigned_at: entry.assigned_at,
-      note: entry.note,
-      personnel: Array.isArray(personnel) ? personnel[0] || null : personnel,
-    };
-  });
-  return {
-    equipment: (equipment || []) as unknown as NotificationEquipment[],
-    assignmentHistory,
-    error: error?.message || null,
-  };
-}
-
 export const getCachedCategories = unstable_cache(
   readCategories,
   ["pulse-categories-v1"],
@@ -208,14 +131,5 @@ export const getCachedCategoryCosts = unstable_cache(
   {
     revalidate: 60,
     tags: [PULSE_CACHE_TAGS.costs],
-  }
-);
-
-export const getCachedNotifications = unstable_cache(
-  readNotifications,
-  ["pulse-notifications-v1"],
-  {
-    revalidate: 30,
-    tags: [PULSE_CACHE_TAGS.notifications],
   }
 );

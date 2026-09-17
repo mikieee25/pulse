@@ -94,9 +94,13 @@ export async function getAdminActivityPage(
   const supabase = await createClient();
   const pageSize = Math.min(Math.max(filters.pageSize || 25, 1), 100);
   const page = Math.max(filters.page || 1, 1);
+  const fetchLimit = pageSize + 1;
+  const start = (page - 1) * pageSize;
   let query = supabase
     .from("activity_log")
-    .select("*", { count: "exact" })
+    .select(
+      "id,actor_user_id,actor_name,actor_email,action,entity_type,entity_id,entity_label,division_id,division_name,metadata,created_at"
+    )
     .order("created_at", { ascending: false });
   if (filters.actorUserId)
     query = query.eq("actor_user_id", filters.actorUserId);
@@ -106,8 +110,8 @@ export async function getAdminActivityPage(
   if (filters.from) query = query.gte("created_at", filters.from);
   if (filters.to) query = query.lte("created_at", filters.to);
   const { data, error } = await query.range(
-    (page - 1) * pageSize,
-    page * pageSize - 1
+    start,
+    start + fetchLimit - 1
   );
   if (error)
     return {
@@ -116,10 +120,11 @@ export async function getAdminActivityPage(
       hasMore: false,
     };
   const rows = (data || []) as unknown as Parameters<typeof toRecord>[0][];
+  const visibleRows = rows.slice(0, pageSize);
   return {
-    data: rows.map(toRecord),
+    data: visibleRows.map(toRecord),
     error: null,
-    hasMore: rows.length === pageSize,
+    hasMore: rows.length > pageSize,
   };
 }
 
@@ -182,10 +187,20 @@ export async function getAdminUserStatus(): Promise<UserStatusResult> {
       error: "Last sign-in data is unavailable.",
     };
   }
-  const { data: authUsers, error: authError } =
-    await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+  const authUsers = [];
+  let authError: { message?: string } | null = null;
+  for (let page = 1; ; page += 1) {
+    const result = await admin.auth.admin.listUsers({ page, perPage: 1000 });
+    if (result.error) {
+      authError = result.error;
+      break;
+    }
+    const batch = result.data?.users || [];
+    authUsers.push(...batch);
+    if (batch.length < 1000) break;
+  }
   const signInByUser = new Map(
-    (authUsers?.users || []).map((user) => [
+    authUsers.map((user) => [
       user.id,
       user.last_sign_in_at || null,
     ])

@@ -73,6 +73,8 @@ export async function Topbar() {
             <button
               className="text-slate hover:text-pulse transition-colors flex items-center justify-center"
               title="Profile Settings"
+              aria-label="Profile Settings"
+              type="button"
             >
               <Settings className="w-4 h-4" />
             </button>
@@ -86,6 +88,7 @@ export async function Topbar() {
               className="text-slate hover:text-alert transition-colors flex items-center justify-center"
               type="submit"
               title="Sign Out"
+              aria-label="Sign Out"
             >
               <LogOut className="w-4 h-4" />
             </button>

@@ -174,6 +174,10 @@ function categorySnapshot(value: unknown): EquipmentCategorySnapshot {
   };
 }
 
+// Private RPC snapshots stay on the tested unstable_cache boundary for now:
+// they are keyed by role, division, filters, and date, then invalidated by
+// existing mutation tags. A use-cache migration should be a separate rollout
+// because Next 16 Cache Components changes route/runtime requirements.
 const getCachedDashboard = unstable_cache(
   async (role: AppRole, divisionScope: string | null, asOf: string) => {
     const admin = createAdminClient();

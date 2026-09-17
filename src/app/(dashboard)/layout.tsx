@@ -1,8 +1,10 @@
 import { Sidebar } from "@/components/layout/sidebar";
 import { Topbar } from "@/components/layout/topbar";
 import { PresenceHeartbeat } from "@/components/presence/presence-heartbeat";
+import { TopbarSkeleton } from "@/components/layout/topbar-skeleton";
 import { getCurrentProfile } from "@/lib/auth";
 import Link from "next/link";
+import { Suspense } from "react";
 
 export default async function DashboardLayout({
   children,
@@ -26,7 +28,9 @@ export default async function DashboardLayout({
       <Sidebar isAdmin={isAdmin} />
       <PresenceHeartbeat />
       <div className="flex-1 flex flex-col min-w-0">
-        <Topbar />
+        <Suspense fallback={<TopbarSkeleton />}>
+          <Topbar />
+        </Suspense>
         <nav
           className="flex gap-2 overflow-x-auto border-b border-line bg-canvas-deep p-3 md:hidden"
           aria-label="Mobile navigation"

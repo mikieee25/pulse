@@ -18,5 +18,5 @@ test("public brand assets use safe browser caching", () => {
     assert.match(config, new RegExp(asset));
   assert.match(config, /max-age=86400/);
   assert.match(config, /stale-while-revalidate=604800/);
-  assert.doesNotMatch(config, /source: "\/\(\.\*\)"/);
+  assert.match(config, /source: "\/\(\.\*\)"/);
 });

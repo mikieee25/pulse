@@ -17,6 +17,7 @@ const themeScript = `try{var t=localStorage.getItem("pulse-theme");if(t==="dark"
 export const metadata: Metadata = {
   title: "PULSE | EUMB ICT Equipment System",
   description: "Personnel & Unit Lifecycle System for Equipment",
+  robots: { index: false, follow: false },
   icons: {
     icon: "/pulseicon.svg",
     apple: "/pulseicon.svg",
