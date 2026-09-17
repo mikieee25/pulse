@@ -28,6 +28,7 @@ export type ReportEquipment = {
   procurement_method: string | null;
   status: string;
   condition_state: string;
+  is_rts: boolean;
   rate: number;
   division: { code: string } | null;
   personnel: { full_name: string } | null;
@@ -152,6 +153,7 @@ export function ReportsClient({
     Custodian: item.custodian || "Unassigned",
     Assignee: item.assignee?.full_name || "Unassigned",
     Status: item.displayStatus,
+    RTS: item.is_rts ? "Return to Store" : "",
     "Service Life (Years)": item.serviceLife,
   }));
 

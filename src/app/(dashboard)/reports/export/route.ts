@@ -36,6 +36,7 @@ export async function GET(request: Request) {
         Custodian: item.personnel?.full_name || "Unassigned",
         Assignee: item.assignee?.full_name || "Unassigned",
         Status: item.displayStatus,
+        RTS: item.is_rts ? "Return to Store" : "",
       }))
     );
     page += 1;
@@ -49,6 +50,7 @@ export async function GET(request: Request) {
       "Custodian",
       "Assignee",
       "Status",
+      "RTS",
     ],
     rows
   );

@@ -17,6 +17,7 @@ export type EquipmentData = {
   year_acquired: number | null;
   status: StoredEquipmentStatus;
   condition_state: string;
+  is_rts: boolean;
   division: { code: string } | null;
   personnel: { full_name: string } | null;
   assignee: { full_name: string } | null;
@@ -106,6 +107,22 @@ export const columns: ColumnDef<EquipmentData>[] = [
       ),
     cell: ({ row }) =>
       statusBadge(row.getValue("status") as EquipmentDisplayStatus),
+  },
+  {
+    id: "rts",
+    header: "RTS",
+    accessorKey: "is_rts",
+    cell: ({ row }) =>
+      row.original.is_rts ? (
+        <Badge
+          variant="outline"
+          className="border-warning text-warning bg-warning/10 whitespace-nowrap"
+        >
+          Return to Store
+        </Badge>
+      ) : (
+        <span className="text-slate">—</span>
+      ),
   },
   {
     id: "actions",

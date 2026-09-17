@@ -193,6 +193,7 @@ export type Database = {
           created_at: string | null;
           division_id: string;
           id: string;
+          is_rts: boolean;
           model: string | null;
           procurement_method: string | null;
           remarks: string | null;
@@ -209,6 +210,7 @@ export type Database = {
           created_at?: string | null;
           division_id: string;
           id?: string;
+          is_rts?: boolean;
           model?: string | null;
           procurement_method?: string | null;
           remarks?: string | null;
@@ -225,6 +227,7 @@ export type Database = {
           created_at?: string | null;
           division_id?: string;
           id?: string;
+          is_rts?: boolean;
           model?: string | null;
           procurement_method?: string | null;
           remarks?: string | null;
@@ -405,6 +408,7 @@ export type Database = {
           p_page?: number;
           p_page_size?: number;
           p_query?: string;
+          p_rts?: string;
           p_status?: string;
         };
         Returns: {
@@ -416,6 +420,7 @@ export type Database = {
           display_status: string;
           division_code: string;
           id: string;
+          is_rts: boolean;
           lifespan_years: number;
           model: string;
           serial_number: string;
@@ -454,9 +459,17 @@ export type Database = {
         };
         Returns: undefined;
       };
+      delete_equipment: {
+        Args: { p_equipment_id: string };
+        Returns: Json;
+      };
       retire_equipment: {
         Args: { p_equipment_id: string };
         Returns: undefined;
+      };
+      set_equipment_rts: {
+        Args: { p_equipment_id: string; p_is_rts: boolean };
+        Returns: boolean;
       };
       save_equipment: {
         Args: {

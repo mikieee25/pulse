@@ -63,6 +63,12 @@ const changelogGroups: ChangelogGroup[] = [
     release: "Performance and table UX",
     changes: [
       {
+        kind: "feature",
+        title: "Added Return to Store tracking and Admin deletion",
+        description:
+          "Admins across all divisions can mark any equipment as RTS without changing its lifecycle or condition, review the RTS tag in tables and exports, and permanently delete equipment with its assignment history after confirmation.",
+      },
+      {
         kind: "enhancement",
         title: "Bounded directories and consistent table controls",
         description:

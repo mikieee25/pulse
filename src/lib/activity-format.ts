@@ -47,6 +47,10 @@ export function formatActivityMessage(activity: ActivityRecord) {
     dateStyle: "long",
     timeStyle: "short",
   }).format(new Date(activity.createdAt));
+  if (activity.action === "state_changed" && activity.metadata?.is_rts === true)
+    return `${activity.actorName} marked ${activity.entityLabel} RTS on ${timestamp}.`;
+  if (activity.action === "state_changed" && activity.metadata?.is_rts === false)
+    return `${activity.actorName} removed the RTS tag from ${activity.entityLabel} on ${timestamp}.`;
   return `${activity.actorName} ${verbs[activity.action]} ${activity.entityLabel} on ${timestamp}.`;
 }
 

@@ -96,6 +96,15 @@ export function EquipmentFilterBar({
         <option value="">All Assignments</option>
         <option value="unassigned">Unassigned</option>
       </select>
+      <select
+        name="rts"
+        aria-label="Filter RTS"
+        defaultValue={filters.rts}
+        className="h-10 rounded-lg border border-line bg-canvas-deep px-3 text-sm text-paper"
+      >
+        <option value="">All store status</option>
+        <option value="rts">RTS · Return to Store</option>
+      </select>
       <TablePageSizeSelect value={pageSize} name="pageSize" />
       <Button type="submit" size="sm">
         Apply

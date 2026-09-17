@@ -33,6 +33,7 @@ type DetailEquipment = {
   assigned_to: string | null;
   assignee_id: string | null;
   condition_state: string;
+  is_rts: boolean;
   status: "Active" | "For Replacement" | "Retired";
   remarks: string | null;
   division: { full_name: string; code: string } | null;
@@ -216,6 +217,14 @@ export default async function EquipmentDetailPage({
                 {equipment.condition_state}
               </Badge>
             )}
+          {equipment.is_rts && (
+            <Badge
+              variant="outline"
+              className="border-warning text-warning bg-warning/10"
+            >
+              RTS · Return to Store
+            </Badge>
+          )}
         </div>
       </PageHeader>
 
@@ -297,6 +306,7 @@ export default async function EquipmentDetailPage({
               }
               currentCustodianId={equipment.assigned_to}
               currentAssigneeId={equipment.assignee_id}
+              currentRts={equipment.is_rts}
             />
           </div>
         </SectionPanel>

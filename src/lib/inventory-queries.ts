@@ -24,6 +24,7 @@ export type EquipmentPageRow = {
   year_acquired: number | null;
   status: StoredEquipmentStatus;
   condition_state: string;
+  is_rts: boolean;
   division: { code: string } | null;
   personnel: { full_name: string } | null;
   assignee: { full_name: string } | null;
@@ -368,6 +369,7 @@ export async function getReportPage(
       brand: filters.brand || "",
       status: filters.status || "",
       assignment: filters.assignment || "",
+      rts: filters.rts || "",
       page: filters.page || 1,
       pageSize: filters.pageSize,
       category: filters.category || "",
@@ -413,6 +415,7 @@ export async function getEquipmentPage(
     p_brand: filters.brand || null,
     p_status: filters.status || null,
     p_assignment: filters.assignment || null,
+    p_rts: filters.rts || null,
     p_page: filters.page,
     p_page_size: safePageSize,
   });
@@ -426,6 +429,7 @@ export async function getEquipmentPage(
       year_acquired: row.year_acquired as number | null,
       status: row.status as StoredEquipmentStatus,
       condition_state: String(row.condition_state || "Good"),
+      is_rts: Boolean(row.is_rts),
       division: row.division_code ? { code: String(row.division_code) } : null,
       personnel: row.custodian_name
         ? { full_name: String(row.custodian_name) }

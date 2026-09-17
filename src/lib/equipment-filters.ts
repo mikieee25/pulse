@@ -8,6 +8,7 @@ export const EQUIPMENT_FILTER_STATUSES = [
 export type EquipmentFilterStatus =
   "" | (typeof EQUIPMENT_FILTER_STATUSES)[number];
 export type EquipmentAssignmentFilter = "" | "unassigned";
+export type EquipmentRtsFilter = "" | "rts";
 
 export type EquipmentFilters = {
   q: string;
@@ -15,6 +16,7 @@ export type EquipmentFilters = {
   brand: string;
   status: EquipmentFilterStatus;
   assignment: EquipmentAssignmentFilter;
+  rts: EquipmentRtsFilter;
   page: number;
   pageSize?: number;
 };
@@ -45,6 +47,7 @@ export function parseEquipmentFilters(input: SearchInput): EquipmentFilters {
       : "",
     assignment:
       textValue(input, "assignment") === "unassigned" ? "unassigned" : "",
+    rts: textValue(input, "rts") === "rts" ? "rts" : "",
     page: Number.isInteger(page) && page > 0 ? page : 1,
     pageSize: [10, 25, 50].includes(requestedPageSize) ? requestedPageSize : 25,
   };
@@ -62,6 +65,7 @@ export function equipmentFiltersQuery(
   if (filters.brand) query.set("brand", filters.brand);
   if (filters.status) query.set("status", filters.status);
   if (filters.assignment) query.set("assignment", filters.assignment);
+  if (filters.rts) query.set("rts", filters.rts);
   if (filters.page > 1) query.set("page", String(filters.page));
   if (filters.pageSize && filters.pageSize !== 25)
     query.set("pageSize", String(filters.pageSize));

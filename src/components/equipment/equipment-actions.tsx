@@ -3,8 +3,10 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
+  deleteEquipment,
   reassignEquipment,
   retireEquipment,
+  setEquipmentRts,
   updateEquipmentState,
 } from "@/app/actions/equipment";
 import { Button } from "@/components/ui/button";
@@ -17,7 +19,7 @@ type Person = {
   plantilla_status?: string;
 };
 type PendingEquipmentAction =
-  "custodian" | "assignee" | "archive" | "state" | null;
+  "custodian" | "assignee" | "archive" | "state" | "rts" | "delete" | null;
 
 export function EquipmentActions({
   id,
@@ -25,12 +27,14 @@ export function EquipmentActions({
   currentState,
   currentCustodianId,
   currentAssigneeId,
+  currentRts,
 }: {
   id: string;
   personnel: Person[];
   currentState: EquipmentCondition;
   currentCustodianId: string | null;
   currentAssigneeId: string | null;
+  currentRts: boolean;
 }) {
   const [selectedCustodian, setSelectedCustodian] = useState(
     currentCustodianId || ""
@@ -43,6 +47,7 @@ export function EquipmentActions({
   const [pendingAction, setPendingAction] =
     useState<PendingEquipmentAction>(null);
   const [state, setState] = useState(currentState);
+  const [isRts, setIsRts] = useState(currentRts);
   const router = useRouter();
   const eligibleCustodians = personnel.filter(
     (person) =>
@@ -136,6 +141,47 @@ export function EquipmentActions({
     }
   }
 
+  async function toggleRts() {
+    if (pendingAction) return;
+    setPendingAction("rts");
+    setMessage("");
+    try {
+      const next = !isRts;
+      const result = await setEquipmentRts(id, next);
+      if (result.error) setMessage(result.error);
+      else {
+        setIsRts(next);
+        setMessage(next ? "Marked RTS." : "RTS tag removed.");
+        router.refresh();
+      }
+      setMessageIsError(Boolean(result.error));
+    } catch {
+      setMessage("Could not update RTS tag.");
+      setMessageIsError(true);
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
+  async function removeEquipment() {
+    if (pendingAction) return;
+    if (!window.confirm("Delete this equipment and its assignment history? This cannot be undone.")) return;
+    setPendingAction("delete");
+    setMessage("");
+    try {
+      const result = await deleteEquipment(id);
+      if (result.error) {
+        setMessage(result.error);
+        setMessageIsError(true);
+      } else router.push("/equipment");
+    } catch {
+      setMessage("Could not delete equipment.");
+      setMessageIsError(true);
+    } finally {
+      setPendingAction(null);
+    }
+  }
+
   return (
     <div className="flex flex-col xl:flex-row gap-8 items-start justify-between">
       <div className="space-y-4">
@@ -192,6 +238,25 @@ export function EquipmentActions({
             onClick={retire}
           >
             {pendingAction === "archive" ? "Archiving…" : "Archive"}
+          </Button>
+          <Button
+            variant="outline"
+            disabled={pendingAction !== null}
+            onClick={toggleRts}
+            aria-pressed={isRts}
+          >
+            {pendingAction === "rts"
+              ? "Saving…"
+              : isRts
+                ? "Clear RTS"
+                : "Mark RTS"}
+          </Button>
+          <Button
+            variant="destructive"
+            disabled={pendingAction !== null}
+            onClick={removeEquipment}
+          >
+            {pendingAction === "delete" ? "Deleting…" : "Delete equipment"}
           </Button>
         </div>
         {message && (

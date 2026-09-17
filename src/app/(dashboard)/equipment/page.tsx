@@ -41,6 +41,7 @@ export default async function EquipmentPage(props: {
     brand?: string;
     status?: string;
     assignment?: string;
+    rts?: string;
     page?: string;
     pageSize?: string;
   }>;
@@ -105,6 +106,7 @@ export default async function EquipmentPage(props: {
       item.equipment_categories?.lifespan_years,
       item.year_acquired
     ),
+    RTS: item.is_rts ? "Return to Store" : "",
   }));
   if (
     categoriesError ||

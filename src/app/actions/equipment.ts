@@ -35,7 +35,7 @@ export type EquipmentInput = z.infer<typeof equipmentInput>;
 type Supabase = Awaited<ReturnType<typeof createClient>>;
 
 function equipmentLabel(
-  input: Pick<EquipmentInput, "brand" | "model" | "serial_number">
+  input: Partial<Pick<EquipmentInput, "brand" | "model" | "serial_number">>
 ) {
   return (
     [input.brand, input.model, input.serial_number].filter(Boolean).join(" ") ||
@@ -293,6 +293,70 @@ export async function updateEquipmentState(
     entityId: id,
     entityLabel: "Equipment",
     metadata: { condition_state: parsedState.data },
+  });
+  revalidateTag(PULSE_CACHE_TAGS.notifications, "max");
+  revalidateTag(PULSE_CACHE_TAGS.inventory, "max");
+  revalidateTag(PULSE_CACHE_TAGS.planning, "max");
+  revalidatePath("/equipment");
+  revalidatePath(`/equipment/${id}`);
+  return { success: true };
+}
+
+export async function setEquipmentRts(id: string, isRts: boolean) {
+  const access = await requireProfile("Admin");
+  if (access.error) return access;
+  if (!equipmentId.safeParse(id).success || typeof isRts !== "boolean")
+    return { error: "Invalid RTS value." };
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("set_equipment_rts", {
+    p_equipment_id: id,
+    p_is_rts: isRts,
+  });
+  if (error || data !== true)
+    return { error: error?.message || "Could not update RTS tag." };
+  const { data: equipment } = await supabase
+    .from("equipment")
+    .select("division_id,brand,model,serial_number")
+    .eq("id", id)
+    .maybeSingle();
+  await recordActivity({
+    action: "state_changed",
+    entityType: "equipment",
+    entityId: id,
+    entityLabel: equipmentLabel(equipment || {}),
+    divisionId: equipment?.division_id || null,
+    metadata: { is_rts: isRts },
+  });
+  revalidateTag(PULSE_CACHE_TAGS.notifications, "max");
+  revalidateTag(PULSE_CACHE_TAGS.inventory, "max");
+  revalidateTag(PULSE_CACHE_TAGS.planning, "max");
+  revalidatePath("/equipment");
+  revalidatePath(`/equipment/${id}`);
+  return { success: true };
+}
+
+export async function deleteEquipment(id: string) {
+  const access = await requireProfile("Admin");
+  if (access.error) return access;
+  if (!equipmentId.safeParse(id).success)
+    return { error: "Equipment not found." };
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("delete_equipment", {
+    p_equipment_id: id,
+  });
+  if (error || !data)
+    return { error: error?.message || "Could not delete equipment." };
+  const snapshot = data as {
+    label?: string;
+    division_id?: string | null;
+  };
+  await recordActivity({
+    action: "deleted",
+    entityType: "equipment",
+    entityId: id,
+    entityLabel: snapshot.label || "Equipment",
+    divisionId: snapshot.division_id || null,
+    metadata: { deleted: true },
   });
   revalidateTag(PULSE_CACHE_TAGS.notifications, "max");
   revalidateTag(PULSE_CACHE_TAGS.inventory, "max");
