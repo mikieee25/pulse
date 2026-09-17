@@ -7,6 +7,7 @@ import { createClient } from "@/utils/supabase/server";
 import { canonicalEquipmentCategory } from "@/lib/pulse";
 import { PULSE_CACHE_TAGS } from "@/lib/cache-tags";
 import { recordActivity } from "@/lib/admin-activity";
+import { buildAuditMetadata } from "@/lib/activity-audit";
 
 const categoryInput = z.object({
   name: z
@@ -46,6 +47,7 @@ export async function addEquipmentCategory(input: EquipmentCategoryInput) {
     entityType: "equipment_category",
     entityId: saved.id,
     entityLabel: name,
+    metadata: buildAuditMetadata(null, { id: saved.id, name, lifespan_years: 3 }, { source: "equipment_category.create" }),
   });
 
   revalidateTag(PULSE_CACHE_TAGS.categories, "max");

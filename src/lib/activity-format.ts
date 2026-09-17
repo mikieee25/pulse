@@ -61,6 +61,8 @@ export type ActivityFilters = {
   divisionId?: string;
   from?: string;
   to?: string;
+  eventId?: string;
+  entityId?: string;
   page?: number;
   pageSize?: number;
 };

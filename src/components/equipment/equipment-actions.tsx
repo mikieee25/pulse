@@ -129,7 +129,7 @@ export function EquipmentActions({
       if (result.error) {
         setState(previousState as EquipmentCondition);
         setMessage(result.error);
-      } else setMessage(`State updated to ${newState}.`);
+      } else setMessage(`Condition updated to ${newState}.`);
       setMessageIsError(Boolean(result.error));
       if (!result.error) router.refresh();
     } catch {
@@ -270,8 +270,8 @@ export function EquipmentActions({
       </div>
 
       <div className="space-y-2 shrink-0 md:min-w-64">
-        <span id="equipment-state-label" className="text-sm text-slate">
-          State
+        <span id="equipment-condition-label" className="text-sm text-slate">
+          Condition
         </span>
         <div className="flex items-center rounded-lg border border-line bg-canvas p-1">
           {["Good", "For Replacement", "Broken"].map((s) => {
@@ -288,7 +288,7 @@ export function EquipmentActions({
                 type="button"
                 disabled={pendingAction !== null}
                 aria-pressed={isActive}
-                aria-labelledby="equipment-state-label"
+                aria-labelledby="equipment-condition-label"
                 onClick={() => handleStateChange(s as EquipmentCondition)}
                 className={`flex-1 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${isActive ? `${activeColor} bg-canvas-deep shadow-sm` : "text-slate hover:text-paper"}`}
               >

@@ -11,6 +11,7 @@ import {
 import { createClient } from "@/utils/supabase/server";
 import { PULSE_CACHE_TAGS } from "@/lib/cache-tags";
 import { recordActivity } from "@/lib/admin-activity";
+import { buildAuditMetadata } from "@/lib/activity-audit";
 
 const personnelInput = z.object({
   full_name: z.string().trim().min(1),
@@ -45,12 +46,14 @@ export async function addPersonnel(input: PersonnelInput) {
     .select("id")
     .single();
   if (error) return { error: error.message };
+  const after = { id: saved.id, ...data };
   await recordActivity({
     action: "created",
     entityType: "personnel",
     entityId: saved.id,
     entityLabel: data.full_name,
     divisionId: data.division_id,
+    metadata: buildAuditMetadata(null, after, { source: "personnel.create" }),
   });
   revalidateTag(PULSE_CACHE_TAGS.notifications, "max");
   revalidateTag(PULSE_CACHE_TAGS.personnel, "max");
@@ -76,13 +79,13 @@ export async function updatePersonnel(id: string, input: PersonnelInput) {
   };
   const supabase = await createClient();
   const [
-    { data: existing },
+    { data: existing, error: existingError },
     { count: custodianCount },
     { count: assigneeCount },
   ] = await Promise.all([
     supabase
       .from("personnel")
-      .select("division_id,position,plantilla_status")
+      .select("id,full_name,initials,position,plantilla_status,division_id")
       .eq("id", id)
       .single(),
     supabase
@@ -94,6 +97,7 @@ export async function updatePersonnel(id: string, input: PersonnelInput) {
       .select("id", { count: "exact", head: true })
       .eq("assignee_id", id),
   ]);
+  if (existingError || !existing) return { error: "Personnel not found." };
   const assignmentChanged =
     existing &&
     (existing.division_id !== data.division_id ||
@@ -104,6 +108,7 @@ export async function updatePersonnel(id: string, input: PersonnelInput) {
       error:
         "Unassign this person before changing their division, position, or plantilla status.",
     };
+  const before = existing as Record<string, unknown> | null;
   const { error } = await supabase.from("personnel").update(data).eq("id", id);
   if (error) return { error: error.message };
   await recordActivity({
@@ -112,6 +117,7 @@ export async function updatePersonnel(id: string, input: PersonnelInput) {
     entityId: id,
     entityLabel: data.full_name,
     divisionId: data.division_id,
+    metadata: buildAuditMetadata(before, { id, ...data }, { source: "personnel.update" }),
   });
   revalidateTag(PULSE_CACHE_TAGS.notifications, "max");
   revalidateTag(PULSE_CACHE_TAGS.personnel, "max");
@@ -127,10 +133,16 @@ export async function deletePersonnel(id: string) {
     return { error: "Personnel not found." };
   const supabase = await createClient();
   const [
+    { data: target, error: targetError },
     { count: custodianCount, error: custodianError },
     { count: assigneeCount, error: assigneeError },
     { count: historyCount, error: historyError },
   ] = await Promise.all([
+    supabase
+      .from("personnel")
+      .select("id,full_name,initials,position,plantilla_status,division_id")
+      .eq("id", id)
+      .maybeSingle(),
     supabase
       .from("equipment")
       .select("id", { count: "exact", head: true })
@@ -144,7 +156,7 @@ export async function deletePersonnel(id: string) {
       .select("id", { count: "exact", head: true })
       .eq("personnel_id", id),
   ]);
-  if (custodianError || assigneeError || historyError)
+  if (targetError || custodianError || assigneeError || historyError)
     return {
       error:
         (custodianError || assigneeError || historyError)?.message ||
@@ -166,7 +178,9 @@ export async function deletePersonnel(id: string) {
     action: "deleted",
     entityType: "personnel",
     entityId: id,
-    entityLabel: id,
+    entityLabel: target?.full_name || id,
+    divisionId: target?.division_id || null,
+    metadata: buildAuditMetadata(target as Record<string, unknown> | null, null, { source: "personnel.delete" }),
   });
   revalidateTag(PULSE_CACHE_TAGS.notifications, "max");
   revalidateTag(PULSE_CACHE_TAGS.personnel, "max");

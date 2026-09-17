@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { requireProfile } from "@/lib/auth";
 import { createAdminClient } from "@/utils/supabase/admin";
 import { createClient } from "@/utils/supabase/server";
+import { sanitizeAuditValue } from "@/lib/activity-audit";
 import type {
   ActivityFilters,
   ActivityInput,
@@ -73,7 +74,7 @@ export async function recordActivity(input: ActivityInput): Promise<void> {
     entity_label: input.entityLabel,
     division_id: input.divisionId || null,
     division_name: divisionName,
-    metadata: input.metadata || {},
+    metadata: (sanitizeAuditValue(input.metadata || {}) || {}) as Record<string, unknown>,
   });
   if (error) {
     console.error("PULSE activity recording failed", {
@@ -109,6 +110,8 @@ export async function getAdminActivityPage(
   if (filters.divisionId) query = query.eq("division_id", filters.divisionId);
   if (filters.from) query = query.gte("created_at", filters.from);
   if (filters.to) query = query.lte("created_at", filters.to);
+  if (filters.eventId) query = query.eq("id", filters.eventId);
+  if (filters.entityId) query = query.eq("entity_id", filters.entityId);
   const { data, error } = await query.range(
     start,
     start + fetchLimit - 1

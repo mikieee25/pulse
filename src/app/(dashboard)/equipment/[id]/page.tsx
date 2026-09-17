@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
   canonicalEquipmentCategory,
-  equipmentDisplayStatus,
+  lifecycleStatus,
 } from "@/lib/pulse";
 import type { EquipmentInput } from "@/app/actions/equipment";
 import { getCurrentProfile } from "@/lib/auth";
@@ -128,11 +128,10 @@ export default async function EquipmentDetailPage({
   const categoryName = canonicalEquipmentCategory(
     equipment.equipment_categories?.name || "Laptop"
   );
-  const status = equipmentDisplayStatus(
+  const lifecycle = lifecycleStatus(
     equipment.status,
-    equipment.condition_state,
     equipment.equipment_categories?.lifespan_years,
-    equipment.year_acquired
+    equipment.year_acquired,
   );
   const division = equipment.division
     ? [
@@ -206,15 +205,15 @@ export default async function EquipmentDetailPage({
             variant="outline"
             className="border-pulse text-pulse bg-pulse/10"
           >
-            {status}
+            Lifecycle: {lifecycle}
           </Badge>
-          {equipment.condition_state &&
-            equipment.condition_state !== "Good" && (
+            {equipment.condition_state &&
+            (
               <Badge
                 variant="outline"
-                className="border-alert text-alert bg-alert/10"
+                className={equipment.condition_state === "Good" ? "border-pulse text-pulse bg-pulse/10" : "border-alert text-alert bg-alert/10"}
               >
-                {equipment.condition_state}
+                Condition: {equipment.condition_state}
               </Badge>
             )}
           {equipment.is_rts && (
@@ -242,6 +241,15 @@ export default async function EquipmentDetailPage({
               <dt className="text-xs text-slate">Year acquired</dt>
               <dd className="mt-1 text-sm text-paper">
                 {equipment.year_acquired || "N/A"}
+              </dd>
+            </div>
+            <div>
+              <dt className="text-xs text-slate">Lifecycle status</dt>
+              <dd className="mt-1 text-sm text-paper">{lifecycle}</dd>
+              <dd className="mt-1 text-xs text-slate">
+                {equipment.year_acquired && equipment.equipment_categories?.lifespan_years
+                  ? `${equipment.equipment_categories.lifespan_years}-year lifespan from ${equipment.year_acquired}`
+                  : "No acquisition year recorded"}
               </dd>
             </div>
             <div className="col-span-2">

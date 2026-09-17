@@ -6,6 +6,7 @@ import { requireProfile } from "@/lib/auth";
 import { createClient } from "@/utils/supabase/server";
 import { PULSE_CACHE_TAGS } from "@/lib/cache-tags";
 import { recordActivity } from "@/lib/admin-activity";
+import { buildAuditMetadata } from "@/lib/activity-audit";
 
 const divisionInput = z.object({
   code: z.string().trim().min(2).max(16),
@@ -29,12 +30,14 @@ export async function addDivision(input: DivisionInput) {
     .select("id")
     .single();
   if (error) return { error: error.message };
+  const after = { id: saved.id, code: parsed.data.code.toUpperCase(), full_name: parsed.data.full_name };
   await recordActivity({
     action: "created",
     entityType: "division",
     entityId: saved.id,
     entityLabel: parsed.data.code.toUpperCase(),
     divisionName: parsed.data.full_name,
+    metadata: buildAuditMetadata(null, after, { source: "division.create" }),
   });
   revalidateTag(PULSE_CACHE_TAGS.divisions, "max");
   revalidateTag(PULSE_CACHE_TAGS.inventory, "max");
@@ -51,6 +54,8 @@ export async function updateDivision(id: string, input: DivisionInput) {
   const parsed = divisionInput.safeParse(input);
   if (!parsed.success) return { error: "Please complete the division fields." };
   const supabase = await createClient();
+  const { data: before } = await supabase.from("divisions").select("id,code,full_name").eq("id", id).maybeSingle();
+  if (!before) return { error: "Division not found." };
   const { data, error } = await supabase
     .from("divisions")
     .update({
@@ -68,6 +73,7 @@ export async function updateDivision(id: string, input: DivisionInput) {
     entityId: id,
     entityLabel: parsed.data.code.toUpperCase(),
     divisionName: parsed.data.full_name,
+    metadata: buildAuditMetadata(before, { id, code: parsed.data.code.toUpperCase(), full_name: parsed.data.full_name }, { source: "division.update" }),
   });
   revalidateTag(PULSE_CACHE_TAGS.divisions, "max");
   revalidateTag(PULSE_CACHE_TAGS.inventory, "max");

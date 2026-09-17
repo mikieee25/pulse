@@ -64,6 +64,12 @@ const changelogGroups: ChangelogGroup[] = [
     changes: [
       {
         kind: "enhancement",
+        title: "Expanded audit history and clarified equipment status",
+        description:
+          "New activity events capture redacted before/after snapshots, changed fields, source, reason, event IDs, and entity IDs with expandable details and filters. Equipment details now distinguish stored Condition from computed Lifecycle status and show the lifespan basis.",
+      },
+      {
+        kind: "enhancement",
         title: "Production hardening for faster, safer reads",
         description:
           "Added configurable LAN origins, security headers, no-index metadata, streamed shell loading, bounded admin activity reads, paginated Auth status loading, structured profile diagnostics, and indexed Equipment/Personnel search paths.",

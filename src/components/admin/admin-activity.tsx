@@ -47,6 +47,8 @@ export function AdminActivity({
   if (filters.divisionId) nextPage.set("division", filters.divisionId);
   if (filters.from) nextPage.set("from", filters.from.slice(0, 10));
   if (filters.to) nextPage.set("to", filters.to.slice(0, 10));
+  if (filters.eventId) nextPage.set("event", filters.eventId);
+  if (filters.entityId) nextPage.set("entityId", filters.entityId);
   nextPage.set("page", String((filters.page || 1) + 1));
   return (
     <div className="space-y-6">
@@ -198,6 +200,20 @@ export function AdminActivity({
             ))}
           </select>
           <input
+            name="event"
+            defaultValue={filters.eventId || ""}
+            aria-label="Filter by event ID"
+            placeholder="Event ID"
+            className="h-9 rounded-lg border border-line bg-canvas px-3 text-sm text-paper"
+          />
+          <input
+            name="entityId"
+            defaultValue={filters.entityId || ""}
+            aria-label="Filter by entity ID"
+            placeholder="Entity ID"
+            className="h-9 rounded-lg border border-line bg-canvas px-3 text-sm text-paper"
+          />
+          <input
             name="from"
             type="date"
             defaultValue={filters.from?.slice(0, 10) || ""}
@@ -290,6 +306,28 @@ export function ActivityPreview({
 }
 
 function ActivityEntry({ entry }: { entry: ActivityRecord }) {
+  const metadata = entry.metadata || {};
+  const before = isRecord(metadata.before) ? metadata.before : null;
+  const after = isRecord(metadata.after) ? metadata.after : null;
+  const changedFields = Array.isArray(metadata.changedFields)
+    ? metadata.changedFields.filter((field): field is string => typeof field === "string")
+    : [];
+  const relatedHref = entry.entityId
+    ? entry.entityType === "equipment"
+      ? `/equipment/${entry.entityId}`
+      : entry.entityType === "personnel"
+        ? "/personnel"
+        : entry.entityType === "division"
+          ? "/divisions"
+          : entry.entityType === "user"
+            ? "/admin/users"
+            : entry.entityType === "category_unit_cost"
+              ? "/budget"
+              : "/equipment"
+    : null;
+  const source = formatAuditValue(metadata.source);
+  const reason = formatAuditValue(metadata.reason);
+  const relatedLabel = entry.entityType === "equipment" ? "Open related equipment" : `Open ${entry.entityType.replaceAll("_", " ")} records`;
   return (
     <article className="flex gap-3 p-4">
       <div className="mt-0.5 rounded-lg bg-pulse/10 p-2 text-pulse">
@@ -300,7 +338,47 @@ function ActivityEntry({ entry }: { entry: ActivityRecord }) {
         <p className="mt-1 text-xs text-slate">
           {entry.divisionName || "All divisions"} · {entry.actorEmail}
         </p>
+        <details className="mt-2 text-xs text-slate">
+          <summary className="cursor-pointer font-medium text-pulse hover:underline">
+            View details
+          </summary>
+          <div className="mt-3 grid gap-2 rounded-lg border border-line bg-canvas/60 p-3 sm:grid-cols-2">
+            <p><span className="font-medium text-paper">Event ID:</span> <code>{entry.id}</code></p>
+            <p><span className="font-medium text-paper">Entity ID:</span> <code>{entry.entityId || "—"}</code></p>
+            <p className="sm:col-span-2"><span className="font-medium text-paper">Exact timestamp:</span> <time dateTime={entry.createdAt} title={entry.createdAt}>{entry.createdAt}</time></p>
+            {relatedHref && <p><Link className="text-pulse hover:underline" href={relatedHref}>{relatedLabel}</Link></p>}
+            {source !== "—" && <p><span className="font-medium text-paper">Source:</span> {source}</p>}
+            {reason !== "—" && <p><span className="font-medium text-paper">Reason:</span> {reason}</p>}
+            {changedFields.length ? (
+              <div className="sm:col-span-2">
+                <p className="font-medium text-paper">Changed fields</p>
+                <dl className="mt-1 divide-y divide-line/60 rounded border border-line">
+                  {changedFields.map((field) => (
+                    <div key={field} className="grid gap-1 px-2 py-1.5 sm:grid-cols-[9rem_1fr_1fr]">
+                      <dt className="font-medium text-paper">{field}</dt>
+                      <dd><span className="text-slate">Before:</span> {formatAuditValue(before?.[field])}</dd>
+                      <dd><span className="text-slate">After:</span> {formatAuditValue(after?.[field])}</dd>
+                    </div>
+                  ))}
+                </dl>
+              </div>
+            ) : (
+              <p className="sm:col-span-2">No additional audit details recorded for this event.</p>
+            )}
+          </div>
+        </details>
       </div>
     </article>
   );
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+  return Boolean(value) && typeof value === "object" && !Array.isArray(value);
+}
+
+function formatAuditValue(value: unknown) {
+  if (value === undefined || value === null || value === "") return "—";
+  if (typeof value === "boolean") return value ? "Yes" : "No";
+  if (typeof value === "object") return JSON.stringify(value);
+  return String(value);
 }

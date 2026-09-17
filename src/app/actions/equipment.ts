@@ -7,6 +7,7 @@ import { canonicalEquipmentCategory } from "@/lib/pulse";
 import { createClient } from "@/utils/supabase/server";
 import { PULSE_CACHE_TAGS } from "@/lib/cache-tags";
 import { recordActivity } from "@/lib/admin-activity";
+import { buildAuditMetadata } from "@/lib/activity-audit";
 
 const equipmentInput = z.object({
   categoryName: z.string().min(1),
@@ -33,6 +34,18 @@ const conditionState = z.enum(["Good", "For Replacement", "Broken"]);
 
 export type EquipmentInput = z.infer<typeof equipmentInput>;
 type Supabase = Awaited<ReturnType<typeof createClient>>;
+
+const EQUIPMENT_AUDIT_FIELDS =
+  "id,category_id,brand,model,year_acquired,serial_number,procurement_method,division_id,assigned_to,assignee_id,condition_state,is_rts,status,remarks";
+
+async function getEquipmentAuditSnapshot(supabase: Supabase, id: string) {
+  const { data } = await supabase
+    .from("equipment")
+    .select(EQUIPMENT_AUDIT_FIELDS)
+    .eq("id", id)
+    .maybeSingle();
+  return (data || null) as Record<string, unknown> | null;
+}
 
 function equipmentLabel(
   input: Partial<Pick<EquipmentInput, "brand" | "model" | "serial_number">>
@@ -119,12 +132,14 @@ export async function addEquipment(input: EquipmentInput) {
   });
   if (error || !equipmentId)
     return { error: error?.message || "Could not add equipment." };
+  const after = await getEquipmentAuditSnapshot(supabase, equipmentId);
   await recordActivity({
     action: "created",
     entityType: "equipment",
     entityId: equipmentId,
     entityLabel: equipmentLabel(parsed.data),
     divisionId: parsed.data.division_id,
+    metadata: buildAuditMetadata(null, after, { source: "equipment.create" }),
   });
   revalidateTag(PULSE_CACHE_TAGS.notifications, "max");
   revalidateTag(PULSE_CACHE_TAGS.inventory, "max");
@@ -159,6 +174,8 @@ export async function updateEquipment(id: string, input: EquipmentInput) {
   const category = await findCategoryId(supabase, parsed.data.categoryName);
   if (category.error) return { error: category.error };
   if (!category.id) return { error: "Category not found." };
+  const before = await getEquipmentAuditSnapshot(supabase, id);
+  if (!before) return { error: "Equipment not found." };
   const { error } = await supabase.rpc("save_equipment", {
     p_equipment_id: id,
     p_category_id: category.id,
@@ -174,6 +191,7 @@ export async function updateEquipment(id: string, input: EquipmentInput) {
     p_remarks: parsed.data.remarks || null,
   });
   if (error) return { error: error.message };
+  const after = await getEquipmentAuditSnapshot(supabase, id);
 
   await recordActivity({
     action: "updated",
@@ -181,6 +199,7 @@ export async function updateEquipment(id: string, input: EquipmentInput) {
     entityId: id,
     entityLabel: equipmentLabel(parsed.data),
     divisionId: parsed.data.division_id,
+    metadata: buildAuditMetadata(before, after, { source: "equipment.update" }),
   });
 
   revalidateTag(PULSE_CACHE_TAGS.notifications, "max");
@@ -207,10 +226,11 @@ export async function reassignEquipment(
   const supabase = await createClient();
   const { data: equipment } = await supabase
     .from("equipment")
-    .select("division_id,brand,model,serial_number")
+    .select(`${EQUIPMENT_AUDIT_FIELDS},personnel:personnel!equipment_assigned_to_fkey(full_name),assignee:personnel!equipment_assignee_id_fkey(full_name)`)
     .eq("id", id)
     .single();
   if (!equipment) return { error: "Equipment not found." };
+  const before = equipment as unknown as Record<string, unknown>;
 
   const assignmentError = await validateAssignment(
     supabase,
@@ -227,13 +247,14 @@ export async function reassignEquipment(
     p_type: role,
   });
   if (error) return { error: error.message };
+  const after = await getEquipmentAuditSnapshot(supabase, id);
   await recordActivity({
     action: personnelId ? "reassigned" : "assigned",
     entityType: "equipment",
     entityId: id,
     entityLabel: equipmentLabel(equipment),
     divisionId: equipment.division_id,
-    metadata: { role, personnelId },
+    metadata: buildAuditMetadata(before, after, { source: "equipment.reassign", role, personnelId }),
   });
   revalidateTag(PULSE_CACHE_TAGS.notifications, "max");
   revalidateTag(PULSE_CACHE_TAGS.inventory, "max");
@@ -249,16 +270,20 @@ export async function retireEquipment(id: string) {
   if (!equipmentId.safeParse(id).success)
     return { error: "Equipment not found." };
   const supabase = await createClient();
+  const before = await getEquipmentAuditSnapshot(supabase, id);
+  if (!before) return { error: "Equipment not found." };
   const { error } = await supabase.rpc("retire_equipment", {
     p_equipment_id: id,
   });
   if (error) return { error: error.message };
+  const after = await getEquipmentAuditSnapshot(supabase, id);
   await recordActivity({
     action: "retired",
     entityType: "equipment",
     entityId: id,
-    entityLabel: "Equipment",
-    metadata: {},
+    entityLabel: equipmentLabel(before),
+    divisionId: typeof before.division_id === "string" ? before.division_id : null,
+    metadata: buildAuditMetadata(before, after, { source: "equipment.retire" }),
   });
   revalidateTag(PULSE_CACHE_TAGS.notifications, "max");
   revalidateTag(PULSE_CACHE_TAGS.inventory, "max");
@@ -279,6 +304,8 @@ export async function updateEquipmentState(
   const parsedState = conditionState.safeParse(condition_state);
   if (!parsedState.success) return { error: "Invalid equipment state." };
   const supabase = await createClient();
+  const before = await getEquipmentAuditSnapshot(supabase, id);
+  if (!before) return { error: "Equipment not found." };
   const { data, error } = await supabase
     .from("equipment")
     .update({ condition_state: parsedState.data })
@@ -287,12 +314,14 @@ export async function updateEquipmentState(
     .maybeSingle();
   if (error) return { error: error.message };
   if (!data) return { error: "Equipment not found." };
+  const after = await getEquipmentAuditSnapshot(supabase, id);
   await recordActivity({
     action: "state_changed",
     entityType: "equipment",
     entityId: id,
-    entityLabel: "Equipment",
-    metadata: { condition_state: parsedState.data },
+    entityLabel: equipmentLabel(before),
+    divisionId: typeof before.division_id === "string" ? before.division_id : null,
+    metadata: buildAuditMetadata(before, after, { source: "equipment.condition" }),
   });
   revalidateTag(PULSE_CACHE_TAGS.notifications, "max");
   revalidateTag(PULSE_CACHE_TAGS.inventory, "max");
@@ -308,24 +337,22 @@ export async function setEquipmentRts(id: string, isRts: boolean) {
   if (!equipmentId.safeParse(id).success || typeof isRts !== "boolean")
     return { error: "Invalid RTS value." };
   const supabase = await createClient();
+  const before = await getEquipmentAuditSnapshot(supabase, id);
+  if (!before) return { error: "Equipment not found." };
   const { data, error } = await supabase.rpc("set_equipment_rts", {
     p_equipment_id: id,
     p_is_rts: isRts,
   });
   if (error || data !== true)
     return { error: error?.message || "Could not update RTS tag." };
-  const { data: equipment } = await supabase
-    .from("equipment")
-    .select("division_id,brand,model,serial_number")
-    .eq("id", id)
-    .maybeSingle();
+  const after = await getEquipmentAuditSnapshot(supabase, id);
   await recordActivity({
     action: "state_changed",
     entityType: "equipment",
     entityId: id,
-    entityLabel: equipmentLabel(equipment || {}),
-    divisionId: equipment?.division_id || null,
-    metadata: { is_rts: isRts },
+    entityLabel: equipmentLabel(before),
+    divisionId: typeof before.division_id === "string" ? before.division_id : null,
+    metadata: buildAuditMetadata(before, after, { source: "equipment.rts", is_rts: isRts }),
   });
   revalidateTag(PULSE_CACHE_TAGS.notifications, "max");
   revalidateTag(PULSE_CACHE_TAGS.inventory, "max");
@@ -341,6 +368,8 @@ export async function deleteEquipment(id: string) {
   if (!equipmentId.safeParse(id).success)
     return { error: "Equipment not found." };
   const supabase = await createClient();
+  const before = await getEquipmentAuditSnapshot(supabase, id);
+  if (!before) return { error: "Equipment not found." };
   const { data, error } = await supabase.rpc("delete_equipment", {
     p_equipment_id: id,
   });
@@ -354,9 +383,9 @@ export async function deleteEquipment(id: string) {
     action: "deleted",
     entityType: "equipment",
     entityId: id,
-    entityLabel: snapshot.label || "Equipment",
-    divisionId: snapshot.division_id || null,
-    metadata: { deleted: true },
+    entityLabel: snapshot.label || equipmentLabel(before),
+    divisionId: snapshot.division_id || (typeof before.division_id === "string" ? before.division_id : null),
+    metadata: buildAuditMetadata(before, null, { source: "equipment.delete", deleted: true }),
   });
   revalidateTag(PULSE_CACHE_TAGS.notifications, "max");
   revalidateTag(PULSE_CACHE_TAGS.inventory, "max");

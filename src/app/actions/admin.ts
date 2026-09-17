@@ -11,6 +11,7 @@ import { createAdminClient } from "@/utils/supabase/admin";
 import { createClient } from "@/utils/supabase/server";
 import { recordActivity } from "@/lib/admin-activity";
 import { PULSE_CACHE_TAGS } from "@/lib/cache-tags";
+import { buildAuditMetadata } from "@/lib/activity-audit";
 
 const userInput = z.object({
   email: z.email(),
@@ -57,6 +58,7 @@ export async function createUser(input: z.infer<typeof newUserInput>) {
     entityId: data.user.id,
     entityLabel: profile.full_name,
     divisionId: profile.division_scope,
+    metadata: buildAuditMetadata(null, { id: data.user.id, ...profile }, { source: "user.create" }),
   });
   revalidatePath("/admin/users");
   return { success: true };
@@ -104,6 +106,7 @@ export async function updateUser(
     entityId: id,
     entityLabel: target.full_name,
     divisionId: parsed.data.division_scope,
+    metadata: buildAuditMetadata(target, { ...target, ...parsed.data }, { source: "user.update" }),
   });
   revalidatePath("/admin/users");
   return { success: true };
@@ -149,6 +152,7 @@ export async function deleteUser(id: string) {
     entityId: id,
     entityLabel: target.full_name,
     divisionId: target.division_scope,
+    metadata: buildAuditMetadata(target, null, { source: "user.delete" }),
   });
 
   revalidatePath("/admin/users");
@@ -177,6 +181,12 @@ export async function saveCategoryCost(
   if (!categoryId.success || !year.success || !unitCost.success)
     return { error: "Invalid cost values.", success: false };
   const supabase = await createClient();
+  const { data: before } = await supabase
+    .from("category_unit_costs")
+    .select("category_id,year,unit_cost")
+    .eq("category_id", categoryId.data)
+    .eq("year", year.data)
+    .maybeSingle();
   const { error } = await supabase.from("category_unit_costs").upsert(
     {
       category_id: categoryId.data,
@@ -191,6 +201,7 @@ export async function saveCategoryCost(
     entityType: "category_unit_cost",
     entityId: categoryId.data,
     entityLabel: `Category cost for ${year.data}`,
+    metadata: buildAuditMetadata(before, { category_id: categoryId.data, year: year.data, unit_cost: unitCost.data }, { source: "category_unit_cost.update" }),
   });
   revalidatePath("/budget");
   revalidateTag(PULSE_CACHE_TAGS.costs, "max");

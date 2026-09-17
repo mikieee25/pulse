@@ -29,6 +29,12 @@ function valueOf(value: string | string[] | undefined) {
   return Array.isArray(value) ? value[0] : value;
 }
 
+function uuidOrUndefined(value: string | undefined) {
+  return value && /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value)
+    ? value
+    : undefined;
+}
+
 export default async function AdminActivityPage({
   searchParams,
 }: {
@@ -42,6 +48,8 @@ export default async function AdminActivityPage({
   const page = Number(valueOf(params.page) || 1);
   const from = valueOf(params.from);
   const to = valueOf(params.to);
+  const eventId = valueOf(params.event);
+  const entityId = valueOf(params.entityId);
   const filters = {
     actorUserId: valueOf(params.user),
     action: actions.has(action as ActivityAction)
@@ -53,6 +61,8 @@ export default async function AdminActivityPage({
     divisionId: valueOf(params.division),
     from: from ? `${from}T00:00:00.000Z` : undefined,
     to: to ? `${to}T23:59:59.999Z` : undefined,
+    eventId: uuidOrUndefined(eventId),
+    entityId: uuidOrUndefined(entityId),
     page: Number.isFinite(page) ? page : 1,
   };
   const [activity, statuses, divisions] = await Promise.all([
