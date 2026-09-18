@@ -2,6 +2,7 @@
 
 import { Moon, Sun } from "lucide-react";
 import { startTransition, useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 
 const STORAGE_KEY = "pulse-theme";
 type Theme = "dark" | "light";
@@ -39,7 +40,9 @@ export function ThemeToggle() {
   }
 
   return (
-    <button
+    <Button
+      variant="outline"
+      size="icon-lg"
       type="button"
       onClick={handleToggle}
       aria-label={`Switch to ${nextTheme} theme`}
@@ -51,6 +54,6 @@ export function ThemeToggle() {
       ) : (
         <Moon className="size-4" aria-hidden="true" />
       )}
-    </button>
+    </Button>
   );
 }

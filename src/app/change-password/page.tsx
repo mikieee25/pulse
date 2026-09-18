@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { BrandLockup } from "@/components/layout/brand-lockup";
 import { createClient } from "@/utils/supabase/server";
 
@@ -41,7 +42,7 @@ export default async function ChangePasswordPage({
               >
                 New password
               </label>
-              <input
+              <Input
                 id="password"
                 name="password"
                 type="password"
@@ -61,7 +62,7 @@ export default async function ChangePasswordPage({
               >
                 Confirm new password
               </label>
-              <input
+              <Input
                 id="confirmation"
                 name="confirmation"
                 type="password"

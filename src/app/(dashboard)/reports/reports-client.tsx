@@ -14,6 +14,9 @@ import { TablePageSizeSelect } from "@/components/layout/table-page-size-select"
 import { MetricCard } from "@/components/layout/metric-card";
 import { PageHeader } from "@/components/layout/page-header";
 import { SectionPanel } from "@/components/layout/section-panel";
+import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Button } from "@/components/ui/button";
 import {
   equipmentDisplayStatus,
   type StoredEquipmentStatus,
@@ -175,12 +178,13 @@ export function ReportsClient({
               category="inventory"
               label="Export current view"
             />
-            <Link
-              href="/reports/export"
-              className="rounded-lg border border-line px-3 py-2 text-sm text-slate hover:text-paper"
+            <Button
+              variant="outline"
+              size="action"
+              render={<Link href="/reports/export" />}
             >
               Export full CSV
-            </Link>
+            </Button>
           </div>
         }
       />
@@ -199,7 +203,9 @@ export function ReportsClient({
             "Unassigned Equipment",
             "3+ Years Aging Summary",
           ].map((tab) => (
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               key={tab}
               type="button"
               aria-pressed={activeTab === tab}
@@ -210,7 +216,7 @@ export function ReportsClient({
               className={`whitespace-nowrap rounded-full border px-3 py-2 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pulse/40 ${activeTab === tab ? "border-pulse/40 bg-pulse/10 text-pulse" : "border-line text-slate hover:border-paper/25 hover:bg-paper/5 hover:text-paper"}`}
             >
               {tab}
-            </button>
+            </Button>
           ))}
         </nav>
       </SectionPanel>
@@ -256,7 +262,7 @@ export function ReportsClient({
         description="Refine the selected report view"
       >
         <div className="grid gap-3 p-5 sm:grid-cols-2 xl:grid-cols-5">
-          <input
+          <Input
             type="text"
             aria-label="Search inventory"
             placeholder="Search serial, model, brand..."
@@ -265,16 +271,17 @@ export function ReportsClient({
               setSearchQuery(e.target.value);
               setCurrentPage(1);
             }}
-            className="h-10 rounded-lg border border-line bg-canvas px-3 text-sm text-paper outline-none transition focus:border-pulse focus:ring-2 focus:ring-pulse/15 xl:col-span-1"
+            className="h-10 rounded-lg border border-line bg-canvas pl-3 pr-10 text-sm text-paper outline-none transition focus:border-pulse focus:ring-2 focus:ring-pulse/15 xl:col-span-1"
           />
-          <select
+          <NativeSelect
+            wrapperClassName="w-full"
             aria-label="Filter division"
             value={filterDivision}
             onChange={(e) => {
               setFilterDivision(e.target.value);
               setCurrentPage(1);
             }}
-            className="h-10 rounded-lg border border-line bg-canvas px-3 text-sm text-paper outline-none transition focus:border-pulse focus:ring-2 focus:ring-pulse/15"
+            className="h-10 rounded-lg border border-line bg-canvas pl-3 pr-10 text-sm text-paper outline-none transition focus:border-pulse focus:ring-2 focus:ring-pulse/15"
           >
             <option value="">All divisions</option>
             {divisions.map((d) => (
@@ -282,15 +289,16 @@ export function ReportsClient({
                 {d}
               </option>
             ))}
-          </select>
-          <select
+          </NativeSelect>
+          <NativeSelect
+            wrapperClassName="w-full"
             aria-label="Filter category"
             value={filterCategory}
             onChange={(e) => {
               setFilterCategory(e.target.value);
               setCurrentPage(1);
             }}
-            className="h-10 rounded-lg border border-line bg-canvas px-3 text-sm text-paper outline-none transition focus:border-pulse focus:ring-2 focus:ring-pulse/15"
+            className="h-10 rounded-lg border border-line bg-canvas pl-3 pr-10 text-sm text-paper outline-none transition focus:border-pulse focus:ring-2 focus:ring-pulse/15"
           >
             <option value="">All categories</option>
             {categories.map((c) => (
@@ -298,15 +306,16 @@ export function ReportsClient({
                 {c}
               </option>
             ))}
-          </select>
-          <select
+          </NativeSelect>
+          <NativeSelect
+            wrapperClassName="w-full"
             aria-label="Filter condition"
             value={filterCondition}
             onChange={(e) => {
               setFilterCondition(e.target.value);
               setCurrentPage(1);
             }}
-            className="h-10 rounded-lg border border-line bg-canvas px-3 text-sm text-paper outline-none transition focus:border-pulse focus:ring-2 focus:ring-pulse/15"
+            className="h-10 rounded-lg border border-line bg-canvas pl-3 pr-10 text-sm text-paper outline-none transition focus:border-pulse focus:ring-2 focus:ring-pulse/15"
           >
             <option value="">All states</option>
             {conditions.map((c) => (
@@ -314,20 +323,21 @@ export function ReportsClient({
                 {c}
               </option>
             ))}
-          </select>
-          <select
+          </NativeSelect>
+          <NativeSelect
+            wrapperClassName="w-full"
             aria-label="Filter assignment"
             value={filterAssignment}
             onChange={(e) => {
               setFilterAssignment(e.target.value);
               setCurrentPage(1);
             }}
-            className="h-10 rounded-lg border border-line bg-canvas px-3 text-sm text-paper outline-none transition focus:border-pulse focus:ring-2 focus:ring-pulse/15"
+            className="h-10 rounded-lg border border-line bg-canvas pl-3 pr-10 text-sm text-paper outline-none transition focus:border-pulse focus:ring-2 focus:ring-pulse/15"
           >
             <option value="">All assignments</option>
             <option value="Assigned Only">Assigned only</option>
             <option value="Unassigned Only">Unassigned only</option>
-          </select>
+          </NativeSelect>
         </div>
       </SectionPanel>
 
@@ -451,24 +461,28 @@ export function ReportsClient({
               records
             </span>
             <div className="flex gap-2">
-              <button
+              <Button
+                variant="outline"
+                size="action"
                 type="button"
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="rounded-lg border border-line bg-canvas-deep px-3 py-2 text-slate transition hover:text-paper disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pulse/40"
+                className="inline-flex h-10 items-center justify-center rounded-lg border border-line bg-canvas-deep px-4 text-slate transition hover:text-paper disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pulse/40"
               >
                 Previous
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="outline"
+                size="action"
                 type="button"
                 onClick={() =>
                   setCurrentPage((p) => Math.min(totalPages, p + 1))
                 }
                 disabled={currentPage === totalPages}
-                className="rounded-lg border border-line bg-canvas-deep px-3 py-2 text-paper transition hover:border-pulse/40 hover:text-pulse disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pulse/40"
+                className="inline-flex h-10 items-center justify-center rounded-lg border border-line bg-canvas-deep px-4 text-paper transition hover:border-pulse/40 hover:text-pulse disabled:opacity-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pulse/40"
               >
                 Next
-              </button>
+              </Button>
             </div>
           </div>
         )}

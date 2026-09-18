@@ -48,18 +48,26 @@ export default async function EquipmentPage(props: {
 }) {
   const searchParams = await props.searchParams;
   const profile = await getCurrentProfile();
+  const categoriesResult = await getCachedCategories();
+  const { data: categories, error: categoriesError } = categoriesResult;
+  const visibleCategories = Array.from(
+    new Map(
+      (categories || []).map((item) => {
+        const name = canonicalEquipmentCategory(item.name);
+        return [name, { ...item, name }];
+      })
+    ).values()
+  ).sort((a, b) => a.name.localeCompare(b.name));
   const category = canonicalEquipmentCategory(
-    searchParams.category || "Camera"
+    searchParams.category || visibleCategories[0]?.name || "Camera"
   );
   const filters = parseEquipmentFilters(searchParams);
   const [
-    categoriesResult,
     equipmentResult,
     categoryStatsResult,
     divisionsResult,
     personnelResult,
   ] = await Promise.all([
-    getCachedCategories(),
     getEquipmentPage({ ...filters, category }, filters.pageSize),
     getEquipmentCategorySnapshot(category),
     getCachedDivisions(),
@@ -69,7 +77,6 @@ export default async function EquipmentPage(props: {
     ),
   ]);
   const canManage = profile?.role === "Admin";
-  const { data: categories, error: categoriesError } = categoriesResult;
   const { rows: equipmentData, error } = equipmentResult;
   const { data: categoryStats, error: categoryStatsError } =
     categoryStatsResult;
@@ -81,14 +88,6 @@ export default async function EquipmentPage(props: {
     position: person.position || undefined,
   }));
   const equipment = (equipmentData || []) as unknown as EquipmentData[];
-  const visibleCategories = Array.from(
-    new Map(
-      (categories || []).map((item) => {
-        const name = canonicalEquipmentCategory(item.name);
-        return [name, { ...item, name }];
-      })
-    ).values()
-  ).sort((a, b) => a.name.localeCompare(b.name));
   const exportRows = equipment.map((item) => ({
     Category: canonicalEquipmentCategory(
       item.equipment_categories?.name || category
@@ -160,7 +159,7 @@ export default async function EquipmentPage(props: {
                 divisions={divisions || []}
                 personnel={personnelOptions}
               >
-                <Button>+ Add {category}</Button>
+                <Button size="action">+ Add {category}</Button>
               </AddEquipmentDialog>
             )}
           </>

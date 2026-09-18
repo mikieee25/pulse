@@ -1,5 +1,7 @@
 "use client";
 
+import { Button } from "@/components/ui/button";
+
 export default function Error({
   reset,
 }: {
@@ -17,12 +19,13 @@ export default function Error({
       <p className="mt-2 text-sm leading-6 text-slate">
         The page could not load. Try again.
       </p>
-      <button
+      <Button
+        size="action"
         onClick={() => reset()}
         className="mt-5 rounded-xl bg-pulse px-4 py-2.5 text-sm font-semibold text-canvas-deep transition hover:bg-pulse/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pulse focus-visible:ring-offset-2 focus-visible:ring-offset-canvas-deep"
       >
         Try again
-      </button>
+      </Button>
     </div>
   );
 }

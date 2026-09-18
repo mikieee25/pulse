@@ -145,7 +145,7 @@ export function EquipmentTable({
         <Link
           aria-disabled={page <= 1}
           tabIndex={page <= 1 ? -1 : 0}
-          className={`rounded-md border border-line px-3 py-2 text-sm ${page <= 1 ? "pointer-events-none opacity-50" : "hover:bg-paper/5"}`}
+          className={`inline-flex h-10 items-center justify-center rounded-lg border border-line px-4 text-sm ${page <= 1 ? "pointer-events-none opacity-50" : "hover:bg-paper/5"}`}
           href={previous ? `/equipment?${previous}` : "#"}
         >
           Previous
@@ -156,7 +156,7 @@ export function EquipmentTable({
         <Link
           aria-disabled={page >= totalPages}
           tabIndex={page >= totalPages ? -1 : 0}
-          className={`rounded-md border border-line px-3 py-2 text-sm ${page >= totalPages ? "pointer-events-none opacity-50" : "hover:bg-paper/5"}`}
+          className={`inline-flex h-10 items-center justify-center rounded-lg border border-line px-4 text-sm ${page >= totalPages ? "pointer-events-none opacity-50" : "hover:bg-paper/5"}`}
           href={next ? `/equipment?${next}` : "#"}
         >
           Next

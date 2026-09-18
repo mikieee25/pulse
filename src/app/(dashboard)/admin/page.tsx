@@ -31,7 +31,7 @@ export default async function AdminPage() {
         <div className="p-5">
           <Link
             href="/admin/users"
-            className="inline-flex items-center gap-2 rounded-xl border border-pulse/30 bg-pulse/10 px-4 py-3 text-sm font-semibold text-pulse transition hover:bg-pulse/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pulse/40"
+            className="inline-flex h-10 items-center gap-2 rounded-xl border border-pulse/30 bg-pulse/10 px-4 text-sm font-semibold text-pulse transition hover:bg-pulse/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pulse/40"
           >
             Manage users
             <ArrowRight className="size-4" aria-hidden="true" />

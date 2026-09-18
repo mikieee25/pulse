@@ -2,6 +2,7 @@
 
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { useTransition } from "react";
+import { NativeSelect } from "@/components/ui/native-select";
 
 const DEFAULT_OPTIONS = [10, 25, 50];
 
@@ -24,7 +25,7 @@ export function TablePageSizeSelect({
   return (
     <label className="inline-flex items-center gap-2 text-xs text-slate">
       <span>Show</span>
-      <select
+      <NativeSelect
         name={name}
         value={value}
         aria-label="Rows per table"
@@ -43,14 +44,14 @@ export function TablePageSizeSelect({
             );
           }
         }}
-        className="h-9 rounded-lg border border-line bg-canvas-deep px-2 text-sm font-medium text-paper outline-none transition focus:border-pulse focus:ring-2 focus:ring-pulse/15"
+        className="h-9 rounded-lg border border-line bg-canvas-deep pl-2 pr-8 text-sm font-medium text-paper outline-none transition focus:border-pulse focus:ring-2 focus:ring-pulse/15"
       >
         {options.map((option) => (
           <option key={option} value={option}>
             {option}
           </option>
         ))}
-      </select>
+      </NativeSelect>
       <span>rows</span>
     </label>
   );

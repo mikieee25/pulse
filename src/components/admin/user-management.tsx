@@ -7,6 +7,7 @@ import { createUser, updateUser, deleteUser } from "@/app/actions/admin";
 import { SectionPanel } from "@/components/layout/section-panel";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
 import { TablePageSizeSelect } from "@/components/layout/table-page-size-select";
 
 export type User = {
@@ -150,18 +151,18 @@ export function UserManagement({
             aria-label="Temporary password"
             placeholder="Type a temporary password..."
           />
-          <select
+          <NativeSelect
             name="role"
             aria-label="User role"
-            className="h-9 rounded-lg border border-line bg-canvas px-3 text-sm text-paper outline-none transition focus:border-pulse focus:ring-2 focus:ring-pulse/15"
+            className="h-9 rounded-lg border border-line bg-canvas pl-3 pr-10 text-sm text-paper outline-none transition focus:border-pulse focus:ring-2 focus:ring-pulse/15"
           >
             <option>Viewer</option>
             <option>Admin</option>
-          </select>
-          <select
+          </NativeSelect>
+          <NativeSelect
             name="division_scope"
             aria-label="Division scope"
-            className="h-9 rounded-lg border border-line bg-canvas px-3 text-sm text-paper outline-none transition focus:border-pulse focus:ring-2 focus:ring-pulse/15"
+            className="h-9 rounded-lg border border-line bg-canvas pl-3 pr-10 text-sm text-paper outline-none transition focus:border-pulse focus:ring-2 focus:ring-pulse/15"
           >
             <option value="">All divisions</option>
             {divisions.map((division) => (
@@ -169,7 +170,7 @@ export function UserManagement({
                 {division.code}
               </option>
             ))}
-          </select>
+          </NativeSelect>
           <Button
             type="submit"
             size="lg"
@@ -242,20 +243,20 @@ export function UserManagement({
                       onSubmit={(event) => save(user, event)}
                       className="flex flex-wrap gap-2"
                     >
-                      <select
+                      <NativeSelect
                         name="role"
                         aria-label={`Role for ${user.full_name}`}
                         defaultValue={user.role}
-                        className="h-9 rounded-lg border border-line bg-canvas px-3 text-sm text-paper outline-none transition focus:border-pulse focus:ring-2 focus:ring-pulse/15"
+                        className="h-9 rounded-lg border border-line bg-canvas pl-3 pr-10 text-sm text-paper outline-none transition focus:border-pulse focus:ring-2 focus:ring-pulse/15"
                       >
                         <option>Viewer</option>
                         <option>Admin</option>
-                      </select>
-                      <select
+                      </NativeSelect>
+                      <NativeSelect
                         name="division_scope"
                         aria-label={`Division scope for ${user.full_name}`}
                         defaultValue={user.division_scope || ""}
-                        className="h-9 rounded-lg border border-line bg-canvas px-3 text-sm text-paper outline-none transition focus:border-pulse focus:ring-2 focus:ring-pulse/15"
+                        className="h-9 rounded-lg border border-line bg-canvas pl-3 pr-10 text-sm text-paper outline-none transition focus:border-pulse focus:ring-2 focus:ring-pulse/15"
                       >
                         <option value="">All divisions</option>
                         {divisions.map((division) => (
@@ -263,7 +264,7 @@ export function UserManagement({
                             {division.code}
                           </option>
                         ))}
-                      </select>
+                      </NativeSelect>
                       <Button
                         type="submit"
                         size="lg"

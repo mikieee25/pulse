@@ -7,6 +7,7 @@ import { NotificationBell } from "@/components/notifications/notification-bell";
 import { ProfileSettings } from "./profile-settings";
 import { buildNotificationsFromSnapshot } from "@/lib/notifications";
 import { getNotificationSnapshot } from "@/lib/inventory-queries";
+import { Button } from "@/components/ui/button";
 
 export async function Topbar() {
   const profile = await getCurrentProfile();
@@ -70,28 +71,32 @@ export async function Topbar() {
 
         <div className="flex items-center gap-3 pl-3 border-l border-line ml-1">
           <ProfileSettings>
-            <button
+            <Button
+              variant="ghost"
+              size="icon-sm"
               className="text-slate hover:text-pulse transition-colors flex items-center justify-center"
               title="Profile Settings"
               aria-label="Profile Settings"
               type="button"
             >
               <Settings className="w-4 h-4" />
-            </button>
+            </Button>
           </ProfileSettings>
           <form
             action="/auth/logout"
             method="POST"
             className="flex items-center justify-center"
           >
-            <button
+            <Button
+              variant="ghost"
+              size="icon-sm"
               className="text-slate hover:text-alert transition-colors flex items-center justify-center"
               type="submit"
               title="Sign Out"
               aria-label="Sign Out"
             >
               <LogOut className="w-4 h-4" />
-            </button>
+            </Button>
           </form>
         </div>
       </div>

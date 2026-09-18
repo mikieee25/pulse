@@ -10,6 +10,7 @@ import {
   UserRound,
 } from "lucide-react";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
 import type { NotificationItem, NotificationKind } from "@/lib/notifications";
 
 const STORAGE_KEY = "pulse-read-notifications";
@@ -98,7 +99,9 @@ export function NotificationBell({
 
   return (
     <div className="relative">
-      <button
+      <Button
+        variant="ghost"
+        size="icon"
         className="relative rounded-md p-1.5 text-slate transition-colors hover:text-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pulse"
         aria-label="Notifications"
         aria-expanded={open}
@@ -112,7 +115,7 @@ export function NotificationBell({
             {unreadIds.length > 9 ? "9+" : unreadIds.length}
           </span>
         )}
-      </button>
+      </Button>
 
       {open && (
         <div
@@ -126,7 +129,9 @@ export function NotificationBell({
                 Live equipment signals
               </p>
             </div>
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               className="inline-flex items-center gap-1.5 rounded-md px-2 py-1 text-xs text-slate transition-colors hover:bg-paper/[0.05] hover:text-paper focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pulse disabled:cursor-not-allowed disabled:opacity-50"
               type="button"
               onClick={markAllAsRead}
@@ -134,7 +139,7 @@ export function NotificationBell({
             >
               <CheckCheck className="size-3.5" aria-hidden="true" />
               Mark all as read
-            </button>
+            </Button>
           </div>
 
           {unavailable ? (

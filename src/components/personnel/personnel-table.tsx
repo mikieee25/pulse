@@ -124,7 +124,7 @@ export function PersonnelTable({
             aria-disabled={filters.page <= 1}
             tabIndex={filters.page <= 1 ? -1 : 0}
             href={previous ? `/personnel?${previous}` : "#"}
-            className="rounded-md border border-line px-3 py-2 text-sm"
+            className="inline-flex h-10 items-center justify-center rounded-lg border border-line px-4 text-sm"
           >
             Previous
           </Link>
@@ -135,7 +135,7 @@ export function PersonnelTable({
             aria-disabled={filters.page >= totalPages}
             tabIndex={filters.page >= totalPages ? -1 : 0}
             href={next ? `/personnel?${next}` : "#"}
-            className="rounded-md border border-line px-3 py-2 text-sm"
+            className="inline-flex h-10 items-center justify-center rounded-lg border border-line px-4 text-sm"
           >
             Next
           </Link>

@@ -39,6 +39,10 @@ test("activity UI exposes audit detail and event/entity filters", () => {
   assert.match(activityUi, /Entity ID/)
   assert.match(activityUi, /name="event"/)
   assert.match(activityUi, /name="entityId"/)
+  assert.match(activityUi, /title="User status"[\s\S]*TablePageSizeSelect/)
+  assert.match(activityUi, /size-9 min-w-9 shrink-0 aspect-square/)
+  assert.match(activityUi, /From date/)
+  assert.match(activityUi, /To date/)
 })
 
 test("equipment detail labels condition separately from lifecycle status", () => {

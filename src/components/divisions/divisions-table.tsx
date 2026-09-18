@@ -22,6 +22,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { TablePageSizeSelect } from "@/components/layout/table-page-size-select";
 
 interface DivisionsTableProps<TData, TValue> {
@@ -64,7 +65,7 @@ export function DivisionsTable<TData, TValue>({
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap items-center gap-3 rounded-xl border border-line bg-canvas/80 p-3">
-        <input
+        <Input
           placeholder="Search by code or name..."
           value={
             (table.getColumn("full_name")?.getFilterValue() as string) ?? ""
@@ -150,7 +151,7 @@ export function DivisionsTable<TData, TValue>({
         <div className="flex items-center gap-2">
           <Button
             variant="outline"
-            size="sm"
+            size="action"
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
           >
@@ -158,7 +159,7 @@ export function DivisionsTable<TData, TValue>({
           </Button>
           <Button
             variant="outline"
-            size="sm"
+            size="action"
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
           >

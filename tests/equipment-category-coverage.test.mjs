@@ -106,6 +106,13 @@ test("new categories are available in the equipment form", () => {
   assert.match(equipmentDialogSource, /categoryOptions\.map\(\(value\)/);
 });
 
+test("equipment defaults to the first alphabetically sorted category", () => {
+  assert.match(
+    equipmentPageSource,
+    /searchParams\.category \|\| visibleCategories\[0\]\?\.name \|\| "Camera"/
+  );
+});
+
 test("assignee options are not limited to Regular personnel", () => {
   assert.doesNotMatch(
     equipmentPageSource,

@@ -87,7 +87,7 @@ export default function TutorialPage() {
         actions={
           <Link
             href="#equipment"
-            className="inline-flex items-center justify-center rounded-lg bg-pulse px-4 py-2 text-sm font-semibold text-ink transition hover:brightness-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pulse/40"
+            className="inline-flex h-10 items-center justify-center rounded-lg bg-pulse px-4 text-sm font-semibold text-ink transition hover:brightness-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pulse/40"
           >
             Start with equipment
           </Link>

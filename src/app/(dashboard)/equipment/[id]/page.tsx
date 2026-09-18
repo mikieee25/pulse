@@ -165,7 +165,7 @@ export default async function EquipmentDetailPage({
           <>
             <Link
               href="/equipment"
-              className="inline-flex items-center justify-center gap-2 rounded-xl border border-line bg-canvas px-4 py-2.5 text-sm font-semibold text-paper transition hover:border-pulse/40 hover:text-pulse focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pulse/40"
+              className="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-line bg-canvas px-4 text-sm font-semibold text-paper transition hover:border-pulse/40 hover:text-pulse focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pulse/40"
             >
               <ArrowLeft className="size-4" aria-hidden="true" />
               Back to equipment
@@ -194,7 +194,7 @@ export default async function EquipmentDetailPage({
                   remarks: equipment.remarks,
                 }}
               >
-                <Button>Edit details</Button>
+                <Button size="action">Edit details</Button>
               </AddEquipmentDialog>
             )}
           </>

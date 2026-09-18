@@ -65,7 +65,7 @@ export default async function DivisionsPage() {
         actions={
           canManage ? (
             <AddDivisionDialog>
-              <Button>+ Add Division</Button>
+              <Button size="action">+ Add Division</Button>
             </AddDivisionDialog>
           ) : undefined
         }

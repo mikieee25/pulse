@@ -16,6 +16,8 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { TablePageSizeSelect } from "@/components/layout/table-page-size-select";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 type Category = { id: string; name: string; lifespan_years: number | null };
 
@@ -161,7 +163,7 @@ export default async function BudgetPage({
               >
                 FY
               </label>
-              <input
+              <Input
                 id="budget-year"
                 aria-label="Fiscal year"
                 name="year"
@@ -169,11 +171,11 @@ export default async function BudgetPage({
                 min="2000"
                 max="2100"
                 defaultValue={year}
-                className="h-8 w-20 rounded-lg border border-line bg-canvas-deep px-2 text-sm font-semibold tabular-nums text-paper outline-none transition focus:border-pulse focus:ring-2 focus:ring-pulse/15"
+                className="h-10 w-20 rounded-lg border border-line bg-canvas-deep px-2 text-sm font-semibold tabular-nums text-paper outline-none transition focus:border-pulse focus:ring-2 focus:ring-pulse/15"
               />
-              <button className="h-8 rounded-lg bg-pulse px-3 text-xs font-semibold text-canvas-deep transition hover:bg-pulse/85 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pulse focus-visible:ring-offset-2 focus-visible:ring-offset-canvas">
+              <Button type="submit" size="action">
                 Apply
-              </button>
+              </Button>
             </form>
             <ExportButton data={exportRows} category={`budget-${year}`} />
           </div>

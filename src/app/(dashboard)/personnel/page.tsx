@@ -74,7 +74,7 @@ export default async function PersonnelPage({
         actions={
           canManage ? (
             <AddPersonnelDialog divisions={divisions || []}>
-              <Button>+ Add Personnel</Button>
+              <Button size="action">+ Add Personnel</Button>
             </AddPersonnelDialog>
           ) : undefined
         }

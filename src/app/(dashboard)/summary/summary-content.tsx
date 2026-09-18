@@ -8,6 +8,7 @@ import { MetricCard } from "@/components/layout/metric-card";
 import { PageHeader } from "@/components/layout/page-header";
 import { SectionPanel } from "@/components/layout/section-panel";
 import { TablePageSizeSelect } from "@/components/layout/table-page-size-select";
+import { NativeSelect } from "@/components/ui/native-select";
 
 export type ProcessedEquipment = {
   id: string;
@@ -69,15 +70,15 @@ export function SummaryContent({
           <>
             <label className="flex items-center gap-2 rounded-xl border border-line bg-canvas/80 p-1.5">
               <span className="sr-only">Summary period</span>
-              <select
+              <NativeSelect
                 value={`${viewYear}-${viewType}`}
                 onChange={handleYearChange}
                 aria-label="Summary period"
-                className="h-9 rounded-lg border border-line bg-canvas-deep px-3 text-sm text-paper outline-none transition focus:border-pulse focus:ring-2 focus:ring-pulse/15"
+                className="h-9 rounded-lg border border-line bg-canvas-deep pl-3 pr-10 text-sm text-paper outline-none transition focus:border-pulse focus:ring-2 focus:ring-pulse/15"
               >
                 <option value="2026-Replacement">FY 2026 Replacement</option>
                 <option value="2025-Summary">FY 2025 Summary</option>
-              </select>
+              </NativeSelect>
             </label>
             <ExportButton
               data={initialData.map((item) => ({

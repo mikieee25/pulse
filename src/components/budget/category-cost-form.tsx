@@ -2,6 +2,8 @@
 
 import { useActionState } from "react";
 import { saveCategoryCost, type CategoryCostState } from "@/app/actions/admin";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 
 const initialState: CategoryCostState = { error: "", success: false };
 
@@ -65,7 +67,7 @@ export function CategoryCostForm({
           <span className="pointer-events-none absolute inset-y-0 left-3 flex items-center text-xs text-slate">
             ₱
           </span>
-          <input
+          <Input
             id={`cost-${categoryId}`}
             aria-label={`Set ${categoryName} unit cost`}
             name="unit_cost"
@@ -76,13 +78,15 @@ export function CategoryCostForm({
             className="h-9 w-full rounded-lg border border-line bg-canvas-deep pl-7 pr-2 text-right text-xs tabular-nums text-paper outline-none transition focus:border-pulse focus:ring-2 focus:ring-pulse/15"
           />
         </div>
-        <button
+        <Button
+          variant="outline"
+          size="sm"
           type="submit"
           disabled={pending}
           className="h-9 rounded-lg border border-line bg-canvas px-3 text-xs font-semibold text-paper transition hover:border-pulse/40 hover:text-pulse focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-pulse/40 disabled:pointer-events-none disabled:opacity-50"
         >
           {pending ? "Saving…" : "Save"}
-        </button>
+        </Button>
       </div>
       {state.error && (
         <p role="alert" className="mt-2 text-xs text-alert">

@@ -38,6 +38,7 @@ export function ExportButton({
   return (
     <Button
       variant="outline"
+      size="action"
       onClick={exportFile}
       className="gap-2 font-medium"
     >

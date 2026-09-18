@@ -16,6 +16,8 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
+import { Textarea } from "@/components/ui/textarea";
 import { DEFAULT_EQUIPMENT_CATEGORIES } from "@/lib/pulse";
 
 type Option = {
@@ -136,19 +138,21 @@ export function AddEquipmentDialog({
         >
           <label className="space-y-1 text-sm text-slate">
             Category
-            <select
+            <NativeSelect
+              wrapperClassName="w-full"
               value={form.categoryName}
               onChange={(e) => set("categoryName", e.target.value)}
-              className="w-full h-9 rounded-md border border-line bg-canvas px-2 text-paper"
+              className="w-full h-9 rounded-md border border-line bg-canvas pl-2 pr-10 text-paper"
             >
               {categoryOptions.map((value) => (
                 <option key={value}>{value}</option>
               ))}
-            </select>
+            </NativeSelect>
           </label>
           <label className="space-y-1 text-sm text-slate">
             Division
-            <select
+            <NativeSelect
+              wrapperClassName="w-full"
               required
               value={form.division_id}
               onChange={(e) =>
@@ -159,14 +163,14 @@ export function AddEquipmentDialog({
                   assignee_id: null,
                 }))
               }
-              className="w-full h-9 rounded-md border border-line bg-canvas px-2 text-paper"
+              className="w-full h-9 rounded-md border border-line bg-canvas pl-2 pr-10 text-paper"
             >
               {divisions.map((division) => (
                 <option key={division.id} value={division.id}>
                   {division.code} — {division.full_name || division.fullName}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
           </label>
           <label className="space-y-1 text-sm text-slate">
             Brand
@@ -204,17 +208,18 @@ export function AddEquipmentDialog({
           </label>
           <label className="space-y-1 text-sm text-slate">
             State
-            <select
+            <NativeSelect
+              wrapperClassName="w-full"
               value={form.condition_state || "Good"}
               onChange={(e) => set("condition_state", e.target.value)}
-              className="w-full h-9 rounded-md border border-line bg-canvas px-2 text-paper"
+              className="w-full h-9 rounded-md border border-line bg-canvas pl-2 pr-10 text-paper"
             >
               {["Good", "For Replacement", "Broken"].map((value) => (
                 <option key={value} value={value}>
                   {value}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
           </label>
           <label className="space-y-1 text-sm text-slate">
             Procurement method
@@ -227,10 +232,11 @@ export function AddEquipmentDialog({
           </label>
           <label className="space-y-1 text-sm text-slate">
             Custodian (Regulars)
-            <select
+            <NativeSelect
+              wrapperClassName="w-full"
               value={form.assigned_to || ""}
               onChange={(e) => set("assigned_to", e.target.value || null)}
-              className="w-full h-9 rounded-md border border-line bg-canvas px-2 text-paper"
+              className="w-full h-9 rounded-md border border-line bg-canvas pl-2 pr-10 text-paper"
             >
               <option value="">Unassigned</option>
               {eligibleCustodians.map((person) => (
@@ -238,14 +244,15 @@ export function AddEquipmentDialog({
                   {person.full_name || person.fullName}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
           </label>
           <label className="space-y-1 text-sm text-slate">
             Assignee (PSS/PES)
-            <select
+            <NativeSelect
+              wrapperClassName="w-full"
               value={form.assignee_id || ""}
               onChange={(e) => set("assignee_id", e.target.value || null)}
-              className="w-full h-9 rounded-md border border-line bg-canvas px-2 text-paper"
+              className="w-full h-9 rounded-md border border-line bg-canvas pl-2 pr-10 text-paper"
             >
               <option value="">Unassigned</option>
               {eligibleAssignees.map((person) => (
@@ -253,11 +260,11 @@ export function AddEquipmentDialog({
                   {person.full_name || person.fullName}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
           </label>
           <label className="space-y-1 text-sm text-slate sm:col-span-2">
             Remarks
-            <textarea
+            <Textarea
               value={form.remarks || ""}
               onChange={(e) => set("remarks", e.target.value || null)}
               className="min-h-20 w-full rounded-md border border-line bg-canvas px-3 py-2 text-paper"

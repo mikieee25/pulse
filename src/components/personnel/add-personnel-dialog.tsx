@@ -21,6 +21,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
 
 type Division = { id: string; code: string; full_name: string };
 type PersonnelFormValue = PersonnelInput & { id?: string };
@@ -123,32 +124,34 @@ export function AddPersonnelDialog({
           </label>
           <label className="block space-y-1 text-sm text-slate">
             Division
-            <select
+            <NativeSelect
+              wrapperClassName="w-full"
               required
               value={form.division_id}
               onChange={(e) => set("division_id", e.target.value)}
-              className="w-full h-9 rounded-md border border-line bg-canvas px-2 text-paper"
+              className="w-full h-9 rounded-md border border-line bg-canvas pl-2 pr-10 text-paper"
             >
               {divisions.map((division) => (
                 <option key={division.id} value={division.id}>
                   {division.code} — {division.full_name}
                 </option>
               ))}
-            </select>
+            </NativeSelect>
           </label>
           <label className="block space-y-1 text-sm text-slate">
             Plantilla status
-            <select
+            <NativeSelect
+              wrapperClassName="w-full"
               value={form.plantilla_status}
               onChange={(e) =>
                 set("plantilla_status", e.target.value as PlantillaStatus)
               }
-              className="w-full h-9 rounded-md border border-line bg-canvas px-2 text-paper"
+              className="w-full h-9 rounded-md border border-line bg-canvas pl-2 pr-10 text-paper"
             >
               {PLANTILLA_STATUSES.map((value) => (
                 <option key={value}>{value}</option>
               ))}
-            </select>
+            </NativeSelect>
           </label>
           {error && (
             <p role="alert" className="text-sm text-alert">

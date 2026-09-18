@@ -10,6 +10,7 @@ import {
   updateEquipmentState,
 } from "@/app/actions/equipment";
 import { Button } from "@/components/ui/button";
+import { NativeSelect } from "@/components/ui/native-select";
 import type { EquipmentCondition } from "@/lib/pulse";
 
 type Person = {
@@ -186,12 +187,13 @@ export function EquipmentActions({
     <div className="flex flex-col xl:flex-row gap-8 items-start justify-between">
       <div className="space-y-4">
         <div className="flex flex-wrap gap-2 items-center">
-          <select
+          <NativeSelect
+            wrapperClassName="w-56"
             disabled={pendingAction !== null}
             aria-label="Select custodian"
             value={selectedCustodian}
             onChange={(event) => setSelectedCustodian(event.target.value)}
-            className="h-8 w-56 rounded-lg border border-line bg-canvas px-2.5 text-sm text-paper font-sans outline-none focus-visible:ring-2 focus-visible:ring-pulse/50 transition-all"
+            className="h-8 w-56 rounded-lg border border-line bg-canvas pl-2.5 pr-10 text-sm text-paper font-sans outline-none focus-visible:ring-2 focus-visible:ring-pulse/50 transition-all"
           >
             <option value="">Unassign Custodian</option>
             {eligibleCustodians.map((person) => (
@@ -199,7 +201,7 @@ export function EquipmentActions({
                 {person.full_name}
               </option>
             ))}
-          </select>
+          </NativeSelect>
           <Button
             variant="outline"
             disabled={pendingAction !== null}
@@ -209,12 +211,13 @@ export function EquipmentActions({
           </Button>
         </div>
         <div className="flex flex-wrap gap-2 items-center">
-          <select
+          <NativeSelect
+            wrapperClassName="w-56"
             disabled={pendingAction !== null}
             aria-label="Select assignee"
             value={selectedAssignee}
             onChange={(event) => setSelectedAssignee(event.target.value)}
-            className="h-8 w-56 rounded-lg border border-line bg-canvas px-2.5 text-sm text-paper font-sans outline-none focus-visible:ring-2 focus-visible:ring-pulse/50 transition-all"
+            className="h-8 w-56 rounded-lg border border-line bg-canvas pl-2.5 pr-10 text-sm text-paper font-sans outline-none focus-visible:ring-2 focus-visible:ring-pulse/50 transition-all"
           >
             <option value="">Unassign Assignee</option>
             {eligibleAssignees.map((person) => (
@@ -222,7 +225,7 @@ export function EquipmentActions({
                 {person.full_name}
               </option>
             ))}
-          </select>
+          </NativeSelect>
           <Button
             variant="outline"
             disabled={pendingAction !== null}
@@ -283,7 +286,9 @@ export function EquipmentActions({
                   ? "text-alert"
                   : "text-warning";
             return (
-              <button
+              <Button
+                variant="ghost"
+                size="sm"
                 key={s}
                 type="button"
                 disabled={pendingAction !== null}
@@ -293,7 +298,7 @@ export function EquipmentActions({
                 className={`flex-1 px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${isActive ? `${activeColor} bg-canvas-deep shadow-sm` : "text-slate hover:text-paper"}`}
               >
                 {pendingAction === "state" ? "Saving…" : s}
-              </button>
+              </Button>
             );
           })}
         </div>

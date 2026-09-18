@@ -1,4 +1,5 @@
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { BrandLockup } from "@/components/layout/brand-lockup";
 
 export default async function LoginPage({
@@ -25,7 +26,7 @@ export default async function LoginPage({
                 >
                   Email
                 </label>
-                <input
+                <Input
                   id="login-email"
                   type="email"
                   name="email"
@@ -40,7 +41,7 @@ export default async function LoginPage({
                 >
                   Password
                 </label>
-                <input
+                <Input
                   id="login-password"
                   type="password"
                   name="password"

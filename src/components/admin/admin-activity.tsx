@@ -15,6 +15,9 @@ import {
 } from "@/lib/activity-format";
 import { formatLastSeen, isActiveNow } from "@/lib/presence";
 import { TablePageSizeSelect } from "@/components/layout/table-page-size-select";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { NativeSelect } from "@/components/ui/native-select";
 
 function ErrorState({ message }: { message: string }) {
   return (
@@ -55,6 +58,12 @@ export function AdminActivity({
       <SectionPanel
         title="User status"
         description="Live presence and Supabase authentication activity across all divisions."
+        actions={
+          <TablePageSizeSelect
+            value={statusPageSize}
+            onChange={setStatusPageSize}
+          />
+        }
       >
         {statuses.error && !statuses.data.length ? (
           <ErrorState message={statuses.error} />
@@ -66,12 +75,6 @@ export function AdminActivity({
           />
         ) : (
           <>
-            <div className="flex justify-end border-b border-line px-5 py-3">
-              <TablePageSizeSelect
-                value={statusPageSize}
-                onChange={setStatusPageSize}
-              />
-            </div>
             <div className="overflow-x-auto">
               <table className="w-full min-w-[680px] text-sm">
                 <caption className="sr-only">PULSE user status</caption>
@@ -134,13 +137,14 @@ export function AdminActivity({
       >
         <form
           method="get"
-          className="grid gap-3 border-b border-line p-4 sm:grid-cols-2 lg:grid-cols-6"
+          className="m-4 grid grid-cols-1 gap-3 rounded-xl border border-line bg-canvas/80 p-3 sm:grid-cols-2 2xl:grid-cols-[minmax(14rem,2fr)_repeat(7,minmax(7rem,1fr))_auto]"
         >
-          <select
+          <NativeSelect
             name="user"
+            wrapperClassName="w-full"
             defaultValue={filters.actorUserId || ""}
             aria-label="Filter by user"
-            className="h-9 rounded-lg border border-line bg-canvas px-3 text-sm text-paper"
+            className="h-10 w-full rounded-lg border border-line bg-canvas-deep pl-3 pr-10 text-sm text-paper"
           >
             <option value="">All users</option>
             {statuses.data.map((user) => (
@@ -148,12 +152,13 @@ export function AdminActivity({
                 {user.fullName}
               </option>
             ))}
-          </select>
-          <select
+          </NativeSelect>
+          <NativeSelect
             name="action"
+            wrapperClassName="w-full"
             defaultValue={filters.action || ""}
             aria-label="Filter by action"
-            className="h-9 rounded-lg border border-line bg-canvas px-3 text-sm text-paper"
+            className="h-10 w-full rounded-lg border border-line bg-canvas-deep pl-3 pr-10 text-sm text-paper"
           >
             <option value="">All actions</option>
             {[
@@ -167,12 +172,13 @@ export function AdminActivity({
             ].map((value) => (
               <option key={value}>{value}</option>
             ))}
-          </select>
-          <select
+          </NativeSelect>
+          <NativeSelect
             name="entity"
+            wrapperClassName="w-full"
             defaultValue={filters.entityType || ""}
             aria-label="Filter by module"
-            className="h-9 rounded-lg border border-line bg-canvas px-3 text-sm text-paper"
+            className="h-10 w-full rounded-lg border border-line bg-canvas-deep pl-3 pr-10 text-sm text-paper"
           >
             <option value="">All modules</option>
             {[
@@ -185,12 +191,13 @@ export function AdminActivity({
             ].map((value) => (
               <option key={value}>{value}</option>
             ))}
-          </select>
-          <select
+          </NativeSelect>
+          <NativeSelect
             name="division"
+            wrapperClassName="w-full"
             defaultValue={filters.divisionId || ""}
             aria-label="Filter by division"
-            className="h-9 rounded-lg border border-line bg-canvas px-3 text-sm text-paper"
+            className="h-10 w-full rounded-lg border border-line bg-canvas-deep pl-3 pr-10 text-sm text-paper"
           >
             <option value="">All divisions</option>
             {divisions.map((division) => (
@@ -198,42 +205,52 @@ export function AdminActivity({
                 {division.code}
               </option>
             ))}
-          </select>
-          <input
+          </NativeSelect>
+          <Input
             name="event"
             defaultValue={filters.eventId || ""}
             aria-label="Filter by event ID"
             placeholder="Event ID"
-            className="h-9 rounded-lg border border-line bg-canvas px-3 text-sm text-paper"
+            className="h-10 rounded-lg border border-line bg-canvas-deep px-3 text-sm text-paper"
           />
-          <input
+          <Input
             name="entityId"
             defaultValue={filters.entityId || ""}
             aria-label="Filter by entity ID"
             placeholder="Entity ID"
-            className="h-9 rounded-lg border border-line bg-canvas px-3 text-sm text-paper"
+            className="h-10 rounded-lg border border-line bg-canvas-deep px-3 text-sm text-paper"
           />
-          <input
-            name="from"
-            type="date"
-            defaultValue={filters.from?.slice(0, 10) || ""}
-            aria-label="From date"
-            className="h-9 rounded-lg border border-line bg-canvas px-3 text-sm text-paper"
-          />
-          <div className="flex gap-2">
-            <input
+          <label className="flex min-w-0 flex-col gap-1 text-xs text-slate">
+            <Input
+              id="activity-from-date"
+              name="from"
+              type="date"
+              defaultValue={filters.from?.slice(0, 10) || ""}
+              aria-label="From date"
+              className="h-10 rounded-lg border border-line bg-canvas-deep px-3 text-sm text-paper"
+            />
+          </label>
+          <label className="flex min-w-0 flex-col gap-1 text-xs text-slate">
+            <Input
+              id="activity-to-date"
               name="to"
               type="date"
               defaultValue={filters.to?.slice(0, 10) || ""}
               aria-label="To date"
-              className="h-9 min-w-0 flex-1 rounded-lg border border-line bg-canvas px-3 text-sm text-paper"
+              className="h-10 rounded-lg border border-line bg-canvas-deep px-3 text-sm text-paper"
             />
-            <button
-              type="submit"
-              className="rounded-lg bg-pulse px-3 text-xs font-semibold text-white"
+          </label>
+          <div className="flex items-end justify-start gap-2 sm:col-span-2 2xl:col-span-1">
+            <Button type="submit" size="action">
+              Apply
+            </Button>
+            <Link
+              href="/admin/activity"
+              aria-label="Clear activity filters"
+              className="inline-flex h-10 items-center whitespace-nowrap rounded-lg border border-line px-4 text-sm text-slate hover:text-paper"
             >
-              Filter
-            </button>
+              Clear
+            </Link>
           </div>
         </form>
         {activity.error ? (
@@ -310,7 +327,9 @@ function ActivityEntry({ entry }: { entry: ActivityRecord }) {
   const before = isRecord(metadata.before) ? metadata.before : null;
   const after = isRecord(metadata.after) ? metadata.after : null;
   const changedFields = Array.isArray(metadata.changedFields)
-    ? metadata.changedFields.filter((field): field is string => typeof field === "string")
+    ? metadata.changedFields.filter(
+        (field): field is string => typeof field === "string"
+      )
     : [];
   const relatedHref = entry.entityId
     ? entry.entityType === "equipment"
@@ -327,10 +346,13 @@ function ActivityEntry({ entry }: { entry: ActivityRecord }) {
     : null;
   const source = formatAuditValue(metadata.source);
   const reason = formatAuditValue(metadata.reason);
-  const relatedLabel = entry.entityType === "equipment" ? "Open related equipment" : `Open ${entry.entityType.replaceAll("_", " ")} records`;
+  const relatedLabel =
+    entry.entityType === "equipment"
+      ? "Open related equipment"
+      : `Open ${entry.entityType.replaceAll("_", " ")} records`;
   return (
     <article className="flex gap-3 p-4">
-      <div className="mt-0.5 rounded-lg bg-pulse/10 p-2 text-pulse">
+      <div className="mt-0.5 flex size-9 min-w-9 shrink-0 aspect-square items-center justify-center rounded-lg bg-pulse/10 p-2 text-pulse">
         <Activity className="size-4" aria-hidden="true" />
       </div>
       <div className="min-w-0">
@@ -343,27 +365,63 @@ function ActivityEntry({ entry }: { entry: ActivityRecord }) {
             View details
           </summary>
           <div className="mt-3 grid gap-2 rounded-lg border border-line bg-canvas/60 p-3 sm:grid-cols-2">
-            <p><span className="font-medium text-paper">Event ID:</span> <code>{entry.id}</code></p>
-            <p><span className="font-medium text-paper">Entity ID:</span> <code>{entry.entityId || "—"}</code></p>
-            <p className="sm:col-span-2"><span className="font-medium text-paper">Exact timestamp:</span> <time dateTime={entry.createdAt} title={entry.createdAt}>{entry.createdAt}</time></p>
-            {relatedHref && <p><Link className="text-pulse hover:underline" href={relatedHref}>{relatedLabel}</Link></p>}
-            {source !== "—" && <p><span className="font-medium text-paper">Source:</span> {source}</p>}
-            {reason !== "—" && <p><span className="font-medium text-paper">Reason:</span> {reason}</p>}
+            <p>
+              <span className="font-medium text-paper">Event ID:</span>{" "}
+              <code>{entry.id}</code>
+            </p>
+            <p>
+              <span className="font-medium text-paper">Entity ID:</span>{" "}
+              <code>{entry.entityId || "—"}</code>
+            </p>
+            <p className="sm:col-span-2">
+              <span className="font-medium text-paper">Exact timestamp:</span>{" "}
+              <time dateTime={entry.createdAt} title={entry.createdAt}>
+                {entry.createdAt}
+              </time>
+            </p>
+            {relatedHref && (
+              <p>
+                <Link className="text-pulse hover:underline" href={relatedHref}>
+                  {relatedLabel}
+                </Link>
+              </p>
+            )}
+            {source !== "—" && (
+              <p>
+                <span className="font-medium text-paper">Source:</span> {source}
+              </p>
+            )}
+            {reason !== "—" && (
+              <p>
+                <span className="font-medium text-paper">Reason:</span> {reason}
+              </p>
+            )}
             {changedFields.length ? (
               <div className="sm:col-span-2">
                 <p className="font-medium text-paper">Changed fields</p>
                 <dl className="mt-1 divide-y divide-line/60 rounded border border-line">
                   {changedFields.map((field) => (
-                    <div key={field} className="grid gap-1 px-2 py-1.5 sm:grid-cols-[9rem_1fr_1fr]">
+                    <div
+                      key={field}
+                      className="grid gap-1 px-2 py-1.5 sm:grid-cols-[9rem_1fr_1fr]"
+                    >
                       <dt className="font-medium text-paper">{field}</dt>
-                      <dd><span className="text-slate">Before:</span> {formatAuditValue(before?.[field])}</dd>
-                      <dd><span className="text-slate">After:</span> {formatAuditValue(after?.[field])}</dd>
+                      <dd>
+                        <span className="text-slate">Before:</span>{" "}
+                        {formatAuditValue(before?.[field])}
+                      </dd>
+                      <dd>
+                        <span className="text-slate">After:</span>{" "}
+                        {formatAuditValue(after?.[field])}
+                      </dd>
                     </div>
                   ))}
                 </dl>
               </div>
             ) : (
-              <p className="sm:col-span-2">No additional audit details recorded for this event.</p>
+              <p className="sm:col-span-2">
+                No additional audit details recorded for this event.
+              </p>
             )}
           </div>
         </details>
