@@ -12,14 +12,12 @@ import { getCachedCategories } from "@/lib/cached-data";
 import { getDashboardSnapshot } from "@/lib/inventory-queries";
 import { Suspense } from "react";
 import { PanelSkeleton } from "@/components/layout/panel-skeleton";
+import {
+  ReplacementPlanTable,
+  type ReplacementStats,
+} from "@/components/dashboard/replacement-plan-table";
 
 type EquipmentCategory = { name: string };
-
-type ReplacementStats = {
-  totalExpiring: number;
-  totalBroken: number;
-  categories: Record<string, { total: number; replacement: number }>;
-};
 
 export default async function Home({
   searchParams,
@@ -160,7 +158,7 @@ export default async function Home({
       </div>
 
       <SectionPanel
-        title={`Replacement Plan for ${new Date().getFullYear()}`}
+        title={`Replacement Plan for ${new Date().getFullYear() + 1}`}
         description="Replacement and condition signals by division and category"
         actions={
           <form method="get">
@@ -169,77 +167,11 @@ export default async function Home({
         }
       >
         {Object.keys(plan).length ? (
-          <div className="max-h-[720px] overflow-auto">
-            <table className="w-full min-w-[680px] text-left text-xs">
-              <caption className="sr-only">
-                Replacement plan by division and equipment category
-              </caption>
-              <thead className="sticky top-0 z-10 border-b border-line bg-canvas text-slate">
-                <tr>
-                  <th scope="col" className="px-5 py-3 font-medium">
-                    Division
-                  </th>
-                  <th scope="col" className="px-4 py-3 text-right font-medium">
-                    Units expiring
-                  </th>
-                  <th scope="col" className="px-4 py-3 text-right font-medium">
-                    Units broken
-                  </th>
-                  {catArray.map((cat) => (
-                    <th
-                      scope="col"
-                      key={cat}
-                      className="px-4 py-3 text-right font-medium"
-                    >
-                      {cat} (Rep/Tot)
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {Object.entries(plan)
-                  .sort()
-                  .slice(0, pageSize)
-                  .map(([division, stats]) => (
-                    <tr
-                      key={division}
-                      className="border-b border-line/50 transition hover:bg-paper/[0.025]"
-                    >
-                      <th
-                        scope="row"
-                        className="px-5 py-3 text-left font-semibold text-paper"
-                      >
-                        {division}
-                      </th>
-                      <td
-                        className={`px-4 py-3 text-right tabular-nums ${stats.totalExpiring > 0 ? "text-warning" : "text-slate"}`}
-                      >
-                        {stats.totalExpiring}
-                      </td>
-                      <td
-                        className={`px-4 py-3 text-right tabular-nums ${stats.totalBroken > 0 ? "text-alert" : "text-slate"}`}
-                      >
-                        {stats.totalBroken}
-                      </td>
-                      {catArray.map((cat) => {
-                        const catStats = stats.categories[cat] || {
-                          total: 0,
-                          replacement: 0,
-                        };
-                        return (
-                          <td
-                            key={cat}
-                            className={`px-4 py-3 text-right tabular-nums ${catStats.replacement > 0 ? "text-alert" : "text-slate"}`}
-                          >
-                            {catStats.replacement} / {catStats.total}
-                          </td>
-                        );
-                      })}
-                    </tr>
-                  ))}
-              </tbody>
-            </table>
-          </div>
+          <ReplacementPlanTable
+            plan={plan}
+            categories={catArray}
+            pageSize={pageSize}
+          />
         ) : (
           <EmptyState
             title="No replacement records yet"

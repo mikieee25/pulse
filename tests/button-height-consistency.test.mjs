@@ -26,7 +26,7 @@ test("shared action buttons use the 40px height token", () => {
   for (const source of [budget, tutorial, admin, equipmentDetail]) {
     assert.match(source, /h-10/)
   }
-  assert.match(reports, /render=\{<Link href="\/reports\/export" \/>\}/)
+  assert.match(reports, /nativeButton=\{false\}[\s\S]*render=\{<Link href="\/reports\/export" \/>\}/)
   assert.match(reports, /size="action"[\s\S]*Export full CSV/)
   assert.match(reports, /Export full CSV/)
   assert.match(reports, /Previous/)

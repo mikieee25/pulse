@@ -1,6 +1,13 @@
+import type { Metadata } from "next";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { BrandLockup } from "@/components/layout/brand-lockup";
+
+export const metadata: Metadata = {
+  title: "Sign in",
+  description: "Sign in to the PULSE EUMB ICT equipment management system.",
+  robots: { index: false, follow: false },
+};
 
 export default async function LoginPage({
   searchParams,

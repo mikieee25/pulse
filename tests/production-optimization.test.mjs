@@ -5,6 +5,9 @@ import test from "node:test";
 const read = (path) => readFile(new URL(`../${path}`, import.meta.url), "utf8");
 const config = await read("next.config.ts");
 const layout = await read("src/app/layout.tsx");
+const loginPage = await read("src/app/login/page.tsx");
+const robots = await read("src/app/robots.ts").catch(() => "");
+const proxy = await read("src/proxy.ts");
 const envExample = await read(".env.example");
 const topbar = await read("src/components/layout/topbar.tsx");
 const dashboardLayout = await read("src/app/(dashboard)/layout.tsx");
@@ -24,6 +27,19 @@ test("production config is safe and LAN origins are configurable", () => {
 
 test("authenticated application metadata is not indexable", () => {
   assert.match(layout, /robots:\s*\{\s*index:\s*false,\s*follow:\s*false/s);
+});
+
+test("private app SEO surfaces are explicit and non-indexable", () => {
+  assert.match(layout, /metadataBase/);
+  assert.match(layout, /title:\s*\{\s*default:/s);
+  assert.match(layout, /applicationName:\s*["']PULSE["']/);
+  assert.match(layout, /openGraph:/);
+  assert.match(layout, /twitter:/);
+  assert.match(loginPage, /export const metadata/);
+  assert.match(loginPage, /title:\s*["']Sign in["']/);
+  assert.match(robots, /MetadataRoute\.Robots/);
+  assert.match(robots, /disallow:\s*["']\/["']/);
+  assert.match(proxy, /robots\.txt/);
 });
 
 test("environment template documents the service key scope", () => {

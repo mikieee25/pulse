@@ -181,6 +181,7 @@ export function ReportsClient({
             <Button
               variant="outline"
               size="action"
+              nativeButton={false}
               render={<Link href="/reports/export" />}
             >
               Export full CSV

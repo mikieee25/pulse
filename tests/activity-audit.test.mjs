@@ -45,6 +45,14 @@ test("activity UI exposes audit detail and event/entity filters", () => {
   assert.match(activityUi, /To date/)
 })
 
+test("user status paginates rows when the page size is smaller than the user list", () => {
+  assert.match(activityUi, /const \[statusPage, setStatusPage\] = useState\(1\)/)
+  assert.match(activityUi, /statusTotalPages/)
+  assert.match(activityUi, /Previous/)
+  assert.match(activityUi, /Next/)
+  assert.match(activityUi, /Showing \{statusStart\}-\{statusEnd\} of \{statuses\.data\.length\} users/)
+})
+
 test("equipment detail labels condition separately from lifecycle status", () => {
   assert.match(actionUi, /Condition/)
   assert.match(detailPage, /Lifecycle status/)

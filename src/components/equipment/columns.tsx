@@ -28,7 +28,7 @@ function statusBadge(status: EquipmentDisplayStatus) {
   const styles: Record<EquipmentDisplayStatus, string> = {
     Active: "border-pulse text-pulse bg-pulse/10",
     "Expiring soon": "border-warning text-warning bg-warning/10",
-    "For Replacement": "bg-alert text-paper",
+    "For Replacement": "bg-alert text-white",
     Broken: "border-alert text-alert bg-alert/10",
     Retired: "bg-slate text-canvas-deep",
   };

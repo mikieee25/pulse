@@ -14,10 +14,49 @@ const geistMono = Geist_Mono({
 
 const themeScript = `try{var t=localStorage.getItem("pulse-theme");if(t==="dark"){document.documentElement.classList.add("dark");document.documentElement.classList.remove("light")}}catch(e){}`;
 
+const metadataBase = (() => {
+  const value = process.env.NEXT_PUBLIC_APP_URL?.trim();
+  if (!value) return undefined;
+  try {
+    return new URL(value);
+  } catch {
+    return undefined;
+  }
+})();
+
+const description =
+  "PULSE is the EUMB ICT Personnel & Unit Lifecycle System for secure equipment, personnel, and lifecycle management.";
+
 export const metadata: Metadata = {
-  title: "PULSE | EUMB ICT Equipment System",
-  description: "Personnel & Unit Lifecycle System for Equipment",
-  robots: { index: false, follow: false },
+  metadataBase,
+  title: {
+    default: "PULSE | EUMB ICT Equipment System",
+    template: "%s | PULSE",
+  },
+  description,
+  applicationName: "PULSE",
+  referrer: "strict-origin-when-cross-origin",
+  robots: {
+    index: false,
+    follow: false,
+    googleBot: {
+      index: false,
+      follow: false,
+      noimageindex: true,
+    },
+  },
+  openGraph: {
+    type: "website",
+    locale: "en_PH",
+    siteName: "PULSE",
+    title: "PULSE | EUMB ICT Equipment System",
+    description,
+  },
+  twitter: {
+    card: "summary",
+    title: "PULSE | EUMB ICT Equipment System",
+    description,
+  },
   icons: {
     icon: "/pulseicon.svg",
     apple: "/pulseicon.svg",

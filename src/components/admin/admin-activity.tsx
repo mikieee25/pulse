@@ -43,6 +43,20 @@ export function AdminActivity({
   filters?: ActivityFilters;
 }) {
   const [statusPageSize, setStatusPageSize] = useState(25);
+  const [statusPage, setStatusPage] = useState(1);
+  const statusTotalPages = Math.max(
+    1,
+    Math.ceil(statuses.data.length / statusPageSize)
+  );
+  const currentStatusPage = Math.min(statusPage, statusTotalPages);
+  const statusStart = statuses.data.length
+    ? (currentStatusPage - 1) * statusPageSize + 1
+    : 0;
+  const statusEnd = Math.min(
+    currentStatusPage * statusPageSize,
+    statuses.data.length
+  );
+  const visibleStatuses = statuses.data.slice(statusStart - 1, statusEnd);
   const nextPage = new URLSearchParams();
   if (filters.actorUserId) nextPage.set("user", filters.actorUserId);
   if (filters.action) nextPage.set("action", filters.action);
@@ -61,7 +75,10 @@ export function AdminActivity({
         actions={
           <TablePageSizeSelect
             value={statusPageSize}
-            onChange={setStatusPageSize}
+            onChange={(value) => {
+              setStatusPageSize(value);
+              setStatusPage(1);
+            }}
           />
         }
       >
@@ -88,7 +105,7 @@ export function AdminActivity({
                   </tr>
                 </thead>
                 <tbody>
-                  {statuses.data.slice(0, statusPageSize).map((user) => (
+                  {visibleStatuses.map((user) => (
                     <tr key={user.id} className="border-b border-line/50">
                       <th
                         scope="row"
@@ -127,6 +144,40 @@ export function AdminActivity({
                   ))}
                 </tbody>
               </table>
+            </div>
+            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line px-5 py-3">
+              <span className="text-xs text-slate" aria-live="polite">
+                Showing {statusStart}-{statusEnd} of {statuses.data.length} users
+              </span>
+              <div className="flex items-center gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="action"
+                  onClick={() => setStatusPage((page) => Math.max(1, page - 1))}
+                  disabled={currentStatusPage === 1}
+                  aria-label="Previous user status page"
+                >
+                  Previous
+                </Button>
+                <span className="px-1 text-xs text-slate">
+                  Page {currentStatusPage} of {statusTotalPages}
+                </span>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="action"
+                  onClick={() =>
+                    setStatusPage((page) =>
+                      Math.min(statusTotalPages, page + 1)
+                    )
+                  }
+                  disabled={currentStatusPage === statusTotalPages}
+                  aria-label="Next user status page"
+                >
+                  Next
+                </Button>
+              </div>
             </div>
           </>
         )}
